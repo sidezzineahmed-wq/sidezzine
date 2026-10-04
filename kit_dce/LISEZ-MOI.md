@@ -26,3 +26,28 @@ Installation et tests (hors réseau, portail FICTIF local, Chromium réel) :
 
     pip install -r kit_dce/requirements.txt
     python3 -m unittest discover -s kit_dce/tests -v
+
+## Stockage privé dans Google Drive (`drive_adapter/`, optionnel)
+
+Au lieu des dépôts Artifact, une tâche peut ranger le DCE dans le Google Drive du compte exploitant (portée `drive.file`) :
+
+    (cd kit_dce && python3 -m drive_adapter stocker-dce --ref <id du dossier> --zip <archive> [--demande-le <ISO>] [--etat-dir <dossier>])
+    (cd kit_dce && python3 -m drive_adapter etat-dce --ref <id>)      # lecture seule : statut et fichiers rangés
+    (cd kit_dce && python3 -m drive_adapter lister-dce)               # lecture seule : consultations rangées
+
+- Arborescence `EAIOS_DCE_PRIVE/DCE_<ref>/` : archive d'origine et chaque document, manifeste `eaios_dce_manifeste_<ref>.json`
+  avec statuts horodatés (UTC) `demande → acquis → stockage → stocke → verifie` ou `echec`, taille, SHA-256, MD5 et identifiant
+  Drive par fichier. Aucun partage, aucun changement de droits. Un identifiant Drive n'est pas une adresse de téléchargement.
+- Idempotent : un fichier déjà rangé (même SHA-256, même taille) n'est pas renvoyé ; une session neuve reprend depuis Drive.
+  Les lectures (`etat-dce`, `lister-dce`) ne créent rien.
+- Authentification `DCE_GDRIVE_AUTH=proxy_oauth` : la tâche n'envoie que `grant_type=refresh_token` à
+  `https://oauth2.googleapis.com/token` ; `client_id`, `client_secret` et `refresh_token` sont ajoutés par le proxy de
+  l'environnement (identifiant d'API « Body parameter » limité à cet hôte et au chemin `/token`). Aucun secret dans ce dépôt,
+  aucun jeton écrit sur disque ni dans les journaux.
+- `resultat --drive <sortie de stocker-dce>` (au lieu de `--depots`) : le dossier n'est marqué prêt que si Drive a vérifié
+  tous les fichiers du manifest ; aucune entrée n'est écrite dans `dcef`.
+- Fichier d'état de reprise : droits `0600` sous Linux (chemin d'exécution prévu). Sous Windows ces droits ne s'appliquent pas.
+
+Tests (hors réseau, faux serveur Google local, proxy simulé) :
+
+    (cd kit_dce/drive_adapter_tests && python3 -m unittest discover -s . -t .)

@@ -115,9 +115,11 @@ def _cle(prefixe, pris):
     return f"{prefixe}_{n}"
 
 
-def resultat(did, demande, etat, run, registre=None, manifest=None, depots=None, maintenant=None):
+def resultat(did, demande, etat, run, registre=None, manifest=None, depots=None, maintenant=None, drive=None):
     """Traduit l'état écrit par une commande du kit en écritures épinglées. `depots` : {fichier_local: asset_id} rendu par
-    les dépôts Artifact ; chaque fichier du manifest doit y figurer, sinon rien n'est rattaché (pas de succès partiel)."""
+    les dépôts Artifact ; chaque fichier du manifest doit y figurer, sinon rien n'est rattaché (pas de succès partiel).
+    `drive` (au lieu de `depots`) : résumé rendu par « python -m drive_adapter stocker-dce » ; le dossier n'est marqué prêt que si
+    Drive a vérifié TOUS les fichiers du manifest (même SHA-256 et taille) ; aucune entrée d'asset n'est écrite dans dcef."""
     maintenant = maintenant or datetime.datetime.now(datetime.timezone.utc)
     m_iso, ver = _iso(maintenant), _version(demande)
     if (demande.get("tache") or {}).get("run") != run:
@@ -136,6 +138,8 @@ def resultat(did, demande, etat, run, registre=None, manifest=None, depots=None,
     if any((l.get("zip") or {}).get("sha256") == manifest["zip"]["sha256"] or l.get("contenu") == contenu for l in lots):
         return [_ecr("update", "dce_demande", did, {**fin, "etat": "pret", "erreur": None,
                      "resultat": {"zip_sha256": manifest["zip"]["sha256"], "contenu": contenu, "deja_importe": True, "cles": [], "le": m_iso}}, ver)]
+    if drive is not None:
+        return [_resultat_drive(did, manifest, drive, contenu, fin, m_iso, ver, demande)]
     depots = depots or {}
     manquants = [f["nom"] for f in manifest["fichiers"] + [manifest["zip"]] if not depots.get(f["fichier_local"])]
     if manquants:
@@ -160,6 +164,20 @@ def resultat(did, demande, etat, run, registre=None, manifest=None, depots=None,
     return [_ecr("update" if rv else "set", "dcef", did, reg, rv),
             _ecr("update", "dce_demande", did, {**fin, "etat": "pret", "erreur": None,
                  "resultat": {"zip_sha256": z["sha256"], "contenu": contenu, "deja_importe": False, "cles": list(nouveaux), "valide_par": (demande.get("validation") or {}).get("par"), "le": m_iso}}, ver)]
+
+
+def _resultat_drive(did, manifest, drive, contenu, fin, m_iso, ver, demande):
+    ranges = {(f.get("sha256"), f.get("taille")) for f in drive.get("fichiers") or []}
+    attendus = manifest["fichiers"] + [manifest["zip"]]
+    manquants = [f["nom"] for f in attendus if (f["sha256"], f["taille"]) not in ranges]
+    if drive.get("statut") != "verifie" or manquants:
+        motif = "stockage Drive non vérifié" if drive.get("statut") != "verifie" else "absents du Drive : " + ", ".join(manquants[:10])
+        return _ecr("update", "dce_demande", did, {**fin, "etat": "echec", "erreur": {"code": "stockage", "motif": motif, "le": m_iso}}, ver)
+    z = manifest["zip"]
+    return _ecr("update", "dce_demande", did, {**fin, "etat": "pret", "erreur": None, "resultat": {
+        "stockage": "drive", "ref": drive.get("ref"), "verifie_le": drive.get("maj"), "fichiers": len(attendus),
+        "zip_sha256": z["sha256"], "contenu": contenu, "deja_importe": False, "cles": [],
+        "valide_par": (demande.get("validation") or {}).get("par"), "le": m_iso}}, ver)
 
 
 def _lire(p):
@@ -196,7 +214,7 @@ def main_resultat(a):
         reg["__version"] = a.version_registre
     if not _version(dem) or (reg is not None and not _version(reg)):
         raise SystemExit("version inconnue (demande ou registre) : aucune écriture non épinglée")
-    w = resultat(a.id, dem, _lire(a.etat), a.run, registre=reg, manifest=_lire(a.manifest), depots=_lire(a.depots))
+    w = resultat(a.id, dem, _lire(a.etat), a.run, registre=reg, manifest=_lire(a.manifest), depots=_lire(a.depots), drive=_lire(getattr(a, "drive", None)))
     json.dump(w, open(a.sortie, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(json.dumps({"ecritures": len(w), "etat": w[-1]["data"].get("etat")}, ensure_ascii=False))
     return 0

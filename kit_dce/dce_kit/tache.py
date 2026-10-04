@@ -159,7 +159,7 @@ def main(argv=None):
     p = sp.add_parser("resultat")
     for o in ("--id", "--demande", "--etat", "--run", "--sortie"):
         p.add_argument(o, required=True)
-    for o in ("--registre", "--manifest", "--depots"):
+    for o in ("--registre", "--manifest", "--depots", "--drive"):
         p.add_argument(o)
     p.add_argument("--version-demande", type=int, help="version de dce_demande/<id> relevée à la lecture")
     p.add_argument("--version-registre", type=int, help="version de dcef/<id> relevée à la lecture (absent : registre à créer)")

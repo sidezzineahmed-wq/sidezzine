@@ -202,6 +202,23 @@ class TestCycle(unittest.TestCase):
         self.assertEqual(code, 0, err)
         self.assertEqual(json.load(open(sortie))["ecritures"][0]["if_version"], 1)
 
+    def test_resultat_drive_verifie_sans_asset(self):
+        d = {"tache": {"run": "r"}, "validation": {"par": "testeur"}, "__version": 4}
+        m = {"zip": {"nom": "a.zip", "sha256": "z" * 64, "taille": 10, "fichier_local": "/z"},
+             "fichiers": [{"nom": "RC.pdf", "chemin": "DCE/RC.pdf", "taille": 3, "sha256": "s" * 64, "depot": "pdf", "fichier_local": "/a"}]}
+        drv = {"ref": "fx-test", "statut": "verifie", "maj": "2026-10-04T18:45:52Z",
+               "fichiers": [{"sha256": "z" * 64, "taille": 10, "drive_id": "1" * 20}, {"sha256": "s" * 64, "taille": 3, "drive_id": "2" * 20}]}
+        w = cycle.resultat("fx-test", d, {"etat": "pret"}, "r", manifest=m, drive=drv)
+        self.assertEqual([(x["collection"], x["if_version"]) for x in w], [("dce_demande", 4)], "aucune écriture dcef")
+        r = w[0]["data"]["resultat"]
+        self.assertEqual((w[0]["data"]["etat"], r["stockage"], r["fichiers"], r["verifie_le"]), ("pret", "drive", 2, "2026-10-04T18:45:52Z"))
+        self.assertNotIn("1" * 20, json.dumps(w), "aucun identifiant Drive écrit dans EAIOS")
+        w = cycle.resultat("fx-test", d, {"etat": "pret"}, "r", manifest=m, drive={**drv, "fichiers": drv["fichiers"][:1]})
+        self.assertEqual((w[0]["data"]["etat"], w[0]["data"]["erreur"]["code"]), ("echec", "stockage"))
+        self.assertIn("RC.pdf", w[0]["data"]["erreur"]["motif"])
+        w = cycle.resultat("fx-test", d, {"etat": "pret"}, "r", manifest=m, drive={**drv, "statut": "stocke"})
+        self.assertEqual(w[0]["data"]["erreur"]["motif"], "stockage Drive non vérifié")
+
     def test_resultat_refuse_sans_bail(self):
         with self.assertRaises(ValueError):
             cycle.resultat("fx-test", {"tache": {"run": "autre"}}, {"etat": "echec"}, "r")

@@ -24,8 +24,8 @@ def zip_fictif():
 def _docx():
     b = io.BytesIO()
     with zipfile.ZipFile(b, "w") as z:
-        z.writestr("[Content_Types].xml", "<Types/>")
-        z.writestr("word/document.xml", "<w:document/>")
+        for n, c in (("[Content_Types].xml", "<Types/>"), ("word/document.xml", "<w:document/>")):
+            z.writestr(zipfile.ZipInfo(n, date_time=(2026, 1, 1, 0, 0, 0)), c)  # DOCX stable ; l'archive extérieure, elle, est régénérée
     return b.getvalue()
 
 

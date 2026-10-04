@@ -10,6 +10,12 @@ chaque commande est une étape courte d'une tâche cloud, et écrit un JSON d'é
 | `ouvrir` | Ouvre la page DCE, vérifie ref/org, lit les CG et l'empreinte. **Ne remplit, ne coche, ne soumet rien.** | oui |
 | `telecharger` | Exige la validation humaine (phrase exacte, empreinte, moins de 24 h), refuse si les CG ont changé, saisit l'identité de l'exploitant, soumet, capture l'archive | **non** : approbation à chaque exécution |
 | `preparer` | Contrôle le ZIP ; PDF tels quels, autres fichiers et ZIP d'origine en base64 ; `manifest.json` avec SHA-256 | oui |
+| `planifier` | Lit la file `dce_demande` (export ArtifactData), choisit au plus une action, rend les écritures qui prennent le bail (épinglées `if_version`) | oui |
+| `resultat` | Traduit l'état d'une commande en écritures épinglées : `dce_demande` et registre `dcef` (clés `dce_1000+`), anti-doublon par empreinte du ZIP **et du contenu** | oui |
+
+Cycle d'une tâche cloud finie (aucun serveur) : lecture de la file par ArtifactData → `planifier` → lot ArtifactData du bail →
+`ouvrir` ou `telecharger` → `preparer` → dépôt des fichiers par Artifact (asset) → `resultat` → lot ArtifactData. La tâche
+n'écrit jamais le document du dossier ; la validation des CG est écrite par un humain depuis la page.
 
 - 401/403, page de contrôle ou CAPTCHA : état `echec`, code de sortie 2, **aucune nouvelle tentative**, aucun contournement.
 - L'identité vient des variables d'environnement `DCE_NOM`, `DCE_PRENOM`, `DCE_EMAIL` de l'exploitant ; elle n'est jamais

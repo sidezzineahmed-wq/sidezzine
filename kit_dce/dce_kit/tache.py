@@ -149,7 +149,21 @@ def main(argv=None):
     p = sp.add_parser("preparer")
     p.add_argument("--zip", required=True)
     p.add_argument("--sortie", required=True)
+    p = sp.add_parser("planifier")
+    p.add_argument("--file", required=True, help="JSON {doc_id: document} ou répertoire de <doc_id>.json lus par ArtifactData")
+    p.add_argument("--dossiers-autorises", required=True)
+    p.add_argument("--run", required=True)
+    p.add_argument("--max-actions", type=int, default=1)
+    p.add_argument("--sortie", required=True)
+    p = sp.add_parser("resultat")
+    for o in ("--id", "--demande", "--etat", "--run", "--sortie"):
+        p.add_argument(o, required=True)
+    for o in ("--registre", "--manifest", "--depots"):
+        p.add_argument(o)
     a = ap.parse_args(argv)
+    if a.cmd in ("planifier", "resultat"):
+        from . import cycle
+        return cycle.main_planifier(a) if a.cmd == "planifier" else cycle.main_resultat(a)
     try:
         if a.cmd == "verifier-env":
             r = asyncio.run(_verifier_env())

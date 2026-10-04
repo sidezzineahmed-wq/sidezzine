@@ -124,6 +124,7 @@ class TestCycle(unittest.TestCase):
         p = self.passage("r2")
         self.assertEqual(p["actions"], [], "sans validation humaine, aucune action")
         self.valider_humain()
+        self.portail.zip_date = (2026, 1, 1, 0, 0, 0)
         self.passage("r3")
         d, reg = self.db.lire("dce_demande", "fx-test"), self.db.lire("dcef", "fx-test")
         self.assertEqual(d["etat"], "pret", d.get("erreur"))
@@ -135,9 +136,11 @@ class TestCycle(unittest.TestCase):
         self.db.lot([{"op": "update", "collection": "dce_demande", "doc_id": "fx-test", "if_version": d["__version"], "data": {"etat": "demandee"}}])
         self.passage("r4")
         self.valider_humain()
+        self.portail.zip_date = (2026, 1, 1, 0, 0, 2)  # même contenu, archive aux octets différents (portail qui régénère)
         self.passage("r5")
         d, reg2 = self.db.lire("dce_demande", "fx-test"), self.db.lire("dcef", "fx-test")
-        self.assertTrue(d["resultat"]["deja_importe"])
+        self.assertNotEqual(d["resultat"]["zip_sha256"], reg["lots"][0]["zip"]["sha256"], "archives différentes en octets")
+        self.assertTrue(d["resultat"]["deja_importe"], "doublon reconnu par le contenu")
         self.assertEqual(sorted(reg2["fichiers"]), sorted(reg["fichiers"]))
 
     def test_validation_non_conforme_rejetee(self):

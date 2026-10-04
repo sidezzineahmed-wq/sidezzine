@@ -11,13 +11,21 @@ from urllib.parse import parse_qs, urlparse
 PDF = b"%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF"
 
 
-def zip_fictif():
+def zip_fictif(date_time=None):
+    """Archive du portail FICTIF. Sans date_time, chaque entrée porte l'heure courante (résolution ZIP : 2 s) : comme un vrai
+    portail, deux téléchargements du même dossier donnent des octets différents pour un même contenu. Un test qui veut le SHA
+    de l'archive téléchargée doit donc le prendre sur les octets SERVIS (Etat.zips_servis), jamais sur une archive régénérée."""
     b = io.BytesIO()
     with zipfile.ZipFile(b, "w", zipfile.ZIP_DEFLATED) as z:
-        z.writestr("DCE/", "")
+        def ecrire(nom, contenu):
+            if date_time is None:
+                z.writestr(nom, contenu)
+            else:
+                z.writestr(zipfile.ZipInfo(nom, date_time=date_time), contenu, compress_type=zipfile.ZIP_DEFLATED)
+        ecrire("DCE/", "")
         for n in ("RC.pdf", "CPS.pdf", "AVIS EN FR.pdf"):
-            z.writestr("DCE/" + n, PDF + n.encode())
-        z.writestr("DCE/BPDE.docx", _docx())
+            ecrire("DCE/" + n, PDF + n.encode())
+        ecrire("DCE/BPDE.docx", _docx())
     return b.getvalue()
 
 
@@ -33,6 +41,7 @@ class Etat:
     def __init__(self):
         self.soumis, self.cg_texte, self.telechargements, self.vues = [], "J'accepte les conditions générales d'utilisation", [], []
         self.cg_doc, self.lien_cg, self.lenteur_s = b"%PDF-1.4 Conditions generales fictives v1 %%EOF", "/cgu.pdf", 0
+        self.zip_date, self.zips_servis = None, []   # date fixe des entrées (None : heure courante) ; archives réellement servies
 
 
 def construire(etat):
@@ -69,7 +78,9 @@ def construire(etat):
                 etat.telechargements.append(q.get("ref"))
                 if etat.lenteur_s:
                     time.sleep(etat.lenteur_s)
-                corps = b"PK\x03\x04 pas une archive" if q.get("ref") == "RBAD" else zip_fictif()
+                corps = b"PK\x03\x04 pas une archive" if q.get("ref") == "RBAD" else zip_fictif(etat.zip_date)
+                if q.get("ref") != "RBAD":
+                    etat.zips_servis.append(corps)
                 return self._env(200, corps, "application/zip", {"Content-Disposition": f'attachment; filename="DCE_{q.get("ref")}.zip"'})
             ref, org = q.get("refConsultation", ""), q.get("orgAcronyme", "")
             if ref == "R403":

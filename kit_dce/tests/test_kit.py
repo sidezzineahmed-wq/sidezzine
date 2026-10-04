@@ -55,11 +55,12 @@ class TestConfig(Base):
 class TestPreparer(Base):
     def test_archive_fictive(self):
         z = os.path.join(self.d, "DCE_fictif.zip")
-        open(z, "wb").write(portail_fictif.zip_fictif())
+        octets = portail_fictif.zip_fictif()
+        open(z, "wb").write(octets)
         code, out, err = cli("preparer", "--zip", z, "--sortie", os.path.join(self.d, "o"))
         self.assertEqual(code, 0, err)
         m = json.load(open(os.path.join(self.d, "o", "manifest.json")))
-        self.assertEqual(m["zip"]["sha256"], hashlib.sha256(portail_fictif.zip_fictif()).hexdigest())
+        self.assertEqual(m["zip"]["sha256"], hashlib.sha256(octets).hexdigest(), "SHA des octets préparés, pas d'une archive régénérée")
         self.assertEqual(sorted((f["nom"], f["depot"]) for f in m["fichiers"]),
                          [("AVIS EN FR.pdf", "pdf"), ("BPDE.docx", "texte_base64"), ("CPS.pdf", "pdf"), ("RC.pdf", "pdf")])
         for f in m["fichiers"] + [m["zip"]]:
@@ -136,12 +137,26 @@ class TestPortailFictif(Base):
         self.assertEqual(len(self.etat.vues), n, "aucune requête au portail sans validation humaine valable")
         self.assertEqual(self.etat.soumis, [])
 
+    def test_zip_regenere_meme_contenu_autres_octets(self):
+        """Cause de l'échec intermittent corrigé : l'archive porte l'heure de sa création (2 s). Deux générations à cheval sur
+        une frontière de 2 s diffèrent en octets, pas en contenu."""
+        a, b = portail_fictif.zip_fictif((2026, 1, 1, 0, 0, 0)), portail_fictif.zip_fictif((2026, 1, 1, 0, 0, 2))
+        self.assertNotEqual(hashlib.sha256(a).hexdigest(), hashlib.sha256(b).hexdigest())
+        self.assertEqual(portail_fictif.zip_fictif((2026, 1, 1, 0, 0, 0)), a, "date fixe : octets reproductibles")
+        import io
+        import zipfile
+        contenu = lambda x: {i.filename: zipfile.ZipFile(io.BytesIO(x)).read(i) for i in zipfile.ZipFile(io.BytesIO(x)).infolist()}
+        self.assertEqual(contenu(a), contenu(b))
+
     def test_chaine_complete_apres_validation(self):
+        self.etat.zip_date = (2020, 1, 1, 0, 0, 0)  # déterministe : une archive régénérée maintenant aurait d'autres octets
         _, e, _ = self.ouvrir("R-FICTIF-1")
         code, r, err = self.telecharger(self.validation(e["cg"]["empreinte"]))
         self.assertEqual((code, r["etat"]), (0, "pret"), err[-800:])
         self.assertEqual(self.etat.soumis, [{"ref": "R-FICTIF-1", "nom": "Fictif", "prenom": "Testeur", "mail": "test@exemple.invalid", "cgu": "on"}])
-        self.assertEqual(r["zip_sha256"], hashlib.sha256(portail_fictif.zip_fictif()).hexdigest())
+        self.assertEqual(len(self.etat.zips_servis), 1, "une seule archive servie")
+        self.assertEqual(r["zip_sha256"], hashlib.sha256(self.etat.zips_servis[0]).hexdigest(), "SHA de l'archive réellement servie")
+        self.assertNotEqual(r["zip_sha256"], hashlib.sha256(portail_fictif.zip_fictif()).hexdigest(), "une archive régénérée diffère : ne jamais comparer à elle")
         self.assertEqual(len(json.load(open(r["manifest"]))["fichiers"]), 4)
 
     def test_cg_modifiees_nouvelle_validation(self):

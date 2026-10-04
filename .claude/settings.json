@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install -r kit_dce/requirements.txt)",
+      "Bash(python3 -m unittest discover -s kit_dce/tests -v)",
+      "Bash(python3 kit_dce/dce_tache.py verifier-env)",
+      "Bash(python3 kit_dce/dce_tache.py preparer:*)",
+      "Bash(python3 kit_dce/dce_tache.py ouvrir:*)"
+    ]
+  }
+}

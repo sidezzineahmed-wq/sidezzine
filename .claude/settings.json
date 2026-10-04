@@ -7,7 +7,8 @@
       "Bash(python3 kit_dce/dce_tache.py preparer:*)",
       "Bash(python3 kit_dce/dce_tache.py ouvrir:*)",
       "Bash(python3 kit_dce/dce_tache.py planifier:*)",
-      "Bash(python3 kit_dce/dce_tache.py resultat:*)"
+      "Bash(python3 kit_dce/dce_tache.py resultat:*)",
+      "Bash(python3 kit_dce/tests/portail_fictif.py)"
     ]
   }
 }

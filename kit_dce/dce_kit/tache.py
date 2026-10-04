@@ -154,12 +154,15 @@ def main(argv=None):
     p.add_argument("--dossiers-autorises", required=True)
     p.add_argument("--run", required=True)
     p.add_argument("--max-actions", type=int, default=1)
+    p.add_argument("--versions", help="JSON {doc_id: version} relevé dans le compte rendu de lecture ArtifactData (out_dir n'écrit pas la version)")
     p.add_argument("--sortie", required=True)
     p = sp.add_parser("resultat")
     for o in ("--id", "--demande", "--etat", "--run", "--sortie"):
         p.add_argument(o, required=True)
     for o in ("--registre", "--manifest", "--depots"):
         p.add_argument(o)
+    p.add_argument("--version-demande", type=int, help="version de dce_demande/<id> relevée à la lecture")
+    p.add_argument("--version-registre", type=int, help="version de dcef/<id> relevée à la lecture (absent : registre à créer)")
     a = ap.parse_args(argv)
     if a.cmd in ("planifier", "resultat"):
         from . import cycle

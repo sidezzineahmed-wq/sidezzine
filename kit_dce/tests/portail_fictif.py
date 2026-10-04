@@ -100,3 +100,9 @@ def demarrer():
     srv = ThreadingHTTPServer(("127.0.0.1", 0), construire(etat))
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     return srv, etat
+
+
+if __name__ == "__main__":  # banc cloud : portail FICTIF local seulement, port affiché ; aucun accès extérieur
+    s, _ = demarrer()
+    print("PORT", s.server_address[1], flush=True)
+    threading.Event().wait()

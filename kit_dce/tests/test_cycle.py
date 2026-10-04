@@ -189,6 +189,19 @@ class TestCycle(unittest.TestCase):
         self.assertEqual(len(w), 1)
         self.assertEqual((w[0]["data"]["etat"], w[0]["data"]["erreur"]["code"]), ("echec", "depot"))
 
+    def test_cli_versions_obligatoires(self):
+        """Lecture réelle par out_dir : documents SANS version ; la CLI exige --versions et n'écrit jamais sans épinglage."""
+        dossier = os.path.join(self.d, "lu", "dce_demande")
+        os.makedirs(dossier)
+        json.dump({k: v for k, v in self.db.lire("dce_demande", "fx-test").items() if k != "__version"}, open(os.path.join(dossier, "fx-test.json"), "w"))
+        sortie = os.path.join(self.d, "plan.json")
+        code, _, err = cli("planifier", "--file", dossier, "--dossiers-autorises", "fx-test", "--run", "r", "--sortie", sortie)
+        self.assertNotEqual(code, 0)
+        self.assertIn("--versions", err)
+        code, _, err = cli("planifier", "--file", dossier, "--dossiers-autorises", "fx-test", "--run", "r", "--sortie", sortie, "--versions", self.j("v.json", {"fx-test": 1}))
+        self.assertEqual(code, 0, err)
+        self.assertEqual(json.load(open(sortie))["ecritures"][0]["if_version"], 1)
+
     def test_resultat_refuse_sans_bail(self):
         with self.assertRaises(ValueError):
             cycle.resultat("fx-test", {"tache": {"run": "autre"}}, {"etat": "echec"}, "r")

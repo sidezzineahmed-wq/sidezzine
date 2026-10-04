@@ -172,6 +172,12 @@ def _lire(p):
 
 def main_planifier(a):
     dem = _lire(a.file)
+    for did, v in (_lire(a.versions) or {}).items():
+        if did in dem:
+            dem[did]["__version"] = int(v)
+    for did, d in dem.items():
+        if not _version(d):
+            raise SystemExit(f"version inconnue pour dce_demande/{did} : passez --versions (aucune écriture non épinglée)")
     autorises = set(x for x in a.dossiers_autorises.split(",") if x)
     p = planifier(dem, autorises, a.run, max_actions=a.max_actions)
     json.dump(p, open(a.sortie, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
@@ -183,7 +189,14 @@ def main_planifier(a):
 
 
 def main_resultat(a):
-    w = resultat(a.id, _lire(a.demande), _lire(a.etat), a.run, registre=_lire(a.registre), manifest=_lire(a.manifest), depots=_lire(a.depots))
+    dem, reg = _lire(a.demande), _lire(a.registre)
+    if a.version_demande:
+        dem["__version"] = a.version_demande
+    if reg is not None and a.version_registre:
+        reg["__version"] = a.version_registre
+    if not _version(dem) or (reg is not None and not _version(reg)):
+        raise SystemExit("version inconnue (demande ou registre) : aucune écriture non épinglée")
+    w = resultat(a.id, dem, _lire(a.etat), a.run, registre=reg, manifest=_lire(a.manifest), depots=_lire(a.depots))
     json.dump(w, open(a.sortie, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(json.dumps({"ecritures": len(w), "etat": w[-1]["data"].get("etat")}, ensure_ascii=False))
     return 0

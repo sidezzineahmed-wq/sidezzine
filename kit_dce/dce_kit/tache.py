@@ -9,6 +9,9 @@
                                      l'identité de l'exploitant (variables d'environnement), soumet, capture l'archive.
   preparer   --zip F --sortie DIR    Contrôle l'archive et prépare le retour : PDF tels quels, autres fichiers et archive
                                      d'origine en texte base64, manifest.json avec les empreintes SHA-256.
+  zip-binaire --manifest M --racine W --sortie F
+                                     Reconstitue l'archive ZIP binaire (pour stocker-dce) depuis sa copie base64 du
+                                     manifest : chemin résolu sous W, décodage strict, taille/SHA-256/archive vérifiés.
 
 401/403, page de contrôle ou CAPTCHA : état « echec », code de sortie 2, AUCUNE nouvelle tentative."""
 import argparse
@@ -52,6 +55,7 @@ def preparer(octets, nom_zip, sortie, zip_max=200 * 2**20):
     """Archive -> fichiers prêts au dépôt : PDF (dépôt direct), autres et archive d'origine en base64 (dépôt texte)."""
     import io
     import zipfile
+    sortie = os.path.abspath(sortie)   # fichier_local absolu : le manifest se lit depuis n'importe quel répertoire
     inv = inspecter(octets, zip_max=zip_max)
     z = zipfile.ZipFile(io.BytesIO(octets))
     os.makedirs(os.path.join(sortie, "fichiers"), exist_ok=True)
@@ -150,6 +154,10 @@ def main(argv=None):
     p = sp.add_parser("preparer")
     p.add_argument("--zip", required=True)
     p.add_argument("--sortie", required=True)
+    p = sp.add_parser("zip-binaire")
+    p.add_argument("--manifest", required=True)
+    p.add_argument("--racine", required=True, help="racine de travail : lecture et écriture confinées dessous")
+    p.add_argument("--sortie", required=True, help="chemin du ZIP binaire à écrire (sous la racine)")
     p = sp.add_parser("planifier")
     p.add_argument("--file", required=True, help="JSON {doc_id: document} ou répertoire de <doc_id>.json lus par ArtifactData")
     p.add_argument("--dossiers-autorises", required=True)
@@ -164,15 +172,27 @@ def main(argv=None):
         p.add_argument(o)
     p.add_argument("--version-demande", type=int, help="version de dce_demande/<id> relevée à la lecture")
     p.add_argument("--version-registre", type=int, help="version de dcef/<id> relevée à la lecture (absent : registre à créer)")
+    p = sp.add_parser("reprise-stockage", help="stockage seul après un échec de stockage : une écriture épinglée, aucun portail")
+    for o in ("--id", "--demande", "--manifest", "--drive", "--zip-sha256", "--run", "--dossiers-autorises", "--sortie"):
+        p.add_argument(o, required=True)
+    p.add_argument("--version-demande", type=int, required=True)
     a = ap.parse_args(argv)
-    if a.cmd in ("planifier", "resultat"):
+    if a.cmd in ("planifier", "resultat", "reprise-stockage"):
         from . import cycle
-        return cycle.main_planifier(a) if a.cmd == "planifier" else cycle.main_resultat(a)
+        return {"planifier": cycle.main_planifier, "resultat": cycle.main_resultat, "reprise-stockage": cycle.main_reprise}[a.cmd](a)
     try:
         if a.cmd == "verifier-env":
             r = asyncio.run(_verifier_env())
             print(json.dumps(r, ensure_ascii=False))
             return 0 if r["etat"] == "ok" else 1
+        if a.cmd == "zip-binaire":
+            from .raccord import RaccordInvalide, zip_binaire
+            try:
+                r = zip_binaire(a.manifest, a.racine, a.sortie)
+            except RaccordInvalide as e:
+                r = {"etat": "echec", "code": "raccord", "motif": str(e), "le": maintenant()}
+            print(json.dumps(r, ensure_ascii=False))
+            return 0 if r["etat"] == "ok" else 2
         if a.cmd == "preparer":
             m = preparer(open(a.zip, "rb").read(), os.path.basename(a.zip), a.sortie)
             print(json.dumps({"etat": "ok", "zip_sha256": m["zip"]["sha256"], "fichiers": len(m["fichiers"])}, ensure_ascii=False))

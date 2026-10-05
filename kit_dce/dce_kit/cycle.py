@@ -191,6 +191,42 @@ def _resultat_drive(did, manifest, drive, contenu, fin, m_iso, ver, demande):
         "valide_par": (demande.get("validation") or {}).get("par"), "le": m_iso}}, ver)
 
 
+def reprise_stockage(did, demande, manifest, drive, zip_sha256_attendu, run, dossiers_autorises, maintenant=None):
+    """Reprise du STOCKAGE SEUL après un passage dont le téléchargement a réussi mais dont le stockage Drive a échoué
+    (dce_demande : etat « echec », code « stockage »). L'état « pret » du passage ayant été remplacé par l'état d'échec,
+    l'archive est désignée par son SHA-256 relevé dans ce passage (zip_sha256_attendu), qui doit être celui du manifest
+    et de l'archive rangée dans Drive.
+    Aucune navigation, aucun téléchargement, aucune CG lue ni acceptée : `validation` et `cg` ne sont ni lues pour décider
+    ni réécrites. Pas de bail : « resultat » exige le bail du passage (tache.run), libéré par l'échec ; la reprise est UNE
+    écriture épinglée (if_version) sur la version lue, et planifier ne prend jamais une demande en « echec ».
+    L'échec d'origine est conservé (resultat.reprise.echec_precedent) : rien n'est effacé de l'historique."""
+    maintenant = maintenant or datetime.datetime.now(datetime.timezone.utc)
+    m_iso, ver = _iso(maintenant), _version(demande)
+    err = demande.get("erreur") or {}
+    if not ver:
+        raise ValueError("version de la demande inconnue : aucune écriture non épinglée")
+    if demande.get("ao_id") != did or did not in dossiers_autorises:
+        raise ValueError("dossier non autorisé pour la tâche")
+    if demande.get("etat") != "echec" or err.get("code") != "stockage":
+        raise ValueError(f"reprise refusée : la demande n'est pas en échec de stockage (etat {demande.get('etat')}, code {err.get('code')})")
+    bail = demande.get("tache") or {}
+    if bail.get("jusqu") and (_t(bail["jusqu"]) or maintenant) > maintenant:
+        raise ValueError(f"reprise refusée : demande tenue par le passage {bail.get('run')}")
+    z = manifest["zip"]
+    if not zip_sha256_attendu or zip_sha256_attendu != z["sha256"]:
+        raise ValueError("reprise refusée : le manifest ne correspond pas à l'archive du téléchargement d'origine")
+    if drive.get("ref") != did:
+        raise ValueError("reprise refusée : le stockage Drive concerne une autre consultation")
+    if (drive.get("archive") or {}).get("sha256") != z["sha256"]:
+        raise ValueError("reprise refusée : l'archive rangée dans Drive n'est pas celle du manifest")
+    w = _resultat_drive(did, manifest, drive, empreinte_contenu(manifest), {"tache": None, "maj": m_iso}, m_iso, ver, demande)
+    if w["data"]["etat"] != "pret":
+        return w   # stockage toujours non vérifié : nouvel échec daté, l'ancien reste dans le journal du passage
+    w["data"]["resultat"]["reprise"] = {"run": run, "le": m_iso, "echec_precedent": err, "zip_sha256": z["sha256"],
+                                        "nature": "stockage seul, octets du téléchargement d'origine, aucun accès au portail"}
+    return w
+
+
 def _lire(p):
     if not p:
         return None
@@ -228,4 +264,15 @@ def main_resultat(a):
     w = resultat(a.id, dem, _lire(a.etat), a.run, registre=reg, manifest=_lire(a.manifest), depots=_lire(a.depots), drive=_lire(getattr(a, "drive", None)))
     json.dump(w, open(a.sortie, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(json.dumps({"ecritures": len(w), "etat": w[-1]["data"].get("etat")}, ensure_ascii=False))
+    return 0
+
+
+def main_reprise(a):
+    dem = _lire(a.demande)
+    if a.version_demande:
+        dem["__version"] = a.version_demande
+    w = reprise_stockage(a.id, dem, _lire(a.manifest), _lire(a.drive), a.zip_sha256, a.run,
+                         set(x for x in a.dossiers_autorises.split(",") if x))
+    json.dump([w], open(a.sortie, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print(json.dumps({"ecritures": 1, "etat": w["data"].get("etat")}, ensure_ascii=False))
     return 0

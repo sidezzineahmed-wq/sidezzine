@@ -224,7 +224,7 @@ class NavigateurPlaywright:
                     if r.ok and corps and "html" in typ:
                         # page HTML (PRADO) : copie canonique de la section unique #main-part (cg_texte), jamais les octets bruts
                         try:
-                            canon = cg_texte.canonique(corps.decode(cg_texte.charset(typ), errors="replace"))
+                            canon = cg_texte.canonique(cg_texte.decoder(corps, r.headers.get("content-type") or ""))
                         except cg_texte.ExtractionRefusee as x:
                             raise Refus("cg_extraction", f"conditions générales illisibles de façon sûre : {x} ; rien n'est validable") from None
                         doc_sha = cg_texte.empreinte(canon)

@@ -48,6 +48,8 @@ class Etat:
                                "Article 2 - Responsabilité : l'utilisateur est responsable des informations saisies."]
         self.cg_clause_repliee = "Article 3 - Clause repliée : les données de connexion sont conservées un an."
         self.cg_prerequis = "Navigateur récent avec JavaScript activé."
+        self.cg_lien_doc = "/index.php?page=commun.Document&amp;document=cgu&amp;revision=2&amp;lang=fr"  # paramètres contractuels (ancre #art3 ajoutée après)
+        self.cg_image = "/img/navigateurs.png?v=3"
         self.cg_bandeau = ""            # bandeau date/heure HORS #main-part (vide : heure courante, change à chaque requête)
         self.cg_main_part_html = None   # remplace toute la section (tests de structure absente ou ambiguë)
         self.cg_html_vues = 0   # date fixe des entrées (None : heure courante) ; archives réellement servies
@@ -97,9 +99,9 @@ def construire(etat):
                     f"""<h1>Conditions d'utilisation</h1><div id="rubrique_1" class="rubrique"><h2>Conditions d'utilisation</h2>"""
                     + "".join(f'<p style="margin:{n}px">{x}</p>' for x in etat.cg_paragraphes)
                     + f"""<div class="deplier" style="display:none"><p>{etat.cg_clause_repliee}</p></div>"""
-                    f"""<p>Voir <a href="/index.php?page=commun.Aide&amp;PRADO_SESSION=S{n}&amp;sid={t}#aide">l'aide</a>.</p></div>"""
+                    f"""<p>Voir <a href="{etat.cg_lien_doc}&amp;PHPSESSID=S{n}-{t}#art3">le document</a>.</p></div>"""
                     f"""<div id="rubrique_2" class="rubrique"><h2>Pré-requis techniques</h2><p>{etat.cg_prerequis}</p>"""
-                    f"""<img src="/img/navigateurs.png?v={n}" alt="Navigateurs supportés"></div></div>""")
+                    f"""<img src="{etat.cg_image}" alt="Navigateurs supportés"></div></div>""")
                 corps = (f"""<!doctype html><html><head><title>Conditions - session {n}</title><script>var s="{t}";</script></head>"""
                          f"""<body><!-- rendu {t} --><div id="bandeau" class="bandeau">Nous sommes le {etat.cg_bandeau or time.strftime('%d/%m/%Y %H:%M:%S')}</div>"""
                          f"""<form><input type="hidden" name="PRADO_PAGESTATE" value="ETAT{n}-{t}">{sections}</form></body></html>""")

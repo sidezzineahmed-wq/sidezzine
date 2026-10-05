@@ -34,6 +34,20 @@ def _sous(chemin, racine):
     return c == r or c.startswith(r + os.sep)
 
 
+def _dossier_sous(dossier, racine):
+    """Le chemin réel que prendrait `dossier` (existant ou à créer) est-il sous la racine ? Rien n'est créé : le plus
+    proche ancêtre existant est résolu (liens compris), les composants absents lui sont ajoutés tels quels."""
+    d, reste = os.path.abspath(dossier), []
+    while not os.path.lexists(d):
+        d, nom = os.path.split(d)
+        if not nom:
+            return False
+        reste.insert(0, nom)
+    if not os.path.isdir(d):
+        return False
+    return _sous(os.path.join(os.path.realpath(d), *reste), racine)
+
+
 def _sha_fichier(p):
     with open(p, "rb") as f:
         return hashlib.sha256(f.read()).hexdigest()
@@ -112,8 +126,10 @@ def zip_binaire(manifest, racine, sortie, zip_max=200 * 2**20):
         raise RaccordInvalide(f"archive invalide : {e}") from None
     sortie = os.path.abspath(sortie)
     dossier = os.path.dirname(sortie)
+    if not _dossier_sous(dossier, racine) or os.path.islink(sortie):   # contrôle AVANT toute création
+        raise RaccordInvalide("sortie hors de la racine de travail")
     os.makedirs(dossier, exist_ok=True)
-    if not _sous(dossier, racine) or os.path.islink(sortie):
+    if not _sous(dossier, racine):                                      # recontrôle après création (chemin réel)
         raise RaccordInvalide("sortie hors de la racine de travail")
     if os.path.exists(sortie):
         if not os.path.isfile(sortie) or _sha_fichier(sortie) != sha:

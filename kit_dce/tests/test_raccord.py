@@ -110,6 +110,26 @@ class TestRaccord(Base):
         finally:
             shutil.rmtree(ailleurs)
 
+    def test_sortie_hors_racine_aucun_repertoire_cree(self):
+        man, _ = self.manifest_relatif()
+        ailleurs = tempfile.mkdtemp()
+        try:
+            cas = [os.path.join(ailleurs, "neuf", "sous", "z.zip"),                      # parent inexistant hors racine
+                   os.path.join(self.w, "..", os.path.basename(ailleurs), "n2", "z.zip"),  # « .. » depuis la racine
+                   os.path.join(self.w, "lien", "n3", "z.zip")]                          # lien sous la racine vers l'extérieur
+            os.symlink(ailleurs, os.path.join(self.w, "lien"))
+            for out in cas:
+                with self.subTest(out=out), self.assertRaisesRegex(RaccordInvalide, "sortie hors"):
+                    zip_binaire(man, self.w, out)
+            self.assertEqual(os.listdir(ailleurs), [], "aucun répertoire créé hors de la racine")
+            code, o, _ = cli("zip-binaire", "--manifest", man, "--racine", self.w, "--sortie", cas[0])
+            self.assertEqual((code, json.loads(o)["code"]), (2, "raccord"))
+            self.assertEqual(os.listdir(ailleurs), [])
+            r = zip_binaire(man, self.w, os.path.join(self.w, "a", "b", "z.zip"))   # parent inexistant SOUS la racine : créé
+            self.assertEqual(r["sha256"], self.sha)
+        finally:
+            shutil.rmtree(ailleurs)
+
     def test_decodage_strict(self):
         bon = base64.b64encode(self.octets)
         self.assertEqual(decoder_strict(bon + b"\n", 10**9), self.octets)

@@ -7,7 +7,7 @@ au lieu d'être écrasée.
 
 File  : collection `dce_demande`, un document par dossier :
   {ao_id, ref, org, reference_attendue?, etat, demande_par, demande_le,
-   cg?: {texte, lien, empreinte, portee, lue_le},
+   cg?: {texte, lien, empreinte, portee, algo, doc_sha256, canonique?, lue_le},
    validation?: {phrase, empreinte, par, le},            <- écrite par un HUMAIN depuis la page, jamais par la tâche
    tache?: {run, jusqu}, erreur?: {code, motif, le}, resultat?: {...}, maj}
 États : demandee -> ouverture -> attente_validation_CG -> (humain) cg_validees -> telechargement -> pret | echec | expiree | annulee
@@ -18,6 +18,7 @@ import hashlib
 import json
 import os
 
+from .cg_texte import ALGO
 from .tache import PHRASE
 
 BAIL_MIN = 45                 # une tâche bloquée libère la demande après ce délai
@@ -83,6 +84,13 @@ def planifier(demandes, dossiers_autorises, run, maintenant=None, max_actions=1)
             continue
         if len(actions) >= max_actions or etat not in ("demandee", "cg_validees"):
             continue
+        if etat == "cg_validees" and (d.get("cg") or {}).get("algo") != ALGO:
+            # aucune migration : les CG ont été lues par un autre algorithme et leurs octets ne sont pas conservés
+            ecritures.append(_ecr("update", "dce_demande", did, {"etat": "echec", "tache": None, "maj": _iso(maintenant), "erreur": {"code": "cg_algo",
+                              "motif": f"CG lues avec un autre algorithme ({(d.get('cg') or {}).get('algo') or 'antérieur, octets bruts'}) que {ALGO} : "
+                                       "les octets anciens n'étant pas conservés, l'équivalence du consentement n'est pas prouvée ; "
+                                       "nouvelle demande (ouverture) et nouvelle validation humaine requises", "le": _iso(maintenant)}}, ver))
+            continue
         if etat == "cg_validees":
             ok, motif = validation_ok(d, maintenant)
             if not ok:
@@ -97,6 +105,9 @@ def planifier(demandes, dossiers_autorises, run, maintenant=None, max_actions=1)
         if etat == "cg_validees":
             v = d["validation"]
             a["validation"] = {"ref": d["ref"], "org": d["org"], "phrase": v["phrase"], "empreinte": v["empreinte"], "par": v["par"], "le": v["le"]}
+            # CG PRÉSENTÉES lors de la validation (texte, lien, algorithme, copie canonique) : pour rapporter un éventuel changement
+            # ligne à ligne ; ce n'est jamais une validation ni une empreinte de remplacement
+            a["validation"]["cg"] = {k: d["cg"][k] for k in ("texte", "lien", "algo", "canonique") if k in d["cg"]}
         actions.append(a)
     return {"run": run, "le": _iso(maintenant), "actions": actions, "ecritures": ecritures, "ignorees": ignorees}
 

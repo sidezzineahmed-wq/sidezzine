@@ -115,7 +115,7 @@ class TestPortailFictif(Base):
     def test_ouvrir_ne_soumet_rien(self):
         code, e, err = self.ouvrir("R-FICTIF-1")
         self.assertEqual((code, e["etat"]), (0, "attente_validation_CG"), err[-800:])
-        self.assertIn("contenu complet du document lié", e["cg"]["portee"])
+        self.assertIn("contenu binaire complet du document lié", e["cg"]["portee"])
         self.assertEqual((self.etat.soumis, self.etat.telechargements), ([], []))
 
     def test_403_arret(self):

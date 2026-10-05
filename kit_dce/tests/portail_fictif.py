@@ -42,7 +42,15 @@ class Etat:
         self.soumis, self.cg_texte, self.telechargements, self.vues = [], ("Je reconnais avoir pris connaissance des conditions générales de cette plate-forme "
                                                                          "de dématérialisation et je les accepte."), [], []
         self.cg_doc, self.lien_cg, self.lenteur_s = b"%PDF-1.4 Conditions generales fictives v1 %%EOF", "/cgu.pdf", 0
-        self.zip_date, self.zips_servis = None, []   # date fixe des entrées (None : heure courante) ; archives réellement servies
+        self.zip_date, self.zips_servis = None, []
+        # page HTML des conditions (type PRADO) : texte contractuel + parties techniques qui changent à CHAQUE requête
+        self.cg_paragraphes = ["Article 1 - Objet : les présentes conditions régissent l'usage de la plate-forme fictive.",
+                               "Article 2 - Responsabilité : l'utilisateur est responsable des informations saisies."]
+        self.cg_clause_repliee = "Article 3 - Clause repliée : les données de connexion sont conservées un an."
+        self.cg_prerequis = "Navigateur récent avec JavaScript activé."
+        self.cg_bandeau = ""            # bandeau date/heure HORS #main-part (vide : heure courante, change à chaque requête)
+        self.cg_main_part_html = None   # remplace toute la section (tests de structure absente ou ambiguë)
+        self.cg_html_vues = 0   # date fixe des entrées (None : heure courante) ; archives réellement servies
 
 
 def construire(etat):
@@ -78,6 +86,24 @@ def construire(etat):
             u = urlparse(self.path)
             q = {k: v[0] for k, v in parse_qs(u.query).items()}
             etat.vues.append(self.path)
+            if u.path == "/cgu.html":
+                # structure du relevé DOM officiel : bandeau date/heure HORS section ; section unique div#main-part.main-part avec
+                # rubriques rubrique_1 (Conditions d'utilisation) et rubrique_2 (Pré-requis techniques) ; parties techniques qui
+                # changent à CHAQUE requête (état PRADO, attributs et liens de session, scripts, commentaires, titre)
+                etat.cg_html_vues += 1
+                n, t = etat.cg_html_vues, time.time()
+                sections = etat.cg_main_part_html if etat.cg_main_part_html is not None else (
+                    f"""<div id="main-part" class="main-part" data-rendu="{t}"><script>var nonce="{n}-{t}";</script><style>.x{{margin:{n}px}}</style>"""
+                    f"""<h1>Conditions d'utilisation</h1><div id="rubrique_1" class="rubrique"><h2>Conditions d'utilisation</h2>"""
+                    + "".join(f'<p style="margin:{n}px">{x}</p>' for x in etat.cg_paragraphes)
+                    + f"""<div class="deplier" style="display:none"><p>{etat.cg_clause_repliee}</p></div>"""
+                    f"""<p>Voir <a href="/index.php?page=commun.Aide&amp;PRADO_SESSION=S{n}&amp;sid={t}#aide">l'aide</a>.</p></div>"""
+                    f"""<div id="rubrique_2" class="rubrique"><h2>Pré-requis techniques</h2><p>{etat.cg_prerequis}</p>"""
+                    f"""<img src="/img/navigateurs.png?v={n}" alt="Navigateurs supportés"></div></div>""")
+                corps = (f"""<!doctype html><html><head><title>Conditions - session {n}</title><script>var s="{t}";</script></head>"""
+                         f"""<body><!-- rendu {t} --><div id="bandeau" class="bandeau">Nous sommes le {etat.cg_bandeau or time.strftime('%d/%m/%Y %H:%M:%S')}</div>"""
+                         f"""<form><input type="hidden" name="PRADO_PAGESTATE" value="ETAT{n}-{t}">{sections}</form></body></html>""")
+                return self._env(200, corps)
             if u.path == "/cgu.pdf":
                 return self._env(200, etat.cg_doc, "application/pdf")
             if u.path == "/download":

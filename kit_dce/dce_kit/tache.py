@@ -102,7 +102,8 @@ async def _ouvrir(c, a):
     try:
         i = await nav.ouvrir(a.ref, a.org, a.reference_attendue)
         return {"etat": "attente_validation_CG", "ref": a.ref, "org": a.org, "url": i.url, "le": maintenant(),
-                "cg": {"texte": i.texte, "lien": i.lien_cg, "empreinte": i.empreinte, "portee": i.portee}, "phrase_requise": PHRASE}
+                "cg": {"texte": i.texte, "lien": i.lien_cg, "empreinte": i.empreinte, "portee": i.portee, "algo": i.algo,
+                       "doc_sha256": i.doc_sha256, **({"canonique": i.canonique} if i.canonique else {})}, "phrase_requise": PHRASE}
     finally:
         await nav.fermer()
 
@@ -110,7 +111,7 @@ async def _ouvrir(c, a):
 async def _telecharger(c, a, v):
     nav = NavigateurPlaywright(c)
     try:
-        octets, nom, url = await nav.telecharger(a.ref, a.org, c.identite, v["empreinte"], a.reference_attendue)
+        octets, nom, url = await nav.telecharger(a.ref, a.org, c.identite, v["empreinte"], a.reference_attendue, v.get("cg"))
     finally:
         await nav.fermer()
     m = preparer(octets, nom, a.sortie, c.zip_max)

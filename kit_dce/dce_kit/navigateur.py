@@ -15,7 +15,7 @@ import re
 from dataclasses import dataclass
 from urllib.parse import parse_qs, urljoin, urlparse
 
-from . import confiance
+from . import cg_texte, confiance
 
 
 class Refus(RuntimeError):
@@ -33,13 +33,16 @@ class InfoCG:
     reference_vue: bool
     portee: str = "libellé seul"
     doc_sha256: str = ""
+    canonique: str = ""            # copie canonique lisible des CG (document HTML, cg_texte) ; vide pour un PDF (empreinte binaire)
+    doc_brut_sha256: str = ""      # octets bruts du document lié (information ; hors empreinte quand il est en HTML)
+    algo: str = cg_texte.ALGO
 
 
 def empreinte_cg(texte, lien, doc_sha256=""):
     """Empreinte des CG présentées : libellé de la case + lien + SHA-256 du CONTENU du document lié quand il a pu être lu.
     Sans contenu lu (pas de lien, lien hors portail, lecture impossible), l'empreinte ne couvre que le libellé et le lien :
     un changement du document derrière un lien inchangé ne serait alors PAS détecté (limite affichée, jamais masquée)."""
-    norm = re.sub(r"\s+", " ", (texte or "")).strip().lower() + "|" + (lien or "") + "|" + (doc_sha256 or "")
+    norm = re.sub(r"\s+", " ", (texte or "")).strip().lower() + "|" + (lien or "") + "|" + (doc_sha256 or "") + "|" + cg_texte.ALGO
     return hashlib.sha256(norm.encode()).hexdigest()
 
 
@@ -63,6 +66,10 @@ _JS_INVENTAIRE = r"""() => {
 }"""
 
 CHAMPS_IDENTITE = ("Nom", "Prénom", "Adresse électronique")   # noms accessibles EXACTS (attribut title relevé sur PMMP)
+
+def _n(s):
+    return re.sub(r"\s+", " ", s or "").strip().lower()
+
 
 MARQUEURS_CONTROLE = re.compile(r"captcha|recaptcha|hcaptcha|cf-challenge|vérification de sécurité|requête a été bloquée", re.I)
 
@@ -168,6 +175,29 @@ class NavigateurPlaywright:
         except Exception:
             return None
 
+    def _preuves_cg(self, ref, validee, lue, texte, lien, detail, cg_validee):
+        """CG différentes de celles validées : différences ligne à ligne entre la copie canonique VALIDÉE et celle LUE, pour
+        décision HUMAINE (rien n'est ignoré ni revalidé ici). Texte public de la section des conditions seulement."""
+        if not self.c.racine_travail:
+            return None
+        try:
+            cg_validee = cg_validee or {}
+            avant, apres = cg_validee.get("canonique"), detail.get("canonique")
+            r = {"ref": ref, "algo": cg_texte.ALGO, "algo_validation": cg_validee.get("algo"), "empreinte_validee": validee, "empreinte_lue": lue,
+                 "libelle_lu": texte.strip()[:400], "libelle_identique": cg_validee.get("texte") is None or _n(cg_validee.get("texte")) == _n(texte),
+                 "lien_lu": lien, "lien_identique": cg_validee.get("lien") is None or cg_validee.get("lien") == lien,
+                 "document": "html" if apres is not None else "binaire", "doc_brut_sha256": detail.get("brut"),
+                 "doc_identique": (avant == apres) if (avant is not None and apres is not None) else None,
+                 "differences": cg_texte.differences(avant, apres) if (avant is not None and apres is not None) else
+                 ["comparaison ligne à ligne impossible : copie canonique validée absente (validation antérieure à " + cg_texte.ALGO + " ou document binaire)"]}
+            os.makedirs(self.c.racine_travail, exist_ok=True)
+            p = os.path.join(self.c.racine_travail, f"preuves_cg_{re.sub(r'[^A-Za-z0-9_-]', '_', ref)}.json")
+            with open(p, "w", encoding="utf-8") as fh:
+                json.dump(r, fh, ensure_ascii=False, indent=1)
+            return p
+        except Exception:
+            return None
+
     async def _cg(self, page):
         case = page.get_by_role("checkbox", name=re.compile(r"condition", re.I))
         if await case.count() != 1:
@@ -179,7 +209,7 @@ class NavigateurPlaywright:
         a = page.locator("a", has_text=re.compile(r"condition", re.I))
         if await a.count():
             lien = (await a.first.get_attribute("href")) or ""
-        doc_sha, portee = "", "libellé seul : aucun document de conditions lié sur la page"
+        doc_sha, portee, detail = "", "libellé seul : aucun document de conditions lié sur la page", {}
         if lien:
             absolu = urljoin(page.url, lien)
             if urlparse(absolu).hostname != urlparse(self.c.base_url).hostname:
@@ -190,15 +220,27 @@ class NavigateurPlaywright:
                     if r.status in (401, 403):
                         raise Refus(f"http_{r.status}", f"HTTP {r.status} sur le document des conditions : arrêt")
                     corps = await r.body()
-                    if r.ok and corps:
-                        doc_sha, portee = hashlib.sha256(corps).hexdigest(), f"libellé et contenu complet du document lié ({len(corps)} octets)"
+                    typ = (r.headers.get("content-type") or "").lower()
+                    if r.ok and corps and "html" in typ:
+                        # page HTML (PRADO) : copie canonique de la section unique #main-part (cg_texte), jamais les octets bruts
+                        try:
+                            canon = cg_texte.canonique(corps.decode(cg_texte.charset(typ), errors="replace"))
+                        except cg_texte.ExtractionRefusee as x:
+                            raise Refus("cg_extraction", f"conditions générales illisibles de façon sûre : {x} ; rien n'est validable") from None
+                        doc_sha = cg_texte.empreinte(canon)
+                        portee = (f"libellé et texte intégral de la section des conditions #main-part ({len(canon.splitlines())} lignes "
+                                  f"canoniques, algorithme {cg_texte.ALGO} ; scripts, styles, attributs et valeurs de champs exclus)")
+                        detail = {"canonique": canon, "brut": hashlib.sha256(corps).hexdigest()}
+                    elif r.ok and corps:
+                        doc_sha, portee = hashlib.sha256(corps).hexdigest(), f"libellé et contenu binaire complet du document lié ({len(corps)} octets)"
+                        detail = {"brut": doc_sha}
                     else:
                         portee = f"libellé et lien seulement : document non lu (HTTP {r.status})"
                 except Refus:
                     raise
                 except Exception as e:
                     portee = f"libellé et lien seulement : document non lu ({str(e)[:80]})"
-        return case, texte, lien, doc_sha, portee
+        return case, texte, lien, doc_sha, portee, detail
 
     async def ouvrir(self, ref, org, reference_attendue=None):
         await self._demarrer()
@@ -211,19 +253,23 @@ class NavigateurPlaywright:
                 except Refus as e:
                     e.preuves = await self._preuves(page, ref)
                     raise
-            _, texte, lien, doc_sha, portee = await self._cg(page)
-            return InfoCG(url=page.url, texte=texte.strip(), empreinte=empreinte_cg(texte, lien, doc_sha), lien_cg=lien, reference_vue=True, portee=portee, doc_sha256=doc_sha)
+            _, texte, lien, doc_sha, portee, detail = await self._cg(page)
+            return InfoCG(url=page.url, texte=texte.strip(), empreinte=empreinte_cg(texte, lien, doc_sha), lien_cg=lien, reference_vue=True, portee=portee,
+                          doc_sha256=doc_sha, canonique=detail.get("canonique", ""), doc_brut_sha256=detail.get("brut", ""))
         finally:
             await ctx.close()
 
-    async def telecharger(self, ref, org, identite, empreinte_validee, reference_attendue=None):
+    async def telecharger(self, ref, org, identite, empreinte_validee, reference_attendue=None, cg_validee=None):
         await self._demarrer()
         ctx = await self._b.new_context(accept_downloads=True, locale="fr-FR")
         try:
             page = await self._charger(ctx, ref, org, reference_attendue)
-            case, texte, lien, doc_sha, _ = await self._cg(page)
-            if empreinte_cg(texte, lien, doc_sha) != empreinte_validee:
-                raise Refus("cg_modifiees", "les conditions générales affichées diffèrent de celles validées : nouvelle validation humaine requise")
+            case, texte, lien, doc_sha, _, detail = await self._cg(page)
+            lue = empreinte_cg(texte, lien, doc_sha)
+            if lue != empreinte_validee:
+                e = Refus("cg_modifiees", "les conditions générales affichées diffèrent de celles validées : nouvelle validation humaine requise")
+                e.preuves = self._preuves_cg(ref, empreinte_validee, lue, texte, lien, detail, cg_validee)
+                raise e
             for lib, val in zip(CHAMPS_IDENTITE, (identite.nom, identite.prenom, identite.email)):
                 await (await self._champ(page, lib)).fill(val)
             await case.check()

@@ -6,9 +6,10 @@ Valider) -> « Télécharger le Dossier ». Deux temps, séparés par la validat
                      l'exploitant, coche la case (sur la validation humaine de CE téléchargement), Valider, puis capture le
                      téléchargement déclenché par CE clic sur CETTE page (jamais un fichier quelconque d'un dossier).
 401/403, page de contrôle ou CAPTCHA : arrêt immédiat, aucune nouvelle tentative, aucun contournement.
-Les sélecteurs suivent les libellés visibles observés ; ils sont à confirmer au premier essai réel autorisé."""
+Champs d'identité : rôle textbox + nom accessible EXACT (title relevé le 05/10/2026), uniques ; aucun repli par position."""
 import asyncio
 import hashlib
+import json
 import os
 import re
 from dataclasses import dataclass
@@ -41,6 +42,27 @@ def empreinte_cg(texte, lien, doc_sha256=""):
     norm = re.sub(r"\s+", " ", (texte or "")).strip().lower() + "|" + (lien or "") + "|" + (doc_sha256 or "")
     return hashlib.sha256(norm.encode()).hexdigest()
 
+
+# Inventaire d'un cadre (exécuté dans la page) : éléments VISIBLES seulement, aucune propriété `value`, textes tronqués.
+_JS_INVENTAIRE = r"""() => {
+  const vis = e => { const r = e.getBoundingClientRect(), s = getComputedStyle(e); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none"; };
+  const t = (s, n) => (s || "").replace(/\s+/g, " ").trim().slice(0, n);
+  const lib = e => { const l = [...(e.labels || [])].map(x => t(x.innerText, 80)); const a = e.getAttribute("aria-label"); if (a) l.push("aria:" + t(a, 80));
+    const by = e.getAttribute("aria-labelledby"); if (by) by.split(/\s+/).forEach(i => { const x = document.getElementById(i); if (x) l.push("aria-by:" + t(x.innerText, 80)); }); return l; };
+  const champs = [...document.querySelectorAll("input,select,textarea")].filter(e => !["hidden", "submit", "button", "reset", "image"].includes(e.type) && vis(e)).slice(0, 80).map(e => ({
+    balise: e.tagName.toLowerCase(), type: e.type || "", id: t(e.id, 80), name: t(e.name, 80), placeholder: t(e.getAttribute("placeholder"), 60), title: t(e.getAttribute("title"), 80),
+    libelles: lib(e), requis: !!e.required, desactive: !!e.disabled }));
+  return {
+    titres: [...document.querySelectorAll("h1,h2,h3,legend")].filter(vis).slice(0, 20).map(e => t(e.innerText, 120)),
+    libelles: [...document.querySelectorAll("label")].filter(vis).slice(0, 60).map(e => ({ texte: t(e.innerText, 80), pour: t(e.htmlFor, 80) })),
+    champs,
+    boutons: [...document.querySelectorAll("button,input[type=submit],input[type=button],[role=button]")].filter(vis).slice(0, 30).map(e => t(e.tagName === "INPUT" ? e.getAttribute("value") : (e.innerText || e.getAttribute("aria-label")), 80)),
+    liens: [...document.querySelectorAll("a")].filter(vis).map(e => t(e.innerText, 80)).filter(Boolean).slice(0, 60),
+    formulaires: document.forms.length, cadres_internes: document.querySelectorAll("iframe,frame").length,
+    champs_caches: document.querySelectorAll("input[type=hidden]").length };
+}"""
+
+CHAMPS_IDENTITE = ("Nom", "Prénom", "Adresse électronique")   # noms accessibles EXACTS (attribut title relevé sur PMMP)
 
 MARQUEURS_CONTROLE = re.compile(r"captcha|recaptcha|hcaptcha|cf-challenge|vérification de sécurité|requête a été bloquée", re.I)
 
@@ -95,6 +117,7 @@ class NavigateurPlaywright:
             raise Refus(f"http_{rep.status}", f"HTTP {rep.status} : arrêt, aucun contournement")
         if rep.status != 200:
             raise Refus(f"http_{rep.status}", f"HTTP {rep.status}")
+        self._http = rep.status
         u = urlparse(page.url)
         q = parse_qs(u.query)
         if u.hostname != urlparse(self.c.base_url).hostname or q.get("refConsultation") != [ref] or q.get("orgAcronyme") != [org]:
@@ -108,6 +131,42 @@ class NavigateurPlaywright:
             if not vue:
                 raise Refus("association", f"la référence {reference_attendue} n'apparaît pas sur la page : rien n'est téléchargé")
         return page
+
+    async def _champ(self, page, nom):
+        """Champ d'identité : zone de texte dont le NOM ACCESSIBLE est exactement `nom`, unique sur la page. Sur PMMP (relevé du
+        05/10/2026), <label for="nom"> ne vise pas l'id préfixé PRADO : le nom accessible vient de l'attribut title exact."""
+        loc = page.get_by_role("textbox", name=nom, exact=True)
+        n = await loc.count()
+        if n != 1:
+            raise Refus("formulaire", f"champ « {nom} » " + ("introuvable" if n == 0 else f"ambigu ({n} champs)"))
+        return loc
+
+    async def _preuves(self, page, ref):
+        """Diagnostic d'un formulaire non reconnu, SANS aucune valeur : titre, chemin et seuls paramètres publics (page,
+        refConsultation, orgAcronyme), statut HTTP, et pour chaque cadre les métadonnées des champs/libellés/titres/boutons/liens
+        VISIBLES. Ni HTML, ni capture, ni valeur de champ, ni cookie. Écrit sous la racine de travail ; n'échoue jamais."""
+        if not self.c.racine_travail:
+            return None
+        try:
+            def chemin(u):
+                p = urlparse(u)
+                q = parse_qs(p.query)
+                return {"hote": p.hostname, "chemin": p.path, **{k: q[k][0] for k in ("page", "refConsultation", "orgAcronyme") if k in q}}
+            cadres = []
+            for f in page.frames:
+                try:
+                    d = await f.evaluate(_JS_INVENTAIRE)
+                except Exception as x:
+                    d = {"erreur": type(x).__name__}
+                cadres.append({"principal": f == page.main_frame, **chemin(f.url), **d})
+            r = {"ref": ref, "http": getattr(self, "_http", None), "titre": (await page.title())[:200], **chemin(page.url), "cadres": cadres}
+            os.makedirs(self.c.racine_travail, exist_ok=True)
+            p = os.path.join(self.c.racine_travail, f"preuves_formulaire_{re.sub(r'[^A-Za-z0-9_-]', '_', ref)}.json")
+            with open(p, "w", encoding="utf-8") as fh:
+                json.dump(r, fh, ensure_ascii=False, indent=1)
+            return p
+        except Exception:
+            return None
 
     async def _cg(self, page):
         case = page.get_by_role("checkbox", name=re.compile(r"condition", re.I))
@@ -146,9 +205,12 @@ class NavigateurPlaywright:
         ctx = await self._b.new_context(accept_downloads=True, locale="fr-FR")
         try:
             page = await self._charger(ctx, ref, org, reference_attendue)
-            for lib in ("Nom", "Prénom", "Adresse électronique"):
-                if await page.get_by_label(re.compile(rf"^\s*{lib}\b", re.I)).count() < 1:
-                    raise Refus("formulaire", f"champ « {lib} » introuvable")
+            for lib in CHAMPS_IDENTITE:
+                try:
+                    await self._champ(page, lib)
+                except Refus as e:
+                    e.preuves = await self._preuves(page, ref)
+                    raise
             _, texte, lien, doc_sha, portee = await self._cg(page)
             return InfoCG(url=page.url, texte=texte.strip(), empreinte=empreinte_cg(texte, lien, doc_sha), lien_cg=lien, reference_vue=True, portee=portee, doc_sha256=doc_sha)
         finally:
@@ -162,9 +224,8 @@ class NavigateurPlaywright:
             case, texte, lien, doc_sha, _ = await self._cg(page)
             if empreinte_cg(texte, lien, doc_sha) != empreinte_validee:
                 raise Refus("cg_modifiees", "les conditions générales affichées diffèrent de celles validées : nouvelle validation humaine requise")
-            await page.get_by_label(re.compile(r"^\s*Nom\b", re.I)).first.fill(identite.nom)
-            await page.get_by_label(re.compile(r"^\s*Prénom\b", re.I)).first.fill(identite.prenom)
-            await page.get_by_label(re.compile(r"^\s*Adresse électronique\b", re.I)).first.fill(identite.email)
+            for lib, val in zip(CHAMPS_IDENTITE, (identite.nom, identite.prenom, identite.email)):
+                await (await self._champ(page, lib)).fill(val)
             await case.check()
             await page.get_by_role("button", name=re.compile(r"^\s*Valider\s*$", re.I)).click()
             await page.wait_for_load_state("domcontentloaded")

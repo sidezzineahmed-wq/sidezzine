@@ -39,7 +39,8 @@ def _docx():
 
 class Etat:
     def __init__(self):
-        self.soumis, self.cg_texte, self.telechargements, self.vues = [], "J'accepte les conditions générales d'utilisation", [], []
+        self.soumis, self.cg_texte, self.telechargements, self.vues = [], ("Je reconnais avoir pris connaissance des conditions générales de cette plate-forme "
+                                                                         "de dématérialisation et je les accepte."), [], []
         self.cg_doc, self.lien_cg, self.lenteur_s = b"%PDF-1.4 Conditions generales fictives v1 %%EOF", "/cgu.pdf", 0
         self.zip_date, self.zips_servis = None, []   # date fixe des entrées (None : heure courante) ; archives réellement servies
 
@@ -60,12 +61,17 @@ def construire(etat):
             self.wfile.write(b)
 
         def _form(self, ref, org, err=""):
+            # Fidèle au relevé PMMP du 05/10/2026 : <label for="nom"> ne vise PAS l'id préfixé PRADO (input.labels vide) ;
+            # le nom accessible des zones de texte vient de leur attribut title exact. La case des CG a un <label for> valide.
+            P, I = "ctl0$CONTENU_PAGE$EntrepriseFormulaireDemande", "ctl0_CONTENU_PAGE_EntrepriseFormulaireDemande"
+            champs = [("nom", "Nom"), ("prenom", "Prénom"), ("email", "Adresse électronique"), ("telephone", "Téléphone")]
+            if ref == "RAMBIGU":
+                champs.append(("nom2", "Nom"))
             return f"""<!doctype html><html><head><title>Téléchargement du DCE</title></head><body>
             <h1>Téléchargement du dossier de consultation</h1><p>Référence : {'00/2099/FICTIF' if ref != 'RAUTRE' else '99/2099/XX'}</p>{err}
             <form method="post" action="/index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation={ref}&orgAcronyme={org}">
-            <label for="nom">Nom *</label><input id="nom" name="nom"><label for="prenom">Prénom *</label><input id="prenom" name="prenom">
-            <label for="mail">Adresse électronique *</label><input id="mail" name="mail"><label for="tel">Téléphone</label><input id="tel" name="tel">
-            <input type="checkbox" id="cgu" name="cgu"><label for="cgu">{etat.cg_texte}</label> {f'<a href="{etat.lien_cg}">conditions générales</a>' if etat.lien_cg else ''}
+            {''.join(f'<label for="{c}"> {l.upper()} </label><input name="{P}${c}" type="text" id="{I}_{c}" title="{l}">' for c, l in champs)}
+            <input type="checkbox" name="{P}$accepterConditions" id="{I}_accepterConditions" title="J'accepte les conditions générales d'utilisation"><label for="{I}_accepterConditions">{etat.cg_texte}</label> {f'<a href="{etat.lien_cg}">conditions générales</a>' if etat.lien_cg else ''}
             <button type="submit">Valider</button></form></body></html>"""
 
         def do_GET(self):
@@ -87,6 +93,25 @@ def construire(etat):
                 return self._env(403, "<html><title>403 Interdit</title>Accès refusé</html>")
             if ref == "RCAP":
                 return self._env(200, "<html><body>Merci de compléter le captcha</body></html>")
+            if u.path == "/cadre":
+                return self._env(200, self._form(ref, org))
+            if ref == "RTABLE" and "jeton" not in q:   # variante : paramètre de session ajouté par redirection (ne doit jamais sortir)
+                self.send_response(302)
+                self.send_header("Location", f"/index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation={ref}&orgAcronyme={org}&jeton=SESS-FICTIF")
+                self.end_headers()
+                return
+            if ref == "RTABLE":   # variante : libellés en cellules de tableau, AUCUN <label for> ; état caché et valeur pré-remplie
+                return self._env(200, f"""<!doctype html><html><head><title>PMMP - Demande de téléchargement</title></head><body><h1>Téléchargement du DCE</h1>
+                <p>Référence : 00/2099/FICTIF</p><form method="post" action="/x"><input type="hidden" name="PRADO_PAGESTATE" value="JETON-SECRET-FICTIF">
+                <table><tr><td>Nom <span>*</span> :</td><td><input type="text" name="ctl0$CONTENU$nom" id="ctl0_CONTENU_nom" value="VALEUR-FICTIVE"></td></tr>
+                <tr><td>Prénom :</td><td><input type="text" name="ctl0$CONTENU$prenom" id="ctl0_CONTENU_prenom"></td></tr></table>
+                <input type="submit" value="Valider"></form></body></html>""")
+            if ref == "RCOMPLET":   # variante : état déjà téléchargé, sans formulaire
+                return self._env(200, """<!doctype html><html><head><title>PMMP</title></head><body><p>Référence : 00/2099/FICTIF</p>
+                <p>Téléchargement complet</p><a href="/download?ref=RCOMPLET">Télécharger le Dossier</a> <a href="/nouveau">Nouveau téléchargement</a></body></html>""")
+            if ref == "RIFRAME":    # variante : formulaire dans un cadre interne
+                return self._env(200, f"""<!doctype html><html><head><title>PMMP cadre</title></head><body><p>Référence : 00/2099/FICTIF</p>
+                <iframe src="/cadre?page=formulaire&refConsultation={ref}&orgAcronyme={org}&jeton=SESS-CADRE" width="600" height="300"></iframe></body></html>""")
             if ref == "RREDIR":
                 self.send_response(302)
                 self.send_header("Location", f"/index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=AUTRE&orgAcronyme={org}")
@@ -98,7 +123,8 @@ def construire(etat):
             u = urlparse(self.path)
             q = {k: v[0] for k, v in parse_qs(u.query).items()}
             n = int(self.headers.get("Content-Length", "0"))
-            f = {k: v[0] for k, v in parse_qs(self.rfile.read(n).decode()).items()}
+            brut = {k: v[0] for k, v in parse_qs(self.rfile.read(n).decode()).items()}
+            f = {{"email": "mail", "accepterConditions": "cgu"}.get(k.split("$")[-1], k.split("$")[-1]): v for k, v in brut.items()}
             etat.soumis.append({"ref": q.get("refConsultation"), **f})
             if not (f.get("nom") and f.get("prenom") and f.get("mail") and f.get("cgu") == "on"):
                 return self._env(200, self._form(q.get("refConsultation"), q.get("orgAcronyme"), "<p>Champs obligatoires manquants</p>"))

@@ -184,6 +184,8 @@ def main(argv=None):
             r = asyncio.run(_telecharger(c, a, v))
     except Refus as e:
         r = {"etat": "echec", "code": e.code, "motif": e.motif, "le": maintenant()}
+        if getattr(e, "preuves", None):
+            r["preuves"] = e.preuves   # inventaire sans valeurs du formulaire non reconnu (navigateur._preuves)
     except (ZipInvalide, ConfigInvalide) as e:
         r = {"etat": "echec", "code": type(e).__name__, "motif": str(e), "le": maintenant()}
     if getattr(a, "etat", None):

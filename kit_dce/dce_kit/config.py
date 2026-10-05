@@ -29,6 +29,8 @@ class Config:
     base_url: str = "https://www.marchespublics.gov.ma/index.php"
     hote_autorise: str = "www.marchespublics.gov.ma"
     chromium: str = ""                        # chemin d'un Chromium déjà installé (sinon celui de Playwright)
+    confiance_navigateur: str = ""            # "" (défaut) ou "proxy_ccr" : autorité OFFICIELLE de l'environnement, revue (confiance.py)
+    racine_travail: str = ""                  # dossier de travail (hors /tmp) où créer le magasin NSS temporaire
     zip_max: int = 200 * 2**20
     cg_validite_h: int = 24                   # une validation humaine de CG non utilisée expire
     delai_page_s: int = 90                    # chargement d'une page du portail
@@ -47,10 +49,15 @@ class Config:
         inconnus = sorted(set(d) - (set(Config.__dataclass_fields__) - {"identite"}))
         if inconnus:
             raise ConfigInvalide("clés de configuration inconnues : " + ", ".join(inconnus))
+        for cle, var in (("confiance_navigateur", "DCE_CONFIANCE_NAVIGATEUR"), ("racine_travail", "DCE_RACINE_TRAVAIL")):
+            if not d.get(cle) and env.get(var):
+                d[cle] = env[var]
         idt = Identite(env.get("DCE_NOM", ""), env.get("DCE_PRENOM", ""), env.get("DCE_EMAIL", ""))
         c = Config(identite=idt, **d)
         if identite_requise:
             c.identite.verifier()
+        if c.confiance_navigateur not in ("", "proxy_ccr"):
+            raise ConfigInvalide("confiance_navigateur : seul « proxy_ccr » est accepté (aucun certificat arbitraire)")
         if c.delai_debut_telechargement_s < 120 or c.delai_fin_transfert_s < c.delai_debut_telechargement_s:
             raise ConfigInvalide("délais de téléchargement trop courts (début ≥ 120 s, fin de transfert ≥ début)")
         return c

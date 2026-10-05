@@ -9,9 +9,12 @@ Valider) -> « Télécharger le Dossier ». Deux temps, séparés par la validat
 Les sélecteurs suivent les libellés visibles observés ; ils sont à confirmer au premier essai réel autorisé."""
 import asyncio
 import hashlib
+import os
 import re
 from dataclasses import dataclass
 from urllib.parse import parse_qs, urljoin, urlparse
+
+from . import confiance
 
 
 class Refus(RuntimeError):
@@ -50,17 +53,35 @@ class NavigateurPlaywright:
         if self._b:
             return
         from playwright.async_api import async_playwright
-        self._pw = await async_playwright().start()
-        kw = {"headless": self.headless}
+        kw = {"headless": self.headless}   # jamais d'option d'ignorance d'erreur TLS
         if self.c.chromium:
             kw["executable_path"] = self.c.chromium
-        self._b = await self._pw.chromium.launch(**kw)
+        self._home = None
+        if self.c.confiance_navigateur == "proxy_ccr":
+            try:
+                self._home = confiance.preparer_magasin(self.c.racine_travail, confiance.verifier_ca())
+            except confiance.ErreurConfiance as e:
+                raise Refus("confiance", str(e)) from None
+            kw["env"] = {**os.environ, "HOME": self._home}
+        try:
+            self._pw = await async_playwright().start()
+            self._b = await self._pw.chromium.launch(**kw)
+        except BaseException:
+            await self.fermer()
+            raise
 
     async def fermer(self):
-        if self._b:
-            await self._b.close()
-            await self._pw.stop()
-            self._b = self._pw = None
+        try:
+            if self._b:
+                await self._b.close()
+        finally:
+            try:
+                if self._pw:
+                    await self._pw.stop()
+            finally:
+                self._b = self._pw = None
+                confiance.nettoyer(getattr(self, "_home", None))
+                self._home = None
 
     def url_demande(self, ref, org):
         return f"{self.c.base_url}?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation={ref}&orgAcronyme={org}"

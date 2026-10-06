@@ -3,7 +3,7 @@ Base simulée locale (harnais de qa_b31.py) ; écritures seulement sur les dossi
 import os,sys,json
 src=open(os.path.join(os.path.dirname(os.path.abspath(__file__)),"qa_b31.py"),encoding="utf-8").read()
 exec(src.split("with sync_playwright() as p:")[0])
-OK_RE=["propExport(","bpExport(","S.propOpen=","S.bpOpen","S.bpLot","S.simOpen","S.varOpen","S.dvOpen","b31Restaurer(","B31.dlg=null"]
+OK_RE=["propExport(","bpExport(","S.propOpen=","S.bpOpen","S.bpLot","S.simOpen","S.varOpen","S.dvOpen","B31.dlg=null"]
 LEGACY_W=["propApply","offreRetenir","offreValider","bpSave","dvLire","dvBiblio","localStorage.removeItem","p.moi=","isoCheck","bpX(id)"]
 with sync_playwright() as p:
     b=p.chromium.launch();ctx,pg,errs=demarrer(b,1440,900);ev=lambda js,*a:pg.evaluate(js,*a)
@@ -36,6 +36,7 @@ with sync_playwright() as p:
     ro=pg.query_selector(".b31-dlg [data-b31-ro]")
     if ro:ro.click();pg.wait_for_timeout(300)
     chk(len(ev("()=>window.__writes"))==w0 and ev("id=>JSON.stringify(S.bpx[id]||null)",BG)==bx0,"clic sur l'action legacy neutralisée : aucune écriture, bordereau BG inchangé")
+    chk(not any("b31Restaurer" in a[1] for a in A["acts"]+A2["acts"]) and not any("Recharger" in a[0] for a in A["acts"]),"historique : plus aucune action d'écriture, y compris « Recharger » (déplacé vers « Brouillons »)")
     pg.screenshot(path=f"{OUT}/bg_historique_consultatif.png")
     # ===== verrous : nouveaux chemins (fictif fx-trv) =====
     r=ev("""()=>{const id='fx-trv',a=S.ao[id],X=bpX(id);X.lock={};const p0=X.p['0-1'];B31.prev[id]=b31Previsu(id,a,-10);X.lock={'0-1':true};const n=window.__writes.length;
@@ -48,6 +49,9 @@ with sync_playwright() as p:
     chk(r["p"]==r["p0"],"IA : acceptation refusée sur une ligne verrouillée")
     r=ev("""async()=>{const id='fx-trv',a=S.ao[id],X=bpX(id);X.lock={};B31.vers[id]=[];const v=await b31Version(id,a,'base');X.p['0-0']=777.77;X.lock={'0-0':true};X.srcL['0-0']={m:'manuel'};
       for(let i=0;i<2;i++)await b31Restaurer(id,a,Object.assign({doc_id:id+'~v'+v.version},v));return{p0:X.p['0-0'],l:X.lock['0-0'],p1:X.p['0-1'],v1:v.pu['0-1']}}""")
+    pg.evaluate("()=>{B31.dlg=null;render();}");ouvrir(pg,"fx-trv");pg.click("[data-b31-vers]");pg.wait_for_selector(".b31-dlg [data-b31-rest]")
+    chk(pg.query_selector_all(".b31-dlg [data-b31-rest]") and "lignes verrouillées" in pg.inner_text(".b31-dlg"),"bureau : panneau « Brouillons » avec « Recharger dans le brouillon »")
+    pg.screenshot(path=f"{OUT}/fx_brouillons.png");pg.click(".b31-dlg .fsx")
     chk(r["p0"]==777.77 and r["l"] is True and r["p1"]==r["v1"],"rechargement d'un brouillon : ligne verrouillée conservée, autres lignes rechargées")
     reel1=ev("ids=>JSON.stringify({o:S.offres,x:ids.map(i=>S.bpx[i]||null),a:ids.map(i=>[S.ao[i].prixValide||null,S.ao[i].decisionPrix||null])})",REELS)
     vide=lambda x:None if x is None or all(not x.get(f) for f in x) else x  # bpX() initialise en mémoire un objet vide (comportement existant, jamais écrit)

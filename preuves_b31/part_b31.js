@@ -7,7 +7,7 @@
    Aucune donnée d'une autre société n'est lue pour chiffrer (les onglets n'affichent que nom et statut).
    Contrôle art. 44 du décret n° 2-22-431 (édition TGR 2023, art. 44 B, p. 70) : comparaison en centimes, seuils stricts ;
    régimes études (art. 144), gardiennage / nettoyage / espaces verts (art. 43 II.1.a) ou inconnus : « à vérifier ». */
-const B31={v:"b31-1",mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
+const B31={v:"b31-2",mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
 const B31_DECRET={url:"https://www.tgr.gov.ma/wps/wcm/connect/1f3081fc-2d01-41de-8339-9a2c7de0480f/DECRET%2B2-22-431%2BFR.pdf?MOD=AJPERES",
   ref:"Décret n° 2-22-431 du 8 mars 2023, art. 44 (édition TGR 2023, p. 69-70)",sha:"d08109b9cee1364870c99659dbe58a3aef3556ab2d87209426dc97a314e07c78"};
 const B31_SCEN=[["prudent","Prudent"],["equilibre","Équilibré"],["competitif","Compétitif"]];
@@ -80,9 +80,12 @@ function b31Previsu(id,a,p){const ET=b31Etat(id,a),X=ET.X,L=b31Lignes(id),lock=X
   const P={...X.p},rows=[];L.forEach(r=>{if(lock[r.k])return;const n=Math.round(+X.p[r.k]*f*100+1e-7)/100;rows.push({k:r.k,avant:+X.p[r.k],apres:n});P[r.k]=n;});
   const T2=b31Tot(id,P);return{ok:true,p,f,cibleC,P,rows,T:T2,resteC:T2.ttcC-cibleC,lockN:L.length-rows.length,A44:b31Art44(ET.R,T2.ttcC,ET.E.c)};}
 function b31Appliquer(id,a){const pr=B31.prev[id];if(!pr||!pr.ok)return;if(!editable())return toast(RO_MSG);
-  const X=bpX(id),now=new Date().toISOString();X.srcL=X.srcL||{};pr.rows.forEach(r=>{X.p[r.k]=r.apres;X.srcL[r.k]={m:"pct",p:pr.p,le:now};});
-  X._src="B3.1 objectif "+b31PctTxt(pr.p)+" ("+b31PartTxt(pr.p)+")";bpSave(id);logJ(a.ref+" : B3.1 objectif "+b31PctTxt(pr.p)+" appliqué à "+pr.rows.length+" ligne(s) non verrouillée(s) de "+socCourt(a.soc));
-  delete B31.prev[id];render();toast("Objectif appliqué à "+pr.rows.length+" ligne(s) ; lignes verrouillées inchangées. Rien n'est validé.");}
+  /* b31-2 : verrous relus AU MOMENT d'appliquer (une ligne verrouillée après l'aperçu n'est jamais écrasée) */
+  const X=bpX(id),now=new Date().toISOString(),Lk=X.lock||{},rows=pr.rows.filter(r=>!Lk[r.k]),nv=pr.rows.length-rows.length;
+  if(nv){delete B31.prev[id];render();return toast(nv+" ligne(s) verrouillée(s) depuis l'aperçu : rien n'est appliqué. Refaites l'aperçu.");}
+  X.srcL=X.srcL||{};rows.forEach(r=>{X.p[r.k]=r.apres;X.srcL[r.k]={m:"pct",p:pr.p,le:now};});
+  X._src="B3.1 objectif "+b31PctTxt(pr.p)+" ("+b31PartTxt(pr.p)+")";bpSave(id);logJ(a.ref+" : B3.1 objectif "+b31PctTxt(pr.p)+" appliqué à "+rows.length+" ligne(s) non verrouillée(s) de "+socCourt(a.soc));
+  delete B31.prev[id];render();toast("Objectif appliqué à "+rows.length+" ligne(s) ; lignes verrouillées inchangées. Rien n'est validé.");}
 /* ---------- persistance : chiffrage/<id> (scénarios, statut) et versions immuables ---------- */
 async function b31Charger(id){if(!S.db||B31.ch[id])return;B31.ch[id]={etat:"loading"};
   try{const g=await S.db.doc("chiffrage/"+id).get();B31.ch[id]={etat:"ok",doc:g&&g.exists?g.data():null};}catch(e){B31.ch[id]={etat:"err",err:String(e&&(e.code||e.message)||e)};}
@@ -100,7 +103,24 @@ async function b31Version(id,a,label){if(!S.db||!editable())throw new Error(RO_M
   d.hash=sha256Str(canonJSON(d));await ref.set(d);B31.vers[id]=[Object.assign({doc_id:did},d)].concat(L);logJ(a.ref+" : B3.1 brouillon v"+v+" enregistré ("+socCourt(a.soc)+", TTC "+(d.totaux?d.totaux.ttc:"incomplet")+")");return d;}
 async function b31Restaurer(id,a,v){if(!editable())return toast(RO_MSG);if(v.soc!==a.soc)return toast("Version d'une autre société : refusée (FIN-ISO-001).");
   if(!confirmTwice("b31rest"+v.doc_id))return toast("Touchez encore une fois pour recharger les PU de la version "+v.version+" dans le brouillon (la version reste intacte).");
-  const X=bpX(id);X.p=JSON.parse(JSON.stringify(v.pu||{}));X.lock=JSON.parse(JSON.stringify(v.lock||{}));X.srcL=JSON.parse(JSON.stringify(v.srcL||{}));X._src="B3.1 brouillon v"+v.version+" rechargé";bpSave(id);logJ(a.ref+" : B3.1 brouillon v"+v.version+" rechargé ("+socCourt(a.soc)+")");B31.dlg=null;render();}
+  /* b31-2 : les lignes verrouillées du brouillon actif gardent leur PU, leur verrou et leur source */
+  const X=bpX(id),L0=Object.assign({},X.lock||{}),P0=Object.assign({},X.p||{}),S0=Object.assign({},X.srcL||{}),K=Object.keys(L0).filter(k=>L0[k]);
+  X.p=JSON.parse(JSON.stringify(v.pu||{}));X.lock=JSON.parse(JSON.stringify(v.lock||{}));X.srcL=JSON.parse(JSON.stringify(v.srcL||{}));
+  K.forEach(k=>{if(k in P0)X.p[k]=P0[k];else delete X.p[k];X.lock[k]=L0[k];if(k in S0)X.srcL[k]=S0[k];else delete X.srcL[k];});
+  X._src="B3.1 brouillon v"+v.version+" rechargé";bpSave(id);logJ(a.ref+" : B3.1 brouillon v"+v.version+" rechargé ("+socCourt(a.soc)+")"+(K.length?", "+K.length+" ligne(s) verrouillée(s) conservée(s)":""));B31.dlg=null;render();
+  if(K.length)toast(K.length+" ligne(s) verrouillée(s) conservée(s) telles quelles.");}
+/* b31-2 · historique CONSULTATIF : les écrans hérités (offres figées, traces de prix, ancienne proposition, simulateur, devis) y sont
+   affichés pour leurs preuves ; toute action d'écriture est neutralisée (bouton remplacé par un libellé, gestionnaire retiré,
+   champs désactivés). Restent actifs : aperçus et téléchargements (data-doc, data-dl, exports) et le dépliage de l'affichage. */
+const B31_HIST_OK=[/^\(\)=>\s*(propExport|bpExport)\(/,/^\(\)=>\{S\.(propOpen|bpOpen|bpLot|simOpen|varOpen|dvOpen)(\[[^\]]*\])?=[^;]*;render\(\);?\}$/];
+function b31Consult(h){if(!h)return h;const t=document.createElement("template");t.innerHTML=h;
+  t.content.querySelectorAll("[data-act]").forEach(el=>{const k=el.dataset.act,fn=ACTS[k],src=String(fn||"").replace(/\s+/g," ").trim();
+    if(fn&&B31_HIST_OK.some(r=>r.test(src)))return;delete ACTS[k];el.removeAttribute("data-act");
+    if(el.tagName==="BUTTON"||el.tagName==="A"){const s=document.createElement("span");s.className="b31-ro";s.dataset.b31Ro="1";
+      s.textContent=(el.textContent||"Action").trim()+" — désactivé dans l'historique (lecture seule) : chiffrez dans le bureau B3.1";el.replaceWith(s);}});
+  t.content.querySelectorAll("[data-upk]").forEach(el=>{delete UPS[el.dataset.upk];el.removeAttribute("data-upk");});
+  t.content.querySelectorAll("input,select,textarea").forEach(el=>{el.disabled=true;el.setAttribute("disabled","");["sim","bp","sd","b31","irf"].forEach(d=>el.removeAttribute("data-"+d));});
+  return t.innerHTML;}
 /* ---------- validation du chiffrage (distincte du Go / No-Go d'Ahmed) ---------- */
 function b31Bloquants(id,a,ET){const B=[];if(!ET.T)B.push("bordereau absent");else{if(ET.T.miss)B.push(ET.T.miss+" PU manquant(s)");if(ET.T.zero)B.push(ET.T.zero+" PU à zéro");}
   if(ET.tva.bloque)B.push(ET.tva.txt);if(ET.iso.length)B.push("FIN-ISO-001 : "+ET.iso[0]);if(ET.cf.length)B.push(OFR_CONFLIT);return B;}
@@ -262,10 +282,11 @@ function b31Dialog(id,a,ET){const D=B31.dlg,ferme=act(()=>{B31.dlg=null;render()
     c+=`<h4>Divergences conservées (${ET.div.length})</h4>${ET.div.length?`<ul class="b31-ul">${ET.div.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:`<p>Aucune divergence relevée.</p>`}`;
     c+=`<h4>Brouillons B3.1 enregistrés (${V.length}, immuables)</h4>${V.length?`<ul class="b31-ul">${V.map(v=>`<li><b>v${v.version}</b> · ${esc(v.label||"")} · ${esc(fmtDT(v.created_at))} · TTC ${esc(v.totaux?fmtN(+v.totaux.ttc):"incomplet")} · art. 44 ${esc((v.art44||{}).etat||"?")} · empreinte ${esc(String(v.hash||"").slice(0,10))}…${editable()&&v.soc===a.soc?` <button type="button" class="b31-lnk" data-act="${act(()=>b31Restaurer(id,a,v))}">Recharger dans le brouillon</button>`:""}</li>`).join("")}</ul>`:`<p>Aucun brouillon enregistré.</p>`}`;
     const hs=(ET.doc&&ET.doc.historique)||[];if(hs.length)c+=`<h4>Actions tracées (${hs.length})</h4><ul class="b31-ul">${hs.slice().reverse().slice(0,30).map(x=>`<li>${esc(fmtDT(x.le))} · ${esc(x.action)}</li>`).join("")}</ul>`;
-    let anc="";try{anc=vOffres(id,a)+vPrixTrace(id,a);}catch(e){anc=`<p>Indisponible : ${esc(e.message||e)}</p>`;}
+    c+=`<p class="b31-src" data-b31-consult="1">Historique en lecture seule : textes sources, aperçus et téléchargements restent disponibles ; les anciennes actions d'écriture (appliquer au bordereau, retenir une version, simuler, lire des devis…) sont désactivées ici. Les prix se modifient dans le bureau B3.1, ligne par ligne et en respectant les verrous.</p>`;
+    let anc="";try{anc=b31Consult(vOffres(id,a)+vPrixTrace(id,a));}catch(e){anc=`<p>Indisponible : ${esc(e.message||e)}</p>`;}
     c+=`<h4>Offres figées et décisions de prix antérieures (preuves inchangées)</h4>${anc||"<p>Aucune.</p>"}`;
-    let prop="";try{prop=vPropChiffreur(id,a);}catch(e){}if(prop)c+=`<h4>Ancienne proposition du Chiffreur</h4>${prop}`;
-    let sim="";try{sim=vSimu(id,a)+vSourcing(id,a);}catch(e){}c+=`<details class="b31-old"><summary>Outils précédents (simulateur, devis fournisseurs)</summary>${sim}</details>`;}
+    let prop="";try{prop=b31Consult(vPropChiffreur(id,a));}catch(e){}if(prop)c+=`<h4>Ancienne proposition du Chiffreur</h4>${prop}`;
+    let sim="";try{sim=b31Consult(vSimu(id,a)+vSourcing(id,a));}catch(e){}c+=`<details class="b31-old"><summary>Outils précédents (simulateur, devis fournisseurs) — consultation</summary>${sim}</details>`;}
   else if(D.k==="scen"){t="Scénarios · "+socCourt(a.soc);const SC=(ET.doc&&ET.doc.scenarios)||{};
     c+=`<p>Trois scénarios propres à ${esc(socCourt(a.soc))}, chacun défini par un pourcentage que vous saisissez par rapport à l'estimation TTC. Ils ne sont jamais recopiés vers une autre société.</p>`;
     c+=B31_SCEN.map(([k,l])=>{const s=SC[k]||{},v=D.pct!=null&&D.cible===k?D.pct:s.pct,c2=v!=null&&ET.E.c!=null?b31Cible(ET.E.c,v):null,A=c2!=null?b31Art44(ET.R,c2,ET.E.c):null;
@@ -433,6 +454,7 @@ const B31_CSS=`.b31{--b21-card:#FFFFFF;--b21-ivoire:#FBF7EF;--b21-line:#E6DFD2;-
 .b31-ul{margin:4px 0 10px;padding-left:18px;font-size:13px;line-height:1.5}.b31-ul li{margin:3px 0;overflow-wrap:anywhere}
 .b31-dlg .b31-dp{max-width:min(980px,100vw);width:min(980px,100vw)}.b31-dlg .fsbody h4{margin:14px 0 4px;font-size:14px}
 .b31-old summary{cursor:pointer;font-weight:600;margin:12px 0 6px}
+.b31-ro{display:inline-block;margin:4px 8px 4px 0;padding:3px 8px;border:1px dashed var(--b21-line,#E6DFD2);border-radius:6px;font-size:12px;color:var(--b21-muted,#6B6E75);font-style:italic}
 .b31-sdp{max-width:min(860px,100vw)!important;width:min(860px,100vw)}
 @media (min-width:900px){main.wide:has(.b31-full){max-width:1680px!important}}
 .b31-full .aolay{grid-template-columns:minmax(0,1fr)!important}

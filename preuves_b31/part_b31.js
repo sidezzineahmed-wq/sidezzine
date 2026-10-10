@@ -6,15 +6,20 @@
    brouillons enregistrés = documents immuables chiffrage_versions/<id>~v<n> (création refusée si la version existe).
    Aucune donnée d'une autre société n'est lue pour chiffrer (les onglets n'affichent que nom et statut).
    Contrôle art. 44 du décret n° 2-22-431 (édition TGR 2023, art. 44 B, p. 70) : comparaison en centimes, seuils stricts ;
-   régimes études (art. 144), gardiennage / nettoyage / espaces verts (art. 43 II.1.a) ou inconnus : « à vérifier ». */
-const B31={v:"b31-3",mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
+   régimes études (art. 144), gardiennage / nettoyage / espaces verts (art. 43 II.1.a) ou inconnus : « à vérifier ».
+   b31-4 : objectif en % aussi sur un bordereau vide ou partiel (bases justifiées puis ajustement), voir plus bas. */
+const B31={v:"b31-4",propIA:{},propBusy:null,propErr:{},mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
 const B31_DECRET={url:"https://www.tgr.gov.ma/wps/wcm/connect/1f3081fc-2d01-41de-8339-9a2c7de0480f/DECRET%2B2-22-431%2BFR.pdf?MOD=AJPERES",
   ref:"Décret n° 2-22-431 du 8 mars 2023, art. 44 (édition TGR 2023, p. 69-70)",sha:"d08109b9cee1364870c99659dbe58a3aef3556ab2d87209426dc97a314e07c78"};
 const B31_SCEN=[["prudent","Prudent"],["equilibre","Équilibré"],["competitif","Compétitif"]];
 /* ---------- arithmétique exacte (centimes entiers) ---------- */
 const b31C=v=>v===""||v==null||isNaN(+v)?null:cts(v);
 const b31Dh=c=>c==null?"—":fmtN(c/100)+" DH";
-function b31ParsePct(t){const s=String(t==null?"":t).trim().replace(/[−–]/g,"-").replace(/\s|%/g,"").replace(",",".");if(!/^[+-]?\d+(\.\d{1,2})?$/.test(s))return null;const v=+s;return v<=-99||v>200?null:v;}
+function b31PctNorm(t){return String(t==null?"":t).trim().replace(/[−–]/g,"-").replace(/\s|%/g,"").replace(",",".");}
+/* b31-4 : toute valeur numérique (hausse, baisse, décimale à deux chiffres, zéro) ; refus si non numérique ou si la cible TTC serait ≤ 0 */
+function b31ParsePct(t){const s=b31PctNorm(t);if(!/^[+-]?\d+(\.\d{1,2})?$/.test(s))return null;const v=+s;return isFinite(v)&&v>-100?v+0:null;}
+function b31PctErr(t){const s=b31PctNorm(t);if(s==="")return null;if(!/^[+-]?\d+(\.\d{1,2})?$/.test(s))return"Pourcentage non reconnu : saisissez un nombre (ex. −10, +5, 7,5 ou 0 ; deux décimales au plus).";
+  if(+s<=-100)return"Objectif refusé : "+String(s).replace(".",",")+" % donne une cible TTC nulle ou négative (il faut un pourcentage supérieur à −100 %).";return null;}
 const b31PctTxt=p=>(p>0?"+":p<0?"−":"")+String(Math.abs(p)).replace(".",",")+" %";
 const b31PartTxt=p=>String(Math.round((100+p)*100)/100).replace(".",",")+" % de l'estimation";
 function b31Cible(estC,p){const pH=Math.round(p*100);return Math.round(estC*(10000+pH)/10000);}
@@ -68,24 +73,108 @@ function b31Etat(id,a){const X=bpX(id),T=b31Tot(id,X.p||{}),E=b31Est(a),R=b31Reg
   const valide=(()=>{try{return prixFait(id,a,bpTot(id));}catch(e){return false;}})();
   const statut=valide?{k:"valide",t:"Chiffrage validé · offre v"+(O?O.version:"?")+" figée"}:doc&&doc.statut&&doc.statut.k==="a_reprendre"?{k:"reprendre",t:"À reprendre"+(doc.statut.motif?" : "+doc.statut.motif:"")}:{k:"brouillon",t:"Brouillon · chiffrage non validé"+(pv?" (une validation antérieure diverge : voir l'historique)":"")};
   return{X,T,E,R,tva,complet,A44,C,nIA,nLock,iso,cf,O,pv,div,doc,statut,valide};}
-/* ---------- objectif en pourcentage : prévisualisation (aucune écriture) ---------- */
-function b31Previsu(id,a,p){const ET=b31Etat(id,a),X=ET.X,L=b31Lignes(id),lock=X.lock||{};
+/* ---------- objectif en pourcentage (b31-4) ----------
+   Cible = estimation MO TTC × (1 + p/100), p positif, négatif, décimal ou nul ; refus si non numérique ou cible ≤ 0.
+   Base complète (toutes les lignes ont un PU) : ajustement proportionnel inchangé.
+   Bordereau vide ou partiel : chaque ligne non verrouillée reçoit une BASE de prix justifiée — PU déjà saisi, référence interne
+   de LA MÊME société (ses autres chiffrages, même désignation et même unité), proposition du Chiffreur rattachée à la société,
+   ou proposition IA ligne par ligne (Claude, hypothèses à vérifier) — puis toutes les bases sont ajustées ensemble à la cible.
+   Jamais de prix d'une autre société (FIN-ISO-001), jamais de répartition égale arbitraire, jamais de quantité inventée.
+   Proposition et aperçu n'écrivent rien ; seul « Appliquer » écrit, sur les lignes non verrouillées, et le chiffrage reste un brouillon.
+   L'aperçu porte une empreinte (pourcentage, société, estimation, PU, quantités, verrous, lignes, proposition) : toute
+   modification avant « Appliquer » l'invalide. */
+function b31Refs(id,a){const soc=a&&a.soc,M={};if(!soc)return M;
+  Object.entries(S.bpx||{}).forEach(([oid,X])=>{const b2=S.bp[oid],o=S.ao[oid];if(oid===id||!X||!b2||!o||X.soc!==soc||o.soc!==soc||!Array.isArray(b2.lots))return;
+    b2.lots.forEach((L,l)=>(L.lignes||[]).forEach((x,i)=>{const p=(X.p||{})[l+"-"+i],d=norm(x.d||"");if(!d||p===undefined||p===""||p==null||!(+p>0))return;
+      const key=d+"|"+norm(x.u||"");(M[key]=M[key]||[]).push({pu:+p,ref:o.ref||oid,oid,t:+X.t||0});}));});
+  Object.values(M).forEach(v=>v.sort((u,w)=>w.t-u.t));return M;}
+function b31PropSig(id,a){return sha256Str((a.soc||"")+"|"+b31Lignes(id).map(r=>r.k+":"+norm(r.x.d||"")+":"+norm(r.x.u||"")).join(";"));}
+function b31PropIA(id,a){const P=B31.propIA[id];return P&&P.soc===a.soc&&P.sig===b31PropSig(id,a)?P:null;}
+const b31Conf=c=>{c=norm(String(c||"")).toLowerCase();return["haute","moyenne","basse"].includes(c)?c:"non indiquée";};
+/* base de prix de chaque ligne (lecture seule) */
+function b31Bases(id,a){const X=bpX(id),lock=X.lock||{},R=b31Refs(id,a),P=propOwn(id,a)?S.bpprop[id]:null,PL=(P&&P.lignes)||{},IA=b31PropIA(id,a);
+  return b31Lignes(id).map(r=>{const k=r.k,v=X.p[k],vu=v===undefined||v===""||v==null,z=!vu&&+v===0,has=!vu&&+v>0;
+    if(lock[k])return{r,lock:true,pu:has?+v:z?0:null};
+    if(has)return{r,pu:+v,m:"existant",lab:"PU déjà saisi dans ce chiffrage ("+socCourt(a.soc)+")",conf:null,just:"Prix de la société conservé comme base, ajusté proportionnellement."};
+    const rf=R[norm(r.x.d||"")+"|"+norm(r.x.u||"")];
+    if(rf&&rf.length)return{r,pu:rf[0].pu,m:"ref",lab:"Référence interne de "+socCourt(a.soc)+" : dossier "+rf[0].ref+(rf.length>1?" (+"+(rf.length-1)+" autre(s))":""),conf:"moyenne",
+      just:"Même désignation et même unité dans un autre chiffrage de la même société ; conditions et date différentes : à vérifier."};
+    const c=PL[k];if(c&&+c.pu>0)return{r,pu:+c.pu,m:"chiffreur",lab:"Proposition du Chiffreur EAIOS rattachée à "+socCourt(a.soc),conf:"basse",
+      just:c.j?String(c.j):"Déboursé hypothétique × coefficient (base "+(((P||{}).meta||{}).baseCout||"HYPOTHÈSE")+")."};
+    const g=IA&&IA.L[k];if(g&&g.pu>0)return{r,pu:g.pu,m:"ia",lab:"Proposition IA (Claude) — hypothèse à vérifier",conf:g.conf,just:[g.just,g.inclut?"Inclut : "+g.inclut:""].filter(Boolean).join(" · ")||"Aucune justification fournie."};
+    return{r,pu:null,zero:z,iaNull:!!(g&&!(g.pu>0)),iaWhy:g?g.just:null};});}
+function b31BaseStat(B){const o={existant:0,ref:0,chiffreur:0,ia:0,sans:0,lock:0,qnull:0};B.forEach(z=>{if(z.r.qq==null)o.qnull++;if(z.lock)o.lock++;else if(z.pu==null)o.sans++;else o[z.m]++;});return o;}
+/* empreinte de l'aperçu : tout changement de pourcentage, société, estimation, PU, quantités, verrous, lignes ou proposition l'invalide */
+function b31PrevSig(id,a,p){const X=bpX(id),IA=b31PropIA(id,a);
+  return sha256Str(canonJSON({p:+p,soc:a.soc||null,est:b31Est(a).c,pu:X.p||{},q:X.q||{},lock:X.lock||{},ia:IA?IA.le:null,
+    l:b31Lignes(id).map(r=>[r.k,r.qq==null?null:+r.qq,r.x.d||"",r.x.u||""]),b:b31Bases(id,a).map(z=>[z.r.k,z.pu==null?null:z.pu,z.m||""])}));}
+function b31Previsu(id,a,p){const ET=b31Etat(id,a),X=ET.X,L=b31Lignes(id);
+  if(typeof p!=="number"||!isFinite(p)||p<=-100)return{ok:false,why:"Pourcentage invalide : la cible TTC doit rester strictement positive (pourcentage supérieur à −100 %).",manque:[]};
   if(ET.E.c==null)return{ok:false,why:"Estimation du maître d'ouvrage inconnue : l'objectif en pourcentage n'a pas de base. Renseignez l'estimation (source) dans les exigences.",manque:[]};
-  const sans=L.filter(r=>{const v=X.p[r.k];return v===undefined||v===""||v==null||r.qq==null;}),zero=L.filter(r=>+X.p[r.k]===0&&X.p[r.k]!==""&&X.p[r.k]!=null);
-  if(sans.length||zero.length)return{ok:false,why:"Base de prix unitaires non fiable : "+(sans.length?sans.length+" ligne(s) sans PU ou sans quantité":"")+(sans.length&&zero.length?" et ":"")+(zero.length?zero.length+" PU à zéro":"")+". EAIOS ne répartit pas un total cible sans base de PU : saisissez ou acceptez ces PU (mode manuel ou proposition), puis prévisualisez.",manque:sans.concat(zero).map(r=>r.x.n||r.k)};
-  const cibleC=b31Cible(ET.E.c,p),cibleHtC=Math.round(cibleC*100/(100+BP_TVA));let lockC=0,libC=0;
-  L.forEach(r=>{const c=ligneC(r.qq,X.p[r.k]);if(lock[r.k])lockC+=c;else libC+=c;});
-  if(!libC)return{ok:false,why:"Toutes les lignes sont verrouillées : rien à ajuster.",manque:[]};
-  const f=(cibleHtC-lockC)/libC;if(!(f>0))return{ok:false,why:"Objectif inatteignable : les lignes verrouillées dépassent déjà la cible HT.",manque:[]};
-  const P={...X.p},rows=[];L.forEach(r=>{if(lock[r.k])return;const n=Math.round(+X.p[r.k]*f*100+1e-7)/100;rows.push({k:r.k,avant:+X.p[r.k],apres:n});P[r.k]=n;});
-  const T2=b31Tot(id,P);return{ok:true,p,f,cibleC,P,rows,T:T2,resteC:T2.ttcC-cibleC,lockN:L.length-rows.length,A44:b31Art44(ET.R,T2.ttcC,ET.E.c)};}
+  if(!L.length)return{ok:false,why:"Bordereau sans ligne : rien à chiffrer.",manque:[]};
+  const qn=L.filter(r=>r.qq==null);
+  if(qn.length)return{ok:false,k:"quantite",why:qn.length+" ligne(s) sans quantité lisible : EAIOS n'invente aucune quantité. Saisissez-les d'après le DCE (colonne Qté du bordereau), puis prévisualisez.",manque:qn.map(r=>r.x.n||r.k)};
+  const B=b31Bases(id,a),lk=B.filter(z=>z.lock),lib=B.filter(z=>!z.lock);
+  const lkS=lk.filter(z=>!(z.pu>0));if(lkS.length)return{ok:false,k:"verrou",why:lkS.length+" ligne(s) verrouillée(s) sans PU ou à zéro : une ligne verrouillée garde son prix ; saisissez-le ou déverrouillez-la.",manque:lkS.map(z=>z.r.x.n||z.r.k)};
+  if(!lib.length)return{ok:false,why:"Toutes les lignes sont verrouillées : rien à ajuster.",manque:[]};
+  const sans=lib.filter(z=>z.pu==null);
+  if(sans.length){const nz=sans.filter(z=>z.zero).length,ni=sans.filter(z=>z.iaNull).length;
+    return{ok:false,k:"base",why:"Base de prix incomplète : "+sans.length+" ligne(s) non verrouillée(s) sans base"+(nz?" (dont "+nz+" PU à zéro)":"")+" — ni PU saisi, ni référence interne de "+socCourt(a.soc)+", ni proposition"+(ni?" ("+ni+" sans estimation de l'IA)":"")+". EAIOS ne fait aucune répartition arbitraire : générez la proposition IA (justifiée ligne par ligne) ou saisissez ces PU, puis prévisualisez.",
+      manque:sans.map(z=>z.r.x.n||z.r.k),need:sans.length};}
+  const cibleC=b31Cible(ET.E.c,p),cibleHtC=Math.round(cibleC*100/(100+BP_TVA));let lockC=0,baseC=0;
+  lk.forEach(z=>{lockC+=ligneC(z.r.qq,z.pu);});lib.forEach(z=>{baseC+=ligneC(z.r.qq,z.pu);});
+  if(cibleHtC-lockC<=0)return{ok:false,k:"inatteignable",why:"Objectif inatteignable : les "+lk.length+" ligne(s) verrouillée(s) totalisent déjà "+b31Dh(lockC)+" HT, pour une cible de "+b31Dh(cibleHtC)+" HT ("+b31Dh(cibleC)+" TTC). Déverrouillez des lignes ou changez le pourcentage.",manque:[],cibleC,cibleHtC,lockC};
+  if(!(baseC>0))return{ok:false,why:"Base des lignes non verrouillées nulle : aucun ajustement possible.",manque:[]};
+  const f=(cibleHtC-lockC)/baseC,P={...X.p},rows=[];
+  lib.forEach(z=>{const k=z.r.k,v=X.p[k],n=Math.round(z.pu*f*100+1e-7)/100;rows.push({k,n:z.r.x.n||"",d:z.r.x.d||"",u:z.r.x.u||"",qq:z.r.qq,avant:v===undefined||v===""||v==null?null:+v,base:z.pu,apres:n,m:z.m,lab:z.lab,conf:z.conf,just:z.just});P[k]=n;});
+  const zr=rows.filter(r=>!(r.apres>0));if(zr.length)return{ok:false,why:zr.length+" PU arrondi(s) à 0,00 DH avec ce pourcentage : objectif irréaliste pour ces lignes ; changez le pourcentage ou saisissez-les.",manque:zr.map(r=>r.n||r.k)};
+  const T2=b31Tot(id,P),st=b31BaseStat(B);
+  return{ok:true,p,f,cibleC,cibleHtC,lockC,P,rows,T:T2,resteC:T2.ttcC-cibleC,lockN:lk.length,A44:b31Art44(ET.R,T2.ttcC,ET.E.c),tva:ET.tva,
+    nProp:st.ref+st.chiffreur+st.ia,nIA:st.ia,nRef:st.ref,nCh:st.chiffreur,nEx:st.existant,soc:a.soc,sig:b31PrevSig(id,a,p)};}
 function b31Appliquer(id,a){const pr=B31.prev[id];if(!pr||!pr.ok)return;if(!editable())return toast(RO_MSG);
   /* b31-2 : verrous relus AU MOMENT d'appliquer (une ligne verrouillée après l'aperçu n'est jamais écrasée) */
   const X=bpX(id),now=new Date().toISOString(),Lk=X.lock||{},rows=pr.rows.filter(r=>!Lk[r.k]),nv=pr.rows.length-rows.length;
   if(nv){delete B31.prev[id];render();return toast(nv+" ligne(s) verrouillée(s) depuis l'aperçu : rien n'est appliqué. Refaites l'aperçu.");}
-  X.srcL=X.srcL||{};rows.forEach(r=>{X.p[r.k]=r.apres;X.srcL[r.k]={m:"pct",p:pr.p,le:now};});
-  X._src="B3.1 objectif "+b31PctTxt(pr.p)+" ("+b31PartTxt(pr.p)+")";bpSave(id);logJ(a.ref+" : B3.1 objectif "+b31PctTxt(pr.p)+" appliqué à "+rows.length+" ligne(s) non verrouillée(s) de "+socCourt(a.soc));
-  delete B31.prev[id];render();toast("Objectif appliqué à "+rows.length+" ligne(s) ; lignes verrouillées inchangées. Rien n'est validé.");}
+  /* b31-4 : société, pourcentage, données ou proposition modifiés depuis l'aperçu → rien n'est appliqué */
+  if(pr.soc!==a.soc){delete B31.prev[id];render();return toast("Société du dossier changée depuis l'aperçu : rien n'est appliqué. Refaites l'aperçu.");}
+  const v=B31.pct[id]==null||B31.pct[id]===""?pr.p:b31ParsePct(B31.pct[id]);
+  if(v!==pr.p){delete B31.prev[id];render();return toast("Pourcentage modifié depuis l'aperçu : rien n'est appliqué. Refaites l'aperçu.");}
+  const re=b31Previsu(id,a,pr.p);
+  if(!re.ok||re.sig!==pr.sig||canonJSON(re.rows.map(r=>[r.k,r.apres]))!==canonJSON(pr.rows.map(r=>[r.k,r.apres]))){delete B31.prev[id];render();return toast("Les données du bordereau ont changé depuis l'aperçu (prix, quantités, verrous ou proposition) : rien n'est appliqué. Refaites l'aperçu.");}
+  X.srcL=X.srcL||{};rows.forEach(r=>{X.p[r.k]=r.apres;X.srcL[r.k]=Object.assign({m:"pct",p:pr.p,le:now,base:r.m},r.m!=="existant"?{baseLab:String(r.lab||"").slice(0,160),conf:r.conf||null,just:String(r.just||"").slice(0,300)}:{});});
+  X._src="B3.1 objectif "+b31PctTxt(pr.p)+" ("+b31PartTxt(pr.p)+")"+(pr.nProp?" — "+pr.nProp+" PU de base proposés (hypothèses à vérifier)":"");
+  if(pr.nProp)X._base="HYPOTHÈSE — proposition (IA, références internes ou Chiffreur) à vérifier";
+  bpSave(id);delete X._base;
+  logJ(a.ref+" : B3.1 objectif "+b31PctTxt(pr.p)+" appliqué à "+rows.length+" ligne(s) non verrouillée(s) de "+socCourt(a.soc)+(pr.nProp?" ("+pr.nProp+" PU de base proposés)":""));
+  delete B31.prev[id];render();toast("Objectif appliqué à "+rows.length+" ligne(s) ; lignes verrouillées inchangées. Rien n'est validé : le chiffrage reste un brouillon.");}
+/* proposition IA des bases manquantes : lecture seule, rien n'est écrit (ni bordereau, ni chiffrage, ni journal) */
+function b31PropMsg(e){const c=e&&e.code;return c==="not_granted"||c==="sampling_disabled"?"Claude refusé ou indisponible pour ce compte":c==="rate_limited"?"trop de demandes, réessayez plus tard":c==="cancelled"?"demande annulée":c==="invalid_json"?"réponse illisible":(c||(e&&e.message)||"erreur");}
+async function b31ProposerIA(id,a){if(!editable())return toast(RO_MSG);if(B31.propBusy)return;
+  if(!S.sample){B31.propErr[id]={k:"indispo",t:"Proposition IA indisponible dans cette vue : la capacité « sample » (Claude) n'est pas accordée pour ce lecteur. Aucune proposition n'est produite ni simulée : saisissez les PU manquants à la main."};render();return;}
+  const B=b31Bases(id,a),need=B.filter(z=>!z.lock&&z.pu==null&&z.r.qq!=null);
+  if(!need.length){delete B31.propErr[id];render();return toast("Toutes les lignes non verrouillées ont déjà une base de prix.");}
+  B31.propBusy=id;delete B31.propErr[id];render();
+  const ET=b31Etat(id,a),E=ET.E,p=b31ParsePct(B31.pct[id]),ex=a.exig||{},R=b31Refs(id,a);
+  const refs=Object.entries(R).slice(0,40).map(([k,v])=>JSON.stringify({designation:k.split("|")[0].slice(0,140),unite:k.split("|")[1]||"",pu_ht:v[0].pu,dossier:v[0].ref}));
+  const ex2=B.filter(z=>z.m==="existant").slice(0,40).map(z=>JSON.stringify({designation:String(z.r.x.d||"").slice(0,140),unite:z.r.x.u||"",quantite:z.r.qq,pu_ht:z.pu}));
+  const ctx=`Tu prépares, pour une PME marocaine du BTP (société : ${socCourt(a.soc)}), une PROPOSITION de prix unitaires HT en dirhams marocains (DH) pour le bordereau d'un marché public. Ces prix serviront de STRUCTURE : EAIOS les ajustera ensuite proportionnellement pour atteindre un total cible ; ils doivent donc être cohérents entre eux selon la nature, l'unité et la quantité de chaque ouvrage.
+Marché : « ${String(a.obj||"").slice(0,300)} » · catégorie : ${a.categorie||"inconnue"} · lieu : ${(a.lieux||[]).join(", ")||"non précisé"}${ex.delai?" · délai : "+String(ex.delai).slice(0,160):""}${E.c!=null?" · estimation du maître d'ouvrage : "+fmtN(E.c/100)+" DH TTC (TVA "+BP_TVA+" % à confirmer)":""}${p!=null&&E.c!=null?" · objectif : "+fmtN(b31Cible(E.c,p)/100)+" DH TTC":""}.
+Tu n'as accès à AUCUNE base de prix, mercuriale ni internet : ce sont des hypothèses. N'utilise jamais les prix d'une autre entreprise.${refs.length?"\nRéférences internes de la MÊME société (ses chiffrages antérieurs, indicatifs) :\n"+refs.join("\n"):""}${ex2.length?"\nPrix déjà saisis dans ce chiffrage par la même société :\n"+ex2.join("\n"):""}
+Pour CHAQUE ligne ci-dessous : pu (nombre > 0, DH HT par unité) ou null si impossible, ce que le prix inclut, une justification courte (nature, unité, quantité, hypothèse de fourniture et de rendement) et ta confiance (haute|moyenne|basse).
+Réponds uniquement par un objet JSON : {"lignes":[{"k":"clé","pu":nombre ou null,"inclut":"…","justification":"…","confiance":"haute|moyenne|basse"}]}
+LIGNES :
+`;
+  const o={},keys=new Set(need.map(z=>z.r.k));
+  try{for(let i=0;i<need.length;i+=40){const part=need.slice(i,i+40);
+      const res=await S.sample.json(ctx+part.map(z=>JSON.stringify({k:z.r.k,n:z.r.x.n||"",designation:String(z.r.x.d||"").slice(0,300),unite:z.r.x.u||"",quantite:z.r.qq,section:z.r.x.s||""})).join("\n"),{modelTier:"default",cache:false});
+      if(!res||!Array.isArray(res.lignes))throw{code:"invalid_json"};
+      res.lignes.forEach(z=>{if(!z||!keys.has(z.k))return;const pu=+z.pu;o[z.k]={pu:z.pu==null||!isFinite(pu)||!(pu>0)?null:Math.round(pu*100)/100,inclut:String(z.inclut||"").slice(0,300),just:String(z.justification||z.hypotheses||"").slice(0,400),conf:b31Conf(z.confiance)};});}
+    const n=Object.values(o).filter(z=>z.pu>0).length,nn=need.length-n;
+    B31.propIA[id]={soc:a.soc,sig:b31PropSig(id,a),le:new Date().toISOString(),modele:"Claude (capacité sample de la page)",L:o,n,nn};delete B31.prev[id];
+    if(nn)B31.propErr[id]={k:"partiel",t:"Proposition IA partielle : "+nn+" ligne(s) sans estimation de Claude ; saisissez leur PU à la main avant de prévisualiser."};
+    toast(n+" PU proposé(s) par Claude, justifiés ligne par ligne : hypothèses à vérifier. Rien n'est écrit.");}
+  catch(e){B31.propErr[id]={k:"echec",t:"Proposition IA interrompue ("+b31PropMsg(e)+") : aucune nouvelle proposition conservée, rien n'est écrit. Réessayez ou saisissez les PU à la main."};}
+  finally{B31.propBusy=null;render();}}
 /* ---------- persistance : chiffrage/<id> (scénarios, statut) et versions immuables ---------- */
 async function b31Charger(id){if(!S.db||B31.ch[id])return;B31.ch[id]={etat:"loading"};
   try{const g=await S.db.doc("chiffrage/"+id).get();B31.ch[id]={etat:"ok",doc:g&&g.exists?g.data():null};}catch(e){B31.ch[id]={etat:"err",err:String(e&&(e.code||e.message)||e)};}
@@ -254,15 +343,29 @@ function b31Controles(id,a,ET){const L=[],T=ET.T,it=(niv,t,fn)=>L.push({niv,t,fn
   if(!L.some(x=>x.niv!=="ok"))it("ok","Aucun point bloquant relevé",null);
   it("ok","Aucun prix appliqué sans action d'une personne (ligne, objectif ou acceptation)",null);
   return`<section class="b31-card b31-ctl" aria-labelledby="b31-ct"><h3 id="b31-ct">${b31Ic("shield")}Contrôles avant validation</h3><ul>${L.map(x=>`<li class="b31-c-${x.niv}">${x.fn?`<button type="button" data-act="${act(x.fn)}">`:"<div>"}${b31Ic(x.niv==="ok"?"ok":"warn")}<span>${esc(x.t)}</span>${x.fn?b31Ic("chev","b31-go")+"</button>":"</div>"}</li>`).join("")}</ul></section>`;}
-function b31SimCard(id,a,ET){const v=B31.pct[id]==null?"":B31.pct[id],p=b31ParsePct(v),pr=B31.prev[id],ed=editable();
-  let h=`<section class="b31-card b31-sim" aria-labelledby="b31-st"><h3 id="b31-st">${b31Ic("pct")}Objectif en pourcentage</h3><label class="b31-pl">Écart voulu par rapport à l'estimation TTC (ex. −10 ou +5)<input class="b31-in" data-b31-pct="${esc(id)}" value="${esc(v)}" inputmode="decimal" autocomplete="off" placeholder="saisi par vous"></label>`;
-  if(v!==""&&p==null)h+=`<p class="b31-ko-t">Pourcentage non reconnu (entre −99 % et +200 %, deux décimales au plus).</p>`;
+function b31SimCard(id,a,ET){const v=B31.pct[id]==null?"":B31.pct[id],p=b31ParsePct(v),er=b31PctErr(v),pr=B31.prev[id],ed=editable();
+  let h=`<section class="b31-card b31-sim" aria-labelledby="b31-st"><h3 id="b31-st">${b31Ic("pct")}Objectif en pourcentage</h3><label class="b31-pl">Écart voulu par rapport à l'estimation MO TTC : hausse (+) ou baisse (−), ex. −10, +5, 7,5 ou 0<input class="b31-in" data-b31-pct="${esc(id)}" value="${esc(v)}" inputmode="decimal" autocomplete="off" placeholder="saisi par vous"></label>`;
+  if(er)h+=`<p class="b31-ko-t" data-b31-pcterr="1">${esc(er)}</p>`;
   if(p!=null&&ET.E.c!=null){const c=b31Cible(ET.E.c,p),A=b31Art44(ET.R,c,ET.E.c);h+=`<p class="b31-eq"><b>${esc(b31PctTxt(p))} = ${esc(b31PartTxt(p))}</b> · cible ${b31Dh(c)} TTC</p><p>${b31Pill(A.k,A.k==="bornes"?"Dans les bornes art. 44 B":A.k==="bas"?"Anormalement basse (art. 44 B)":A.k==="excessif"?"Excessive (art. 44 B)":"Art. 44 à vérifier")}</p>`;}
   if(p!=null&&ET.E.c==null)h+=`<p class="b31-ko-t">Estimation inconnue : aucune cible calculable.</p>`;
+  /* base de prix : d'où vient la structure de chaque ligne (aucune répartition égale arbitraire) */
+  const B=b31Bases(id,a),st=b31BaseStat(B),IA=b31PropIA(id,a),pe=B31.propErr[id],busy=B31.propBusy===id;
+  const part=[[st.existant,"PU saisi(s)"],[st.ref,"référence(s) interne(s) "+socCourt(a.soc)],[st.chiffreur,"proposition(s) du Chiffreur"],[st.ia,"proposition(s) IA"],[st.lock,"verrouillée(s)"],[st.sans,"sans base"]].filter(x=>x[0]);
+  h+=`<div class="b31-base" data-b31-base="${st.sans?"incomplete":"complete"}"><p><b>Base de prix · ${B.length} ligne(s)</b> : ${esc(part.map(x=>x[0]+" "+x[1]).join(" · ")||"aucune")}${st.qnull?` · <span class="b31-ko-t">${st.qnull} quantité(s) illisible(s)</span>`:""}</p>`;
+  if(st.sans&&ed)h+=S.sample?`<button type="button" class="b31-btn" data-b31-propia="1" ${busy||B31.propBusy?"disabled":""} data-act="${act(()=>b31ProposerIA(id,a))}">${b31Ic("spark")}${busy?"Claude prépare la proposition…":"Générer la proposition IA ("+st.sans+" ligne"+(st.sans>1?"s":"")+" sans base)"}</button><p class="b31-src">Claude propose un PU justifié par ligne (désignation, unité, quantité, CPS lu, références internes de ${esc(socCourt(a.soc))}). Rien n'est écrit : la proposition sert seulement à l'aperçu.</p>`
+    :`<p class="b31-need" data-b31-iaindispo="1">${b31Ic("warn")}<span><b>Proposition IA indisponible dans cette vue</b> (capacité « sample » non accordée) : saisissez les ${st.sans} PU manquant(s) en mode manuel. Aucune répartition arbitraire n'est faite.</span></p>`;
+  if(pe)h+=`<p class="b31-need" data-b31-properr="${esc(pe.k)}">${b31Ic("warn")}<span>${esc(pe.t)}</span></p>`;
+  if(IA)h+=`<p class="b31-src" data-b31-propia-ok="1">Proposition IA du ${esc(fmtDT(IA.le))} pour ${esc(socCourt(a.soc))} : ${IA.n} PU proposé(s)${IA.nn?", "+IA.nn+" sans estimation":""} · en mémoire de cette page seulement, non enregistrée.</p>`;
+  h+=`</div>`;
   h+=`<div class="b31-row">${ed?`<button type="button" class="b31-btn" data-b31-prev="1" ${p==null?"disabled":""} data-act="${act(()=>{B31.prev[id]=b31Previsu(id,a,p);render();})}">Prévisualiser</button>`:""}${ed&&p!=null?`<button type="button" class="b31-btn b31-sm" data-act="${act(()=>{B31.dlg={id,k:"scen",pct:p};render();})}">Enregistrer comme scénario…</button>`:""}</div>`;
-  if(pr&&!pr.ok)h+=`<div class="b31-need" data-b31-need="1">${b31Ic("warn")}<span>${esc(pr.why)}</span></div>`;
-  if(pr&&pr.ok)h+=`<div class="b31-prv" data-b31-prv="1"><p><b>Aperçu ${esc(b31PctTxt(pr.p))}</b> : ${pr.rows.length} ligne(s) ajustée(s) × ${String(Math.round(pr.f*10000)/10000).replace(".",",")}, ${pr.lockN} verrouillée(s) inchangée(s).</p><p>Total obtenu ${b31Dh(pr.T.ttcC)} TTC (cible ${b31Dh(pr.cibleC)}) · écart d'arrondi ${pr.resteC>0?"+":""}${fmtN(pr.resteC/100)} DH, laissé tel quel (aucune ligne forcée).</p><p>${b31Pill(pr.A44.k,pr.A44.t)}</p>
-    <div class="b31-row"><button type="button" class="b31-btn b31-gold" data-b31-appl="1" data-act="${wact(()=>b31Appliquer(id,a))}">Appliquer aux lignes non verrouillées</button><button type="button" class="b31-btn b31-sm" data-act="${act(()=>{delete B31.prev[id];render();})}">Annuler l'aperçu</button></div><p class="b31-src">Rien n'est validé en appliquant : le chiffrage reste un brouillon.</p></div>`;
+  if(pr&&!pr.ok)h+=`<div class="b31-need" data-b31-need="${esc(pr.k||"1")}">${b31Ic("warn")}<span>${esc(pr.why)}${pr.manque&&pr.manque.length?`<small class="b31-src">Ligne(s) N° ${esc(pr.manque.slice(0,15).join(", "))}${pr.manque.length>15?" … (+"+(pr.manque.length-15)+")":""}</small>`:""}</span></div>`;
+  if(pr&&pr.ok){const stale=pr.soc!==a.soc||pr.sig!==b31PrevSig(id,a,pr.p),prop=pr.rows.filter(r=>r.m!=="existant");
+    h+=`<div class="b31-prv" data-b31-prv="1"${stale?' data-b31-stale="1"':""}><p><b>Aperçu ${esc(b31PctTxt(pr.p))}</b> : ${pr.rows.length} ligne(s) ajustée(s) × ${String(Math.round(pr.f*10000)/10000).replace(".",",")}, ${pr.lockN} verrouillée(s) inchangée(s).</p>
+      <p data-b31-cible="1">TTC cible ${b31Dh(pr.cibleC)} · TTC obtenu ${b31Dh(pr.T.ttcC)} · écart d'arrondi ${pr.resteC>0?"+":""}${fmtN(pr.resteC/100)} DH, laissé tel quel (aucune ligne forcée).</p><p class="b31-src">${esc(pr.tva.txt)}.${pr.lockN?" Lignes verrouillées : "+b31Dh(pr.lockC)+" HT conservés.":""}</p><p>${b31Pill(pr.A44.k,pr.A44.t)}</p>`;
+    if(prop.length)h+=`<div class="b31-hyp" data-b31-hyp="1"><b>Proposition IA / hypothèses à vérifier</b> : ${prop.length} PU de base proposé(s) (${[pr.nRef?pr.nRef+" référence(s) interne(s)":"",pr.nCh?pr.nCh+" Chiffreur":"",pr.nIA?pr.nIA+" IA":""].filter(Boolean).join(", ")}), puis ajustés à la cible. Aucune mercuriale ni base de prix de marché n'est branchée ; aucun prix d'une autre société n'est utilisé.</div>
+      <details class="b31-just" data-b31-just="1"><summary>Justification de chaque PU proposé (${prop.length})</summary><ul class="b31-ul">${prop.map(r=>`<li data-b31-jk="${esc(r.k)}"><b>N° ${esc(r.n||r.k)}</b> ${esc(String(r.d).slice(0,90))}${String(r.d).length>90?"…":""} (${esc(r.u)}, qté ${esc(fmtQ(r.qq))}) : base ${fmtN(r.base)} → <b>${fmtN(r.apres)} DH</b> · ${esc(r.lab)} · confiance ${esc(r.conf||"non indiquée")}<small class="b31-src">${esc(r.just||"")}</small></li>`).join("")}</ul></details>`;
+    h+=stale?`<p class="b31-need" data-b31-perime="1">${b31Ic("warn")}<span>Aperçu périmé : les données, la société, les verrous ou la proposition ont changé depuis. Refaites l'aperçu avant d'appliquer.</span></p><div class="b31-row"><button type="button" class="b31-btn" data-act="${act(()=>{B31.prev[id]=b31Previsu(id,a,pr.p);render();})}">Refaire l'aperçu</button></div></div>`
+      :`<div class="b31-row"><button type="button" class="b31-btn b31-gold" data-b31-appl="1" data-act="${wact(()=>b31Appliquer(id,a))}">Appliquer aux lignes non verrouillées</button><button type="button" class="b31-btn b31-sm" data-act="${act(()=>{delete B31.prev[id];render();})}">Annuler l'aperçu</button></div><p class="b31-src">Rien n'est validé en appliquant : le chiffrage reste un brouillon (ni validation, ni Go / No-Go, ni signature, ni dépôt).</p></div>`;}
   return h+`</section>`;}
 function b31IaCard(id,a,ET){const C=b31SugChiffreur(id,a),cl=B31.ia[id]||(ET.doc&&ET.doc.ia&&ET.doc.ia.soc===a.soc?ET.doc.ia:null);
   let h=`<section class="b31-card b31-ia" aria-labelledby="b31-it"><h3 id="b31-it">${b31Ic("spark")}Proposition IA</h3>`;
@@ -446,6 +549,8 @@ const B31_CSS=`.b31{--b21-card:#FFFFFF;--b21-ivoire:#FBF7EF;--b21-line:#E6DFD2;-
 .b31-need{display:flex;gap:8px;align-items:flex-start;background:var(--b21-todobg);border-radius:8px;padding:8px 10px;margin-top:10px;font-size:12.5px;color:var(--b21-or-p)}.b31-need span{color:var(--b21-ink)}
 .b31-prv{margin-top:10px;border:1px solid var(--b21-or);border-radius:10px;padding:8px 10px;font-size:12.5px;background:var(--b21-ivoire)}.b31-prv p{margin:4px 0}
 .b31-ia p{font-size:12.5px;line-height:1.5;margin:6px 0}
+.b31-base{margin-top:10px;border-top:1px solid var(--b21-line2);padding-top:8px;font-size:12.5px}.b31-base p{margin:4px 0}.b31-base .b31-btn{margin-top:4px}
+.b31-prv .b31-hyp{margin:6px 0}.b31-just summary{cursor:pointer;font-weight:600;color:var(--b21-or-p);margin:6px 0}.b31-just li small{display:block}
 .b31-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--b21-card);border:1px solid var(--b21-line);border-radius:12px;padding:10px 14px;box-shadow:0 -2px 10px rgba(20,16,8,.06)}
 @media (min-width:900px){.b31-bar{position:sticky;bottom:8px;z-index:3}}
 .b31-bs{display:flex;gap:8px;align-items:center;color:var(--b21-or-p);font-size:13px;min-width:0;flex:1 1 260px}.b31-bs span{color:var(--b21-ink);overflow-wrap:anywhere}

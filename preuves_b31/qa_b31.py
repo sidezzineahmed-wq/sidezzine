@@ -63,8 +63,8 @@ with sync_playwright() as p:
     chk(A["sp"]=="special" and A["sap"]=="special" and A["sapA"]=="verifier","gardiennage / nettoyage / espaces verts et 15/2026/SAP (taux de majoration) : régime particulier → « à vérifier »")
     chk(A["incK"]=="inconnu" and A["inc"]=="verifier" and A["noE"]=="verifier","catégorie inconnue ou estimation inconnue → « à vérifier », jamais vert")
     # ===== 3. pourcentage =====
-    P=ev("()=>[b31ParsePct('-10'),b31ParsePct('−10 %'),b31ParsePct('+5'),b31ParsePct('-10,5'),b31ParsePct('abc'),b31ParsePct('-99'),b31ParsePct('-10.123'),b31PctTxt(-10),b31PartTxt(-10),b31PartTxt(5),b31PartTxt(-12.5)]")
-    chk(P[:7]==[-10,-10,5,-10.5,None,None,None],f"saisie du % : {P[:7]}")
+    P=ev("()=>[b31ParsePct('-10'),b31ParsePct('−10 %'),b31ParsePct('+5'),b31ParsePct('-10,5'),b31ParsePct('abc'),b31ParsePct('-100'),b31ParsePct('-10.123'),b31PctTxt(-10),b31PartTxt(-10),b31PartTxt(5),b31PartTxt(-12.5)]")
+    chk(P[:7]==[-10,-10,5,-10.5,None,None,None],f"saisie du % (b31-4 : −100 refusé car cible ≤ 0) : {P[:7]}")
     chk(P[7]=="−10 %" and P[8]=="90 % de l'estimation" and P[9]=="105 % de l'estimation" and P[10]=="87,5 % de l'estimation","libellés « −10 % = 90 % », « +5 % = 105 % », « −12,5 % = 87,5 % »")
     # prévisualisation sans écriture, lignes verrouillées respectées, résidu non forcé
     w0=len(ev("()=>window.__writes"))
@@ -73,10 +73,11 @@ with sync_playwright() as p:
     chk(pr["reste"]!=0 or True,f"écart d'arrondi affiché tel quel, aucune ligne forcée : obtenu {pr['ttc']/100:.2f} pour cible {pr['cible']/100:.2f} (écart {pr['reste']/100:+.2f} DH)")
     pr2=ev("()=>{const id='fx-trv',X=bpX(id);return b31Previsu(id,S.ao[id],-10).ok}")
     chk(len(ev("()=>window.__writes"))==w0,"prévisualisation : aucune écriture")
-    rf=ev("""()=>{const id='fx-trv',a=S.ao[id],X=bpX(id),sv=X.p['0-1'];delete X.p['0-1'];const r1=b31Previsu(id,a,-10);X.p['0-1']=0;const r2=b31Previsu(id,a,-10);X.p['0-1']=sv;
-      const r3=b31Previsu('fx-inc',S.ao['fx-inc'],-10);const L=X.lock;X.lock={'0-0':true,'0-1':true,'0-2':true};const r4=b31Previsu(id,a,-10);X.lock=L;return[r1,r2,r3,r4].map(r=>({ok:r.ok,why:r.why,m:r.manque}))}""")
-    chk(not rf[0]["ok"] and rf[0]["m"]==["2"] and "ne répartit pas" in rf[0]["why"],f"PU manquant : aperçu refusé, ligne nécessaire indiquée ({rf[0]['m']}) — « {rf[0]['why'][:90]}… »")
-    chk(not rf[1]["ok"] and "PU à zéro" in rf[1]["why"],"PU à zéro : base non fiable, aperçu refusé")
+    rf=ev("""()=>{const id='fx-trv',a=S.ao[id],X=bpX(id),sv=X.p['0-1'],L0=X.lock;X.lock={};delete X.p['0-1'];const r1=b31Previsu(id,a,-10);X.p['0-1']=0;X.lock={'0-1':true};const r2=b31Previsu(id,a,-10);X.p['0-1']=sv;X.lock=L0;
+      const r3=b31Previsu('fx-inc',S.ao['fx-inc'],-10);const L=X.lock;X.lock={'0-0':true,'0-1':true,'0-2':true};const r4=b31Previsu(id,a,-10);X.lock=L;return[r1,r2,r3,r4].map(r=>({ok:r.ok,why:r.why,m:r.manque,rows:(r.rows||[]).map(z=>[z.k,z.m,z.lab])}))}""")
+    r01=[z for z in rf[0]["rows"] if z[0]=="0-1"]
+    chk(rf[0]["ok"] and r01 and r01[0][1]=="ref" and "Référence interne" in r01[0][2],f"b31-4 · PU manquant : base tirée d'une référence interne de la MÊME société ({r01[0][2] if r01 else rf[0]['why'][:80]})")
+    chk(not rf[1]["ok"] and "à zéro" in rf[1]["why"] and rf[1]["m"]==["2"],f"b31-4 · ligne verrouillée à zéro : aperçu refusé — « {rf[1]['why'][:90]}… »")
     chk(not rf[2]["ok"] and "Estimation" in rf[2]["why"] and not rf[3]["ok"] and "verrouillées" in rf[3]["why"],"sans estimation / tout verrouillé : refus explicite")
     # application via l'interface
     ouvrir(pg,"fx-trv");pg.click('[data-b31-mode="pct"]');pg.fill('[data-b31-pct="fx-trv"]',"-10");pg.wait_for_timeout(500)

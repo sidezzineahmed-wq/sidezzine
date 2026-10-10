@@ -1,0 +1,4 @@
+B3.1 b31-4 publié : version 1791656412-6345
+index.html sha256 ccd7b599821894ab87d240714fd05dd02f1deba13a38f6b1353433b9fdb68d2c
+corps sha256 a8c4f3a2de215795e272ccbeca31475845df5fa44e9351345cc4e8645923e1b1
+QA : qa_b31 61/61 · qa_b31_hist 16/16 · qa_b31_pct 44/44

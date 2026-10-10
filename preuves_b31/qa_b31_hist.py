@@ -42,12 +42,12 @@ with sync_playwright() as p:
     r=ev("""()=>{const id='fx-trv',a=S.ao[id],X=bpX(id);X.lock={};const p0=X.p['0-1'];B31.prev[id]=b31Previsu(id,a,-10);X.lock={'0-1':true};const n=window.__writes.length;
       b31Appliquer(id,a);return{p:X.p['0-1'],p0,w:window.__writes.length-n,prev:!!B31.prev[id]}}""")
     chk(r["p"]==r["p0"] and r["w"]==0 and not r["prev"],"% : ligne verrouillée APRÈS l'aperçu → rien n'est appliqué, aperçu à refaire")
-    r=ev("""()=>{const id='fx-trv',a=S.ao[id],X=bpX(id);X.lock={'0-0':true};const p0=X.p['0-0'];B31.prev[id]=b31Previsu(id,a,-10);b31Appliquer(id,a);
+    r=ev("""async()=>{const id='fx-trv',a=S.ao[id],X=bpX(id);X.lock={'0-0':true};const p0=X.p['0-0'];B31.prev[id]=b31Previsu(id,a,-10);await b31Appliquer(id,a);
       return{p:X.p['0-0'],p0,src:(X.srcL||{})['0-0']||null,autres:X.srcL['0-1']&&X.srcL['0-1'].m}}""")
     chk(r["p"]==r["p0"] and r["src"] is None and r["autres"]=="pct","% : ligne verrouillée inchangée, autres lignes ajustées")
     r=ev("""()=>{const id='fx-trv',a=S.ao[id],X=bpX(id);X.lock={'0-2':true};const p0=X.p['0-2'];b31Accepter(id,a,'0-2',99.99,'Claude (test)','2026-10-06');return{p:X.p['0-2'],p0}}""")
     chk(r["p"]==r["p0"],"IA : acceptation refusée sur une ligne verrouillée")
-    r=ev("""async()=>{const id='fx-trv',a=S.ao[id],X=bpX(id);X.lock={};B31.vers[id]=[];const v=await b31Version(id,a,'base');X.p['0-0']=777.77;X.lock={'0-0':true};X.srcL['0-0']={m:'manuel'};
+    r=ev("""async()=>{const id='fx-trv',a=S.ao[id],X=bpX(id);X.lock={};B31.vers[id]=[];const v=await b31Version(id,a,'base');await b31Manuel(id,a,'0-0','777.77');X.lock={'0-0':true};/* b31-6 : saisie réelle (événement + bordereau) */
       for(let i=0;i<2;i++)await b31Restaurer(id,a,Object.assign({doc_id:id+'~v'+v.version},v));return{p0:X.p['0-0'],l:X.lock['0-0'],p1:X.p['0-1'],v1:v.pu['0-1']}}""")
     pg.evaluate("()=>{B31.dlg=null;render();}");ouvrir(pg,"fx-trv");pg.click("[data-b31-vers]");pg.wait_for_selector(".b31-dlg [data-b31-rest]")
     chk(pg.query_selector_all(".b31-dlg [data-b31-rest]") and "lignes verrouillées" in pg.inner_text(".b31-dlg"),"bureau : panneau « Brouillons » avec « Recharger dans le brouillon »")

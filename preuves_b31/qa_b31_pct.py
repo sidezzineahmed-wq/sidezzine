@@ -32,6 +32,13 @@ M["bpx"]["fx-pcomp"]={"p":{"0-0":1600,"0-1":210,"0-2":3400,"0-3":170,"0-4":28000
 M["bpx"]["fx-plock"]={"p":{"0-0":1600,"0-1":210,"0-2":3400,"0-3":170,"0-4":28000,"0-5":13.5},"q":{},"soc":"sakdat","lock":{"0-4":True}}
 M["bpx"]["fx-pref"]={"p":{"0-0":1550},"q":{},"soc":"sakdat","t":1790000000000}
 M["bpx"]["fx-pautre"]={"p":{"0-0":999,"0-1":999.99,"0-2":999,"0-3":999,"0-4":999,"0-5":999},"q":{},"soc":"alwaad-ataib"}
+# b31-6 : TVA documentée des dossiers FICTIFS (B3.1 ne suppose plus aucun taux) ; les dossiers réels restent sans TVA saisie
+def tva_fx(D):
+    for k,a in D["ao"].items():
+        if not k.startswith("fx-"):continue
+        x=D["bpx"].setdefault(k,{"p":{},"q":{},"soc":a.get("soc")})
+        x.setdefault("tva",{"taux":20,"etat":"confirme","src":{"doc":"CPS FICTIF (test), article TVA","page":"1"},"mixte":False,"lignes":{},"par":"u_qa","le":"2026-10-01T00:00:00.000Z","soc":a.get("soc")})
+tva_fx(M)
 json.dump(M,open(os.path.join(ICI0,"srv","mockdb_b31_pct.json"),"w",encoding="utf-8"),ensure_ascii=False)
 src=open(os.path.join(ICI0,"qa_b31.py"),encoding="utf-8").read().replace("mockdb_b31.json","mockdb_b31_pct.json").replace('OUT=os.path.join(ICI,"qa_b31")','OUT=os.path.join(ICI,"qa_b31_pct")')
 exec(src.split("with sync_playwright() as p:")[0])
@@ -85,14 +92,14 @@ with sync_playwright() as p:
     chk(pr["nIA"]==5 and pr["nRef"]==1 and all(z[5] for z in pr["rows"]) and all(z[4] in ("haute","moyenne","basse") for z in pr["rows"]),"chaque PU proposé porte sa source, sa justification et sa confiance")
     chk(W()==w0,"aperçu : aucune écriture")
     pg.fill('[data-b31-pct="fx-pvide"]',"+5");pg.wait_for_timeout(500);pg.click('[data-b31-prev]');pg.wait_for_selector("[data-b31-prv]")
-    t=pg.inner_text("[data-b31-prv]");chk("Proposition IA / hypothèses à vérifier" in t and "TTC cible" in t and "TTC obtenu" in t and "écart d'arrondi" in t and "à confirmer" in t,"interface : bandeau « Proposition IA / hypothèses à vérifier », TTC cible / obtenu, arrondi, TVA à confirmer")
+    t=pg.inner_text("[data-b31-prv]");chk("Proposition IA / hypothèses à vérifier" in t and "TTC cible" in t and "TTC obtenu" in t and "écart d'arrondi" in t and "TVA 20 % confirmée" in t and "CPS FICTIF" in t,"interface : bandeau « Proposition IA / hypothèses à vérifier », TTC cible / obtenu, arrondi, TVA documentée (état et source)")
     pg.click('[data-b31-just] summary');pg.wait_for_timeout(200);pg.screenshot(path=f"{OUT}/vide_apercu_plus5.png",full_page=True)
     chk(pg.locator("[data-b31-jk]").count()==6,"interface : justification ligne par ligne (6)")
     chk(W()==w0,"aucune écriture avant « Appliquer »")
     pg.click('[data-b31-appl]');pg.wait_for_timeout(600)
     ap=ev("()=>{const X=bpX('fx-pvide');return{p:X.p,src:X.srcL,w:window.__writes.slice(),db:window.__DB.bpx['fx-pvide'],pv:S.ao['fx-pvide'].prixValide||null,dec:S.ao['fx-pvide'].decision,st:S.ao['fx-pvide'].statut}}")
     ww=[w for w in ap["w"][w0:]]
-    chk(ww==[["set","bpx/fx-pvide"]],f"appliquer : une seule écriture, le bordereau du dossier fictif : {ww}")
+    chk(ww==[["set","chiffrage_evenements/fx-pvide~e1"],["set","bpx/fx-pvide"]],f"appliquer (b31-6) : l'événement d'historique PUIS le bordereau du dossier fictif, rien d'autre : {ww}")
     chk(len(ap["p"])==6 and all(ap["src"][k]["m"]=="pct" and ap["src"][k]["base"] in ("ia","ref") for k in ap["p"]) and ap["db"]["meta"]["baseCout"].startswith("HYPOTHÈSE"),"PU enregistrés avec leur origine (objectif %, base IA / référence) ; base de coût « HYPOTHÈSE »")
     chk(ap["pv"] is None and ap["dec"]["verdict"]=="Go" and ap["st"]=="En préparation","rien n'est validé : pas de prix validé, décision et statut inchangés (brouillon)")
     st=ev("()=>{const a=S.ao['fx-pvide'],E=b31Etat('fx-pvide',a);return[E.statut.k,E.complet,E.T.ttcC]}")
@@ -102,11 +109,14 @@ with sync_playwright() as p:
     pr=ev("()=>{const r=b31Previsu('fx-ppart',S.ao['fx-ppart'],-10);return{ok:r.ok,k:r.k,m:r.manque}}")
     chk(not pr["ok"] and pr["k"]=="base" and pr["m"]==["4","6"],f"partiel sans proposition : 2 lignes sans base indiquées ({pr['m']}) — béton couvert par la référence interne")
     ev("()=>b31ProposerIA('fx-ppart',S.ao['fx-ppart'])");pg.wait_for_timeout(300)
-    pr=ev("()=>{const r=b31Previsu('fx-ppart',S.ao['fx-ppart'],-10);return{ok:r.ok,cible:r.cibleC,ttc:r.T.ttcC,rows:r.rows.map(z=>[z.k,z.m,z.base,z.apres]),nEx:r.nEx,nIA:r.nIA}}")
-    chk(pr["ok"] and pr["cible"]==108000000 and pr["nEx"]==3 and pr["nIA"]==2 and abs(pr["ttc"]-pr["cible"])<=600,f"−10 % sur partiel : 3 PU saisis + 1 référence + 2 IA, obtenu {pr['ttc']/100:.2f} / cible {pr['cible']/100:.2f}")
+    pr=ev("()=>{const r=b31Previsu('fx-ppart',S.ao['fx-ppart'],-10);return{ok:r.ok,cible:r.cibleC,ttc:r.T.ttcC,rows:r.rows.map(z=>[z.k,z.m,z.base,z.apres,z.lab]),nEx:r.nEx,nIA:r.nIA}}")
+    # b31-6 : la référence interne retenue est la plus RÉCENTE de la société (fx-pvide, appliqué plus haut, horodatage désormais relu) ;
+    # borne d'arrondi théorique : Σ qté × 0,005 DH × 1,2 (TTC) = 2 872 × 0,6 centime
+    ref=[z for z in pr["rows"] if z[1]=="ref"];BORNE=round(sum((25,140,6,300,1,2400))*0.6)
+    chk(pr["ok"] and pr["cible"]==108000000 and pr["nEx"]==3 and pr["nIA"]==2 and len(ref)==1 and "FX-PVIDE" in ref[0][4] and abs(pr["ttc"]-pr["cible"])<=BORNE,f"−10 % sur partiel : 3 PU saisis + 1 référence (la plus récente : {ref[0][4] if ref else '?'}) + 2 IA, obtenu {pr['ttc']/100:.2f} / cible {pr['cible']/100:.2f} (borne d'arrondi {BORNE/100:.2f} DH)")
     ev("()=>{B31.pct['fx-ppart']='-10';B31.prev['fx-ppart']=b31Previsu('fx-ppart',S.ao['fx-ppart'],-10);b31Appliquer('fx-ppart',S.ao['fx-ppart']);}");pg.wait_for_timeout(300)
     ap=ev("()=>{const X=bpX('fx-ppart');return{src:X.srcL,w:window.__writes.slice()}}")
-    chk([w for w in ap["w"][w0:]]==[["set","bpx/fx-ppart"]] and ap["src"]["0-1"]["base"]=="existant" and ap["src"]["0-3"]["base"]=="ia","partiel appliqué : PU saisis ajustés (base « existant »), PU manquants remplis (base « ia »)")
+    chk([w for w in ap["w"][w0:]]==[["set","chiffrage_evenements/fx-ppart~e1"],["set","bpx/fx-ppart"]] and ap["src"]["0-1"]["base"]=="existant" and ap["src"]["0-3"]["base"]=="ia","partiel appliqué : PU saisis ajustés (base « existant »), PU manquants remplis (base « ia »)")
     # ===== 6. complet : comportement d'ajustement inchangé (+5 et −10), aucune proposition =====
     TOL=round(sum(x["q"] for x in L6)*0.5*1.2)+2  # borne théorique de l'arrondi des PU au centime : Σ qté × 0,005 DH × 1,2
     for pc,cb in ((5,126000000),(-10,108000000)):
@@ -140,7 +150,7 @@ with sync_playwright() as p:
     chk(not r["ok"] and r["k"]=="quantite" and r["m"]==["4"] and "n'invente aucune quantité" in r["why"],"quantité illisible : obstacle explicite, ligne indiquée, aucune quantité inventée")
     # ===== 10. proposition partielle de l'IA (une ligne sans estimation) =====
     ev("()=>{delete B31.propIA['fx-pq'];}");ev(STUB,"trou")
-    ev("()=>{S.ao['fx-ppart2']=JSON.parse(JSON.stringify(S.ao['fx-pvide']));S.ao['fx-ppart2'].ref='FX-PPART2';S.bp['fx-ppart2']=S.bp['fx-pvide'];S.ao['fx-ppart2'].soc='riyada-build';S.bpx['fx-ppart2']={p:{},q:{},soc:'riyada-build'};}")
+    ev("()=>{S.ao['fx-ppart2']=JSON.parse(JSON.stringify(S.ao['fx-pvide']));S.ao['fx-ppart2'].ref='FX-PPART2';S.bp['fx-ppart2']=S.bp['fx-pvide'];S.ao['fx-ppart2'].soc='riyada-build';S.bpx['fx-ppart2']={p:{},q:{},soc:'riyada-build',tva:{taux:20,etat:'confirme',src:{doc:'CPS FICTIF (test), article TVA',page:'1'},mixte:false,lignes:{},soc:'riyada-build'}};}")
     ev("()=>b31ProposerIA('fx-ppart2',S.ao['fx-ppart2'])");pg.wait_for_timeout(300)
     r=ev("()=>{const r=b31Previsu('fx-ppart2',S.ao['fx-ppart2'],5);return{ok:r.ok,why:r.why,m:r.manque,e:B31.propErr['fx-ppart2']}}")
     chk(not r["ok"] and r["m"]==["4"] and r["e"]["k"]=="partiel" and "sans estimation de l'IA" in r["why"],"IA partielle : la ligne sans estimation reste à saisir ; aperçu refusé, rien d'arbitraire")
@@ -150,7 +160,7 @@ with sync_playwright() as p:
     ouvrir(pg,ALW);pg.click('[data-b31-mode="pct"]');pg.fill(f'[data-b31-pct="{ALW}"]',"+5");pg.wait_for_timeout(500);pg.screenshot(path=f"{OUT}/alwaad_pct_lecture.png");chk(W()==w0,"réel ALWAAD : interface ouverte en mode %, aucune écriture")
     # ===== 12. mobile et sombre =====
     ctx2,pg2,errs2=demarrer(b,390,844,"dark")
-    pg2.evaluate(STUB,"ok");pg2.evaluate("()=>{S.ao['fx-ppart2']=JSON.parse(JSON.stringify(S.ao['fx-pvide']));S.ao['fx-ppart2'].ref='FX-PPART2';S.ao['fx-ppart2'].soc='riyada-build';S.bp['fx-ppart2']=S.bp['fx-pvide'];S.bpx['fx-ppart2']={p:{},q:{},soc:'riyada-build'};}")
+    pg2.evaluate(STUB,"ok");pg2.evaluate("()=>{S.ao['fx-ppart2']=JSON.parse(JSON.stringify(S.ao['fx-pvide']));S.ao['fx-ppart2'].ref='FX-PPART2';S.ao['fx-ppart2'].soc='riyada-build';S.bp['fx-ppart2']=S.bp['fx-pvide'];S.bpx['fx-ppart2']={p:{},q:{},soc:'riyada-build',tva:{taux:20,etat:'confirme',src:{doc:'CPS FICTIF (test), article TVA',page:'1'},mixte:false,lignes:{},soc:'riyada-build'}};}")
     ouvrir(pg2,"fx-ppart2");pg2.click('[data-b31-mode="pct"]');pg2.fill('[data-b31-pct="fx-ppart2"]',"-10");pg2.wait_for_timeout(400)
     pg2.click('[data-b31-propia]');pg2.wait_for_timeout(500);pg2.click('[data-b31-prev]');pg2.wait_for_selector("[data-b31-prv]");pg2.wait_for_timeout(200)
     ov=pg2.evaluate("()=>document.documentElement.scrollWidth-window.innerWidth");pg2.locator(".b31-sim").screenshot(path=f"{OUT}/mobile_sombre_apercu.png")

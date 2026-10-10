@@ -1,0 +1,30 @@
+B3.1 Chiffrage — b31-6 (TVA documentée, provenance durable, historique automatique, coût / marge, comparaison des scénarios)
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Version avant : 1791657927-5504 (b31-5), index sha256 35c19c08216711a1a46d885fa4baf1ff48a64bbbb3f1879e3e853ff7f0de2fc5 — relue et identique octet pour octet avant publication.
+Version publiée : 1791664820-f49e (version 277), index 1 542 229 octets, sha256 a2331196f3628eccaa761487661458137f1eac53ef5ea79929d0ac4e7225338f
+Corps publié : corps sha256 0eb86eba0341a4ba20d6248f5cc50adda7d5bccdc7bb308c971cc8dd730d4a25 ; index publié = squelette (identique) + corps (diff 0).
+16 fichiers présents ; capabilities inchangées (assets, db 2 règles, downloads, mcp 2 serveurs, sample, user profile) ; publication sans force.
+Diff corps b31-5 → b31-6 : module B3.1 uniquement + la ligne du chargeur bpx qui conserve « tva » (même endroit que lock/srcL de b31-1).
+  Voir logs_b31-6/diff_corps_b31-5_b31-6.diff.
+
+Recette (base simulée locale, écritures sur dossiers FICTIFS uniquement ; dossiers réels lus, inchangés, aucune écriture) :
+  qa_b31.py 64/64 · qa_b31_hist.py 16/16 · qa_b31_pct.py 44/44 · qa_b31_art44.py 24/24 · qa_b31_v6.py 79/79 (nouveau)
+Adaptations des suites existantes (nouvelle sémantique demandée, sans relâcher le contrôle) :
+  - fixtures fx-* : TVA 20 % confirmée « CPS FICTIF » ajoutée (B3.1 ne suppose plus aucun taux) ; clones fictifs aussi écrits dans la base simulée ;
+    préparations de fixture qui modifiaient le bordereau en mémoire passent par la base simulée ou par la saisie réelle (b31Manuel).
+  - écritures attendues : [événement chiffrage_evenements/<id>~e<n>, puis bpx/<id>] au lieu de [bpx/<id>] (ordre vérifié).
+  - dossiers réels BG / SIDITRAV : TVA non renseignée → TTC et art. 44 « non calculés » ; les montants d'origine (art. 44 « dans les bornes »,
+    SIDITRAV 2 863 577,76 TTC = offre v1) sont revérifiés par un calcul PUR à 20 % passé en hypothèse (rien écrit). PDF BG : pas d'arrêté
+    (TVA absente) ; arrêté vérifié sur un PDF fictif à TVA confirmée. Aperçu −10 % sur BG : refus « TVA non renseignée ».
+  - qa_b31_pct « −10 % sur partiel » : la référence interne retenue est désormais la plus récente de la société (horodatage relu après
+    écriture) ; tolérance empirique 6 DH remplacée par la borne théorique d'arrondi Σqté × 0,6 centime = 17,23 DH, + contrôle de la référence choisie.
+
+Limites :
+  - Dossiers réels : aucun taux de TVA saisi → B3.1 affiche HT, « TVA non renseignée », TTC / art. 44 / objectif % non calculés jusqu'à saisie
+    humaine du taux (hypothèse ou confirmé avec document + page). Les autres écrans hors B3.1 gardent leur calcul existant à 20 % pour ces dossiers.
+  - Aucun événement antérieur reconstitué : l'historique automatique commence à la première application de prix b31-6 ; les PU existants
+    (ex. ALWAAD 58 PU) restent « provenance non documentée / ancienne ».
+  - Stockage sans transaction : événement écrit d'abord ; si le bordereau échoue, état local restauré + événement « échec » (best effort) ;
+    le statut affiché est déduit des empreintes (appliqué / non appliqué / non constaté).
+  - Proposition IA de sous-détail : hypothèse sans devis, fournisseur ni date ; acceptation humaine ; taux de frais par défaut signalés.
+  - Intégrations mcp (Claude Code Remote, Google Drive) inchangées et non rappelées dans cette session.

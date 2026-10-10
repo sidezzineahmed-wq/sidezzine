@@ -1,0 +1,65 @@
+OK arithmétique : 3×1234,56 + 12,5×10,01 (125,125 → 125,13) + 7×0,07 = 3 829,30 HT ; TVA 765,86 ; TTC 4 595,16 → {'htC': 382930, 'tvaC': 76586, 'ttcC': 459516, 'n': 3, 'miss': 0, 'zero': 0, 'parTaux': {'20': {'htC': 382930, 'tvaC': 76586}}, 'tvaOk': True}
+OK B3.1 et calcul canonique existant (bpTot / offre) identiques au centime
+OK cible en centimes entiers : −10 % de 2 835 444,00 = 2551899.60 ; −20 % de 100 000 = 80000.00 ; +5,55 % de 333,33 = 351.83
+OK travaux : exactement −20 % = dans les bornes ; −20 % − 1 centime = anormalement basse
+OK exactement +20 % = dans les bornes ; +20 % + 1 centime = excessive (travaux et fournitures)
+OK fournitures / services hors études : −25 % = bornes, −25 % − 1 centime = basse, −24 % = bornes
+OK estimation non ronde (333,33) : bornes en DH 266.67 – 399.99, arrondies vers l'intérieur et cohérentes avec la comparaison
+OK études (art. 144) : jamais de seuil −20/−25 appliqué → « à vérifier »
+OK gardiennage / nettoyage / espaces verts et 15/2026/SAP (taux de majoration) : régime particulier → « à vérifier »
+OK catégorie inconnue ou estimation inconnue → « à vérifier », jamais vert
+OK saisie du % (b31-4 : −100 refusé car cible ≤ 0) : [-10, -10, 5, -10.5, None, None, None]
+OK libellés « −10 % = 90 % », « +5 % = 105 % », « −12,5 % = 87,5 % »
+OK aperçu −10 % (cible 4500.00 TTC) : seules les lignes non verrouillées changent ; ligne verrouillée inchangée
+OK écart d'arrondi affiché tel quel, aucune ligne forcée : obtenu 4500.02 pour cible 4500.00 (écart +0.02 DH)
+OK prévisualisation : aucune écriture
+OK b31-4 · PU manquant : base tirée d'une référence interne de la MÊME société (Référence interne de SAKDAT : dossier FX/ETU (+2 autre(s)))
+OK b31-4 · ligne verrouillée à zéro : aperçu refusé — « 1 ligne(s) verrouillée(s) sans PU ou à zéro : une ligne verrouillée garde son prix ; saisi… »
+OK sans estimation / tout verrouillé : refus explicite
+OK interface : « −10 % = 90 % de l'estimation · cible 4 500,00 DH TTC »
+OK interface : aperçu explicite (lignes ajustées, verrouillées inchangées, arrondi laissé tel quel)
+OK aucune écriture avant « Appliquer »
+OK appliquer : lignes non verrouillées modifiées (origine « objectif −10 % »), ligne verrouillée intacte, enregistrement bpx
+OK verrous et origine des PU enregistrés avec le bordereau
+OK après rechargement de la page : verrous et origine des PU relus depuis le stockage
+OK scénarios prudent / équilibré / compétitif relus depuis le stockage (chiffrage/fx-trv, société SAKDAT, historique)
+OK isolement : rien n'est écrit ni lu pour le dossier frère SIDITRAV
+OK document de chiffrage d'une autre société : écriture refusée (document de chiffrage rattaché à SIDITRAV : refus (FIN-ISO-001))
+OK brouillons : v1 puis v2 créés, v1 intact (empreinte vérifiée) après modification
+OK version déjà existante : création refusée, aucun écrasement
+OK validation du chiffrage (double confirmation) : prixValide B3.1 + offre figée ['VALIDÉE v1'] ; décision d'Ahmed inchangée ; aucune soumission
+OK validation refusée tant que des PU manquent : ['45 PU manquant(s)']
+OK IA indisponible (capacité « sample » absente) : état honnête, rien de simulé
+OK suggestion IA (Claude simulé, dossier fictif) : PU, source, date, inclusions, confiance affichés
+OK suggestion non appliquée tant qu'elle n'est pas acceptée
+OK acceptation ligne par ligne ; ligne verrouillée refusée ; clé inconnue ignorée
+OK 400 lignes : 60 affichées + « afficher plus », sections visibles ; ouverture 0.8 s
+OK 1440 px : bordereau 72 % / récapitulatif 28 % côte à côte
+OK 1440 px : aucun défilement horizontal (0 px)
+OK PU manquants : offre « Incomplète », jamais un total partiel présenté comme offre
+OK recherche dans le bordereau : 1 ligne trouvée
+OK sous-détail absent : coût inconnu, jamais zéro
+OK récapitulatif : coûts incomplets signalés, marge globale non calculée
+OK 05/2026/BG SAKDAT : estimation MO 2 835 444,00 DH TTC avec source
+OK BG (réel) : 58 PU, TVA non renseignée → TVA, TTC et art. 44 non calculés, aucun taux supposé
+OK BG : calcul pur avec TVA 20 % en hypothèse → offre 2,553,078.24 TTC, écart -9.96 %, art. 44 travaux « dans les bornes » (2,268,355.20 – 3,402,532.80) ; aucun taux écrit
+OK BG : 2 divergences conservées (Décision de prix validée (2 553 078,24 DH TTC) ≠ offre figée; Notes de traçabilité du prix (réparation FIN-ISO-001, ZIP gé) ; statut « brouillon »
+OK BG : bandeau de divergence en tête, détails rangés dans l'historique, chiffrage actif au premier plan
+OK historique : divergences, offres figées (v1 GÉNÉRÉE…) et décisions antérieures conservées
+OK BG (réel) : aperçu −10 % refusé tant que la TVA n'est pas renseignée (aucun taux supposé), rien n'est écrit
+OK SIDITRAV : bordereau de la consultation partagé en lecture, PU propres à SIDITRAV ; TVA non renseignée (TTC non calculé) ; calcul pur à 20 % en hypothèse → 2,863,577.76 TTC (= offre v1 figée)
+OK onglet SIDITRAV : aucun montant de SAKDAT affiché
+OK ALWAAD ATAIB : aucun prix → « Incomplète, 58 PU manquants », aucun zéro silencieux
+OK 15/2026/SAP : régime particulier (taux de majoration), contrôle art. 44 « à vérifier »
+OK données réelles (offres figées, PU, décisions de prix, décisions Go) strictement inchangées
+OK aucune écriture sur les dossiers réels []
+OK PDF vectoriel BG : 4 pages, TVA non renseignée → aucun arrêté en lettres ni TTC, contrôle art. 44 sourcé, BPU 58 lignes
+OK PDF vectoriel fictif (TVA confirmée et sourcée) : arrêté en lettres, TVA documentée
+OK PDF : aucune écriture
+OK 1440 : aucune erreur JavaScript []
+OK 390 : aucun défilement horizontal (0 px)
+OK 390 : récapitulatif sous le bordereau, lignes en cartes
+OK 390 : aucune erreur JavaScript []
+OK sombre : aucun défilement horizontal (0 px)
+OK sombre : aucune erreur JavaScript []
+64 / 64

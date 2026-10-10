@@ -5,7 +5,8 @@ ICI0=os.path.dirname(os.path.abspath(__file__))
 src=open(os.path.join(ICI0,"qa_b31_pct.py"),encoding="utf-8").read().replace('OUT=os.path.join(ICI,"qa_b31_pct")','OUT=os.path.join(ICI,"qa_b31_art44")')
 exec(src.split("\nwith sync_playwright() as p:")[0])
 CLONE="""([src,dst,cat,obj])=>{const a=JSON.parse(JSON.stringify(S.ao[src]));a.ref=dst.toUpperCase();if(cat!=null)a.categorie=cat;if(obj)a.obj=obj;S.ao[dst]=a;
-  S.bp[dst]=JSON.parse(JSON.stringify(S.bp[src]));S.bpx[dst]=JSON.parse(JSON.stringify(S.bpx[src]));S.bpx[dst].lock={};return true}"""
+  S.bp[dst]=JSON.parse(JSON.stringify(S.bp[src]));S.bpx[dst]=JSON.parse(JSON.stringify(S.bpx[src]));S.bpx[dst].lock={};
+  /* b31-6 : le clone fictif existe aussi dans la base simulée (contrôle de version avant écriture) */window.__DB.bpx[dst]=JSON.parse(JSON.stringify(S.bpx[dst]));return true}"""
 PV="""([id,p])=>{const r=b31Previsu(id,S.ao[id],p);return{ok:r.ok,why:r.why||null,c:r.cibleC,t:r.T&&r.T.ttcC,b:r.g44&&r.g44.bloque,R:r.g44?r.g44.raisons:[],v:r.g44?r.g44.verifier:null,A:r.A44&&r.A44.k}}"""
 AP="""async([id,p])=>{const a=S.ao[id],X=bpX(id),p0=JSON.stringify(X.p),n=window.__writes.length;B31.pct[id]=String(p);B31.prev[id]=b31Previsu(id,a,p);b31Appliquer(id,a);await new Promise(r=>setTimeout(r,300));
   return{w:window.__writes.slice(n),same:JSON.stringify(X.p)===p0,toast:(document.querySelector('.toast')||{}).textContent||''}}"""
@@ -70,7 +71,7 @@ with sync_playwright() as p:
     chk(a["w"]==0 and a["same"],"estimation remontée après l'aperçu (la cible deviendrait hors bornes) : refus, aucune écriture")
     # ===== 7. parcours dans les bornes inchangé =====
     w0=W();a=ev(AP,["fx-v1",-10])
-    chk(a["w"]==[["set","bpx/fx-v1"]] and not a["same"],"dans les bornes (−10 %) : application inchangée, une seule écriture sur le dossier fictif")
+    chk(a["w"]==[["set","chiffrage_evenements/fx-v1~e1"],["set","bpx/fx-v1"]] and not a["same"],"dans les bornes (−10 %) : application inchangée (b31-6 : événement d'historique puis bordereau du dossier fictif, rien d'autre)")
     st=ev("()=>{const a=S.ao['fx-v1'];return[b31Etat('fx-v1',a).statut.k,a.prixValide||null]}")
     chk(st==["brouillon",None],"après application : brouillon, rien de validé")
     bok=[x for x in (ev(PV,["fx-t1",-20]),ev(PV,["fx-t1",20])) if not x["b"]]

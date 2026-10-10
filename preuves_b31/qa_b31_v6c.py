@@ -47,6 +47,7 @@ with sync_playwright() as p:
     chk([sp(s["tot"]).upper() for s in S0]==[t.upper() for t in TOT],f"libellés « TOTAL <section> » identiques à l'original (ex. « {TOT[1]} »)")
     L=[(sp(r[0]),sp(r[1]),sp(r[2]),float(r[3])) for s in S0 for r in s["l"]]
     chk(L==ORIG,f"{len(ORIG)} lignes : N°, désignations complètes, unités et quantités identiques à l'original, même ordre")
+    chk(Mo["titre"]==sp(sh.cell_value(9,0)),f"titre identique à l'original : « {Mo['titre']} » (xls A10 « {sp(sh.cell_value(9,0))} »)")
     chk(Mo["cols"]==["N° Prix","Désignation des Ouvrages","Unité","Quantité","Prix Unitaire (DH)","Prix Total (DH)"] and sp(Mo["lots"][0]["libHT"])==re.sub(r"…\.*","…",LIBHT),f"colonnes et libellé du total HT conformes ({Mo['lots'][0]['libHT']} / original « {LIBHT} »)")
     RD,TX=pdf_bytes(pg,"fx-bgc");T="\n".join(TX)
     pos=[T.find(n+" ") if T.find(n+" ")>=0 else T.find(n+"\n") for n in [o[0] for o in ORIG]]
@@ -103,12 +104,19 @@ with sync_playwright() as p:
     w1=p2.evaluate("()=>document.querySelector('.b31v-p').getBoundingClientRect().width");p2.click('[data-b31-pdfbar] [data-z="+"]');p2.wait_for_timeout(1500)
     w2=p2.evaluate("()=>document.querySelector('.b31v-p').getBoundingClientRect().width");z=p2.inner_text("[data-b31-zoom]")
     chk(abs(w2/w1-1.25)<0.02 and z=="125 %",f"zoom + : {w1:.0f} → {w2:.0f} px, affiché « {z} »")
+    p2.evaluate("()=>{document.querySelector('[data-b31-page=\"4\"]').scrollIntoView();}");p2.wait_for_timeout(600)
+    bar=p2.evaluate("()=>{const b=document.querySelector('[data-b31-pdfbar]'),r=b.getBoundingClientRect(),cs=getComputedStyle(b),p=document.querySelector('[data-b31-page=\"4\"]').getBoundingClientRect(),vb=document.getElementById('vbody').getBoundingClientRect();return{bg:cs.backgroundColor,top:r.top-vb.top,bottom:r.bottom,pageTop:p.top}}")
+    chk(not re.search(r"rgba\(.*,\s*0\)|transparent",bar["bg"]) and abs(bar["top"])<=1 and bar["pageTop"]>=bar["bottom"]-0.5,f"page 4 atteinte par défilement : barre de zoom opaque ({bar['bg']}) collée en haut, haut de page visible sous la barre ({bar['pageTop']:.0f} ≥ {bar['bottom']:.0f})")
+    p2.screenshot(path=f"{OUT}/lecteur_page4.png",clip={"x":250,"y":40,"width":940,"height":400})
     p2.click('[data-b31-pdfbar] [data-z="1"]');p2.wait_for_timeout(1200);chk(abs(p2.evaluate("()=>document.querySelector('.b31v-p').getBoundingClientRect().width")-w1)<2,"« Largeur » : retour à l'ajustement");chk(not e2,f"lecteur : aucune erreur JavaScript {e2[:2]}");ctx2.close()
     for (w,hh,sch,tag) in ((390,844,"light","390"),(390,844,"dark","390_sombre")):
         c3=b.new_context(viewport={"width":w,"height":hh},color_scheme=sch,device_scale_factor=2);c3.add_init_script(INIT);p3=c3.new_page();p3.goto(URL);p3.wait_for_function("()=>typeof S!=='undefined'&&S.aoState==='ok'&&Object.keys(S.ao).length>50",timeout=20000);p3.wait_for_timeout(800)
         ouvrir(p3,"fx-bgc");p3.click("[data-b31-pdf]");p3.wait_for_function("()=>document.querySelectorAll('#vbody .b31v-p canvas').length>1",timeout=60000);p3.wait_for_timeout(600)
         o=p3.evaluate("()=>{const b=document.getElementById('vbody'),p=document.querySelector('.b31v-p');return{ov:b.scrollWidth-b.clientWidth,pw:p.getBoundingClientRect().width,bw:b.clientWidth}}")
-        chk(o["ov"]<=1 and o["pw"]<=o["bw"],f"{tag} : aperçu ajusté à la largeur, sans débordement ({o})");p3.screenshot(path=f"{OUT}/lecteur_{tag}.png");c3.close()
+        chk(o["ov"]<=1 and o["pw"]<=o["bw"],f"{tag} : aperçu ajusté à la largeur, sans débordement ({o})")
+        p3.evaluate("()=>document.querySelector('[data-b31-page=\"3\"]').scrollIntoView()");p3.wait_for_timeout(500)
+        bg=p3.evaluate("()=>getComputedStyle(document.querySelector('[data-b31-pdfbar]')).backgroundColor");pt=p3.evaluate("()=>[document.querySelector('[data-b31-page=\"3\"]').getBoundingClientRect().top,document.querySelector('[data-b31-pdfbar]').getBoundingClientRect().bottom]")
+        chk(not re.search(r"rgba\(.*,\s*0\)|transparent",bg) and pt[0]>=pt[1]-0.5,f"{tag} : barre opaque adaptée au thème ({bg}), page 3 non masquée après défilement");p3.screenshot(path=f"{OUT}/lecteur_{tag}.png");c3.close()
     # pages PDF de preuve en images (fictif)
     import pymupdf
     d=pymupdf.open(f"{OUT}/fx-bgc.pdf")

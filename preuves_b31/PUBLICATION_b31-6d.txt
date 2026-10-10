@@ -1,0 +1,14 @@
+B3.1 Chiffrage — b31-6d (ajustement de b31-6c : titre original, barre du lecteur)
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Version avant : 1791666965-c2df (b31-6c), index sha256 2204a8a5…dcf2 — relue, identique à la publication b31-6c.
+Version publiée : 1791667269-9167 (version 280), index 1 556 387 octets, sha256 a51ae8bc6916e17711842dc569a97e4b1a95935fdce104d528b47b641f8c91a3
+Corps sha256 d42a3456a59b6feab232d34d335693a2ee179c925388bb28f17197090ed71552 ; index = squelette + corps (diff 0) ; 16 fichiers ; capabilities inchangées ; sans force.
+Diff b31-6c → b31-6d (module B3.1, 5 lignes) :
+  - titre du PDF : « BORDEREAU DES PRIX » (texte exact du xls BG, cellule A10) au lieu de « BORDEREAU DES PRIX - DÉTAIL ESTIMATIF » ; b.titre prioritaire s'il est un jour extrait ;
+  - barre du lecteur (zoom + phrase) : fond opaque du thème (var(--bg)), bordure et ombre, pleine largeur, collée en haut ;
+    marge de défilement des pages = hauteur réelle de la barre + 12 px (mobile : barre sur plusieurs lignes).
+Recette — 291 contrôles OK : qa_b31 64/64 · qa_b31_hist 16/16 · qa_b31_pct 44/44 · qa_b31_art44 24/24 · qa_b31_v6 79/79 · qa_b31_v6b 30/30 ·
+  qa_b31_v6c 34/34 (30 + titre identique au xls A10, barre opaque et page 4 visible après défilement à 1440 ×2, idem 390 clair / sombre).
+Fixtures uniquement ; aucune écriture ; aucune donnée réelle modifiée.
+Limites inchangées : libellés de colonnes standard (non extraits du fichier, identiques à BG), en-tête de colonnes répété à chaque section,
+  marché-cadre sans colonnes min / max.

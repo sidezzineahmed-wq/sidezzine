@@ -19,7 +19,7 @@ Mise en page : A4 portrait, Roboto 8,5–9 pt ; un tableau par section (en-tête
 Lecteur : pages rendues à la densité de l'écran (×devicePixelRatio, max 3), couche de texte pdf.js (sélection, Ctrl+F), zoom −/+/Largeur ;
   « Télécharger » enregistre le fichier vectoriel.
 
-Recette (fixtures ; dossiers réels lus seulement ; aucune écriture) — 317 contrôles OK :
+Recette (fixtures ; dossiers réels lus seulement ; aucune écriture) — 287 contrôles OK (64+16+44+24+79+30+30 ; « 317 » annoncé initialement était une erreur d'addition) :
   qa_b31 64/64 · qa_b31_hist 16/16 · qa_b31_pct 44/44 · qa_b31_art44 24/24 · qa_b31_v6 79/79 · qa_b31_v6b 30/30 · qa_b31_v6c 30/30 (nouveau)
   qa_b31_v6c : 58 lignes N°/désignation/unité/quantité, 8 sections et libellés TOTAL comparés cellule à cellule au xls original (clone fictif
   de la structure, PU fictifs) ; montants recalculés indépendamment ; arrêté unique ; lettres (singulier, millions de, quatre-vingts, deux cents,
@@ -31,6 +31,6 @@ Assertions anciennes adaptées au nouveau format demandé (même objet) : qa_b31
   à la somme de », + « TVA (20%) ») ; qa_b31_v6 PDF mixte (« TVA 10 % » → « TVA (10%) sur »).
 Preuves : PDF fictifs fx-big, fx-v6a (TVA absente), fx-v6x (mixte), fx-lots. Les rendus du clone de structure BG ne sont pas versionnés.
 
-Limites : intitulé « BORDEREAU DES PRIX - DÉTAIL ESTIMATIF » et libellés de colonnes standard (S.bp ne conserve ni le titre ni les en-têtes
-  du fichier ; ceux de BG sont identiques sauf le titre, « BORDEREAU DES PRIX » dans le xls) ; marché-cadre : quantités minimales seulement
+Limites : en b31-6c, titre « BORDEREAU DES PRIX - DÉTAIL ESTIMATIF » NON fidèle au xls BG (« BORDEREAU DES PRIX ») — corrigé en b31-6d ; libellés de colonnes
+  standard (S.bp ne conserve ni le titre ni les en-têtes du fichier ; ceux de BG sont identiques) ; marché-cadre : quantités minimales seulement
   (pas de colonnes min / max) ; l'en-tête de colonnes est répété au début de chaque section (l'original ne l'affiche qu'une fois).

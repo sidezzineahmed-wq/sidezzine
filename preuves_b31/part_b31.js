@@ -15,7 +15,7 @@
    (2) provenance durable de chaque PU appliqué (srcL v:6) ; (3) événements de prix immuables chiffrage_evenements/<id>~e<n>, écrits
    AVANT le bordereau ; (4) sous-détail B3.1 propre à la société (matériaux, main-d'œuvre, matériel, transport, sources de devis,
    frais), déboursé sec / coût de revient / vente / marge ; (5) comparaison des scénarios sans écriture. */
-const B31={v:"b31-6c",sdBase:{},ev:{},evErr:{},ecr:{},saisie:{},sd:null,sdIA:{},sdBusy:null,sdErr:{},tvaEd:{},cmp:{},provOuv:{},propIA:{},propBusy:null,propErr:{},mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
+const B31={v:"b31-6d",sdBase:{},ev:{},evErr:{},ecr:{},saisie:{},sd:null,sdIA:{},sdBusy:null,sdErr:{},tvaEd:{},cmp:{},provOuv:{},propIA:{},propBusy:null,propErr:{},mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
 const B31_DECRET={url:"https://www.tgr.gov.ma/wps/wcm/connect/1f3081fc-2d01-41de-8339-9a2c7de0480f/DECRET%2B2-22-431%2BFR.pdf?MOD=AJPERES",
   ref:"Décret n° 2-22-431 du 8 mars 2023, art. 44 (édition TGR 2023, p. 69-70)",sha:"d08109b9cee1364870c99659dbe58a3aef3556ab2d87209426dc97a314e07c78"};
 const B31_SCEN=[["prudent","Prudent"],["equilibre","Équilibré"],["competitif","Compétitif"]];
@@ -599,7 +599,7 @@ function b31BpModele(id,a){const b=S.bp[id],X=bpX(id),M=b31TvaM(id,a);if(!b)retu
     const tv=Object.entries(G).sort((u,w)=>w[0]-u[0]).map(([r,h])=>({r:+r,htC:h,tvaC:Math.floor((h*+r+50)/100)}));
     const ok=!miss&&M.calc,tvaC=ok?tv.reduce((t,z)=>t+z.tvaC,0):null;
     return{lot:String(L.lot||""),secs,libHT,htC:miss?null:ht,miss,tv,tvaC,ttcC:ok?ht+tvaC:null,mixte:tv.length>1};});
-  return{titre:b.titre||"BORDEREAU DES PRIX - DÉTAIL ESTIMATIF",cols:b.colonnes&&b.colonnes.length===6?b.colonnes:B31_COLS,lots,M,source:b.source||null,cadre:!!b.cadre};}
+  return{titre:b.titre||"BORDEREAU DES PRIX",cols:b.colonnes&&b.colonnes.length===6?b.colonnes:B31_COLS,lots,M,source:b.source||null,cadre:!!b.cadre};}
 const b31ArreteTxt=c=>"Arrêté le présent bordereau à la somme de : "+enLettres(c/100)+" toutes taxes comprises.";
 function b31PdfDoc(id,a){const ET=b31Etat(id,a),Mo=b31BpModele(id,a),K=B21_PDF.K,now=new Date(),gen=fmt(now)+" à "+pad(now.getHours())+"h"+pad(now.getMinutes()),T=ET.T;
   const brou=!ET.valide,soc=socCourt(a.soc),c2=c=>c==null?"":fmtN(c/100),R={alignment:"right"},th={fillColor:K.th,bold:true,fontSize:8.5,alignment:"center"};
@@ -649,8 +649,8 @@ async function b31Pdf(id){const a=S.ao[id];if(!a||B31.pdfBusy)return;B31.pdfBusy
     B31.pdf[id]={bytes,nom,gen};await b31PdfVue(bytes,"Bordereau des prix "+(a.ref||id)+" · "+socCourt(a.soc)+" · "+gen,nom);}
   catch(e){toast("PDF indisponible : "+(e&&(e.message||e.code)||"erreur"));}finally{B31.pdfBusy=false;render();}}
 /* lecteur : pages rendues à la densité de l'écran (net), couche de texte pdf.js (sélection, recherche du navigateur), zoom */
-const B31_TL_CSS=`.b31v-bar{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 0 8px;background:inherit}.b31v-bar button{border:1px solid #c9c2b5;background:#fff;color:#16171A;border-radius:6px;padding:4px 10px;font:600 13px system-ui;cursor:pointer}.b31v-bar span{font-size:12.5px;opacity:.8}
-.b31v-p{position:relative;margin:0 auto 12px;box-shadow:0 1px 4px rgba(0,0,0,.25);background:#fff}.b31v-p canvas{display:block}.b31v-p .textLayer{position:absolute;inset:0;overflow:hidden;line-height:1;text-align:initial;opacity:1;forced-color-adjust:none;transform-origin:0 0}
+const B31_TL_CSS=`.b31v-bar{position:sticky;top:-10px;z-index:3;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-10px -10px 12px;padding:8px 10px;background:var(--bg,#F4F1EA);color:var(--ink,#16171A);border-bottom:1px solid var(--line,#E6DFD2);box-shadow:0 2px 6px rgba(0,0,0,.12)}.b31v-bar button{border:1px solid #c9c2b5;background:#fff;color:#16171A;border-radius:6px;padding:4px 10px;font:600 13px system-ui;cursor:pointer}.b31v-bar span{font-size:12.5px;opacity:.8}
+.b31v-p{position:relative;margin:0 auto 12px;scroll-margin-top:96px;box-shadow:0 1px 4px rgba(0,0,0,.25);background:#fff}.b31v-p canvas{display:block}.b31v-p .textLayer{position:absolute;inset:0;overflow:hidden;line-height:1;text-align:initial;opacity:1;forced-color-adjust:none;transform-origin:0 0}
 .b31v-p .textLayer span,.b31v-p .textLayer br{color:transparent;position:absolute;white-space:pre;cursor:text;transform-origin:0% 0%}.b31v-p .textLayer ::selection{background:rgba(0,90,255,.3)}`;
 async function b31PdfVue(bytes,titre,nom){const v=$("#viewer"),bd=dceVue(titre,nom,bytes);if(!document.getElementById("b31v-css")){const st=document.createElement("style");st.id="b31v-css";st.textContent=B31_TL_CSS;document.head.appendChild(st);}
   bd.innerHTML='<p class="hint" style="padding:16px">Ouverture du PDF…</p>';const lib=await ensurePdf(),pdf=await lib.getDocument({data:bytes.slice(),isEvalSupported:false}).promise;if(v.hidden)return;
@@ -659,7 +659,7 @@ async function b31PdfVue(bytes,titre,nom){const v=$("#viewer"),bd=dceVue(titre,n
     bd.innerHTML=`<div class="b31v-bar" data-b31-pdfbar="1"><button type="button" data-z="-" aria-label="Zoom arrière">−</button><span data-b31-zoom="1">${Math.round(st.z*100)} %</span><button type="button" data-z="+" aria-label="Zoom avant">+</button><button type="button" data-z="1">Largeur</button><span>PDF texte (vectoriel) · ${pdf.numPages} page(s) A4 · texte sélectionnable ; recherche : Ctrl+F · « Télécharger » enregistre exactement ce fichier.</span></div>`;
     bd.querySelectorAll("[data-z]").forEach(btn=>btn.addEventListener("click",()=>{const z=btn.dataset.z;st.z=z==="+"?Math.min(st.z*1.25,4):z==="-"?Math.max(st.z/1.25,0.4):1;dessin();}));
     for(let i=1;i<=pdf.numPages;i++){if(v.hidden||st.tok!==tok)return;const pg=await pdf.getPage(i),s=fit*st.z/pg.getViewport({scale:1}).width,vpC=pg.getViewport({scale:s}),vp=pg.getViewport({scale:s*dpr});
-      const box=document.createElement("div");box.className="b31v-p";box.dataset.b31Page=i;box.style.width=Math.floor(vpC.width)+"px";box.style.height=Math.floor(vpC.height)+"px";
+      const box=document.createElement("div");box.className="b31v-p";box.dataset.b31Page=i;{const br=bd.querySelector("[data-b31-pdfbar]");if(br)box.style.scrollMarginTop=(br.offsetHeight+12)+"px";}box.style.width=Math.floor(vpC.width)+"px";box.style.height=Math.floor(vpC.height)+"px";
       const c=document.createElement("canvas");c.width=Math.floor(vp.width);c.height=Math.floor(vp.height);c.style.width=Math.floor(vpC.width)+"px";c.style.height=Math.floor(vpC.height)+"px";box.appendChild(c);
       const tl=document.createElement("div");tl.className="textLayer";tl.style.setProperty("--scale-factor",vpC.scale);box.appendChild(tl);bd.appendChild(box);
       await pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;

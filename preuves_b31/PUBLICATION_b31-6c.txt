@@ -1,0 +1,36 @@
+B3.1 Chiffrage — b31-6c (« Aperçu PDF du bordereau » fidèle au DCE, arrêté en lettres, lecteur net)
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Version avant : 1791665415-691d (b31-6b), index sha256 734942de…aa91 — relue, identique à la publication b31-6b.
+Version publiée : 1791666965-c2df (version 279), index 1 556 134 octets, sha256 2204a8a59850d705d4b18fe3af9c44d5536b4ce1b34a33a4ab9d80a4c75bdcf2
+Corps sha256 052ce18b1d733ee8d11c35c3dcf0501182bf77d50a8d67a97f3508bd68ac936d ; index = squelette + corps (diff 0) ; 16 fichiers ; capabilities inchangées ; sans force.
+Diff b31-6b → b31-6c : module B3.1 uniquement (b31Pdf remplacé par b31BpModele / b31PdfDoc / b31PdfVue ; libellé du bouton).
+
+Référence de fidélité : « bordereau des prix 05.2026.bg.xls » (DCE original, Drive, sha256 dcb3665a…1ca8df), lu seulement.
+  Colonnes : N° Prix | Désignation des Ouvrages | Unité | Quantité | Prix Unitaire (DH) | Prix Total (DH) ; 8 sections numérotées ;
+  « TOTAL <section> » après chaque section ; « TOTAL (1+2+…...+8) HT », « TVA (20%) », « TOTAL TTC » ; récapitulatif des sections.
+  Aucune formule d'arrêté dans le DCE lu (xls, CPS, RC) → « Arrêté le présent bordereau à la somme de : <enLettres(TTC)> toutes taxes comprises. »
+Structure générique : dérivée du bordereau extrait du DCE de CHAQUE dossier (S.bp : lots, sections dans l'ordre, N°, désignations, unités, quantités) :
+  « TOTAL » + intitulé de section sans numéro ; « TOTAL (1+2+…+N) HT » si les sections sont numérotées 1..N, sinon « TOTAL HT » ; une ligne
+  « TVA (x%) » par taux documenté (« sur … HT » si mixte) ; chaque lot a ses totaux et son arrêté. Rien de codé pour BG.
+Mise en page : A4 portrait, Roboto 8,5–9 pt ; un tableau par section (en-tête de colonnes + intitulé répétés, lignes insécables, intitulé jamais
+  isolé) ; Total HT / TVA / TTC en fin de dernier tableau ; récapitulatif + arrêté groupés (insécables) ; annexe interne EAIOS (contrôles art. 44,
+  estimation « nature HT / TTC non convertie », TVA, coût/marge) sur une page séparée APRÈS le bordereau ; bandeau « document de travail interne »
+  sur chaque page tant que brouillon ; aucune signature ni cachet.
+Lecteur : pages rendues à la densité de l'écran (×devicePixelRatio, max 3), couche de texte pdf.js (sélection, Ctrl+F), zoom −/+/Largeur ;
+  « Télécharger » enregistre le fichier vectoriel.
+
+Recette (fixtures ; dossiers réels lus seulement ; aucune écriture) — 317 contrôles OK :
+  qa_b31 64/64 · qa_b31_hist 16/16 · qa_b31_pct 44/44 · qa_b31_art44 24/24 · qa_b31_v6 79/79 · qa_b31_v6b 30/30 · qa_b31_v6c 30/30 (nouveau)
+  qa_b31_v6c : 58 lignes N°/désignation/unité/quantité, 8 sections et libellés TOTAL comparés cellule à cellule au xls original (clone fictif
+  de la structure, PU fictifs) ; montants recalculés indépendamment ; arrêté unique ; lettres (singulier, millions de, quatre-vingts, deux cents,
+  jamais « dirhams » en double ; 3 048 097,90 → « Trois millions quarante-huit mille quatre-vingt-dix-sept dirhams et quatre-vingt-dix centimes ») ;
+  5 pages A4 sans page vide, récapitulatif et arrêté sur la même page ; 400 lignes / 27 pages sans ligne coupée ; TVA absente, mixte, 2 lots,
+  société isolée (SIDITRAV sans PU de SAKDAT) ; lecteur Retina 1800 px pour 900 affichés, texte sélectionnable, zoom ; 390 clair / sombre.
+Assertions anciennes adaptées au nouveau format demandé (même objet) : qa_b31 PDF BG (« Bordereau des prix (58 lignes) » → 58 N° présents,
+  « Montant en lettres non produit » → « Arrêté non produit : TVA non renseignée ») et PDF fictif (« Arrêté à » → « Arrêté le présent bordereau
+  à la somme de », + « TVA (20%) ») ; qa_b31_v6 PDF mixte (« TVA 10 % » → « TVA (10%) sur »).
+Preuves : PDF fictifs fx-big, fx-v6a (TVA absente), fx-v6x (mixte), fx-lots. Les rendus du clone de structure BG ne sont pas versionnés.
+
+Limites : intitulé « BORDEREAU DES PRIX - DÉTAIL ESTIMATIF » et libellés de colonnes standard (S.bp ne conserve ni le titre ni les en-têtes
+  du fichier ; ceux de BG sont identiques sauf le titre, « BORDEREAU DES PRIX » dans le xls) ; marché-cadre : quantités minimales seulement
+  (pas de colonnes min / max) ; l'en-tête de colonnes est répété au début de chaque section (l'original ne l'affiche qu'une fois).

@@ -15,7 +15,7 @@
    (2) provenance durable de chaque PU appliqué (srcL v:6) ; (3) événements de prix immuables chiffrage_evenements/<id>~e<n>, écrits
    AVANT le bordereau ; (4) sous-détail B3.1 propre à la société (matériaux, main-d'œuvre, matériel, transport, sources de devis,
    frais), déboursé sec / coût de revient / vente / marge ; (5) comparaison des scénarios sans écriture. */
-const B31={v:"b31-6b",sdBase:{},ev:{},evErr:{},ecr:{},saisie:{},sd:null,sdIA:{},sdBusy:null,sdErr:{},tvaEd:{},cmp:{},provOuv:{},propIA:{},propBusy:null,propErr:{},mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
+const B31={v:"b31-6c",sdBase:{},ev:{},evErr:{},ecr:{},saisie:{},sd:null,sdIA:{},sdBusy:null,sdErr:{},tvaEd:{},cmp:{},provOuv:{},propIA:{},propBusy:null,propErr:{},mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
 const B31_DECRET={url:"https://www.tgr.gov.ma/wps/wcm/connect/1f3081fc-2d01-41de-8339-9a2c7de0480f/DECRET%2B2-22-431%2BFR.pdf?MOD=AJPERES",
   ref:"Décret n° 2-22-431 du 8 mars 2023, art. 44 (édition TGR 2023, p. 69-70)",sha:"d08109b9cee1364870c99659dbe58a3aef3556ab2d87209426dc97a314e07c78"};
 const B31_SCEN=[["prudent","Prudent"],["equilibre","Équilibré"],["competitif","Compétitif"]];
@@ -552,7 +552,7 @@ function b31IaCard(id,a,ET){const C=b31SugChiffreur(id,a),cl=B31.ia[id]||(ET.doc
 function b31Barre(id,a,ET){const ed=editable(),B=b31Bloquants(id,a,ET);
   return`<div class="b31-bar" data-b31-statut="${esc(ET.statut.k)}"><div class="b31-bs">${b31Ic("doc")}<span><b>${esc(ET.statut.t.split(" · ")[0].split(" (")[0])}</b>${ET.statut.t.includes(" · ")?" · "+esc(ET.statut.t.split(" · ").slice(1).join(" · ")):ET.statut.t.includes(" (")?" "+esc(ET.statut.t.slice(ET.statut.t.indexOf(" ("))):""}</span></div>
     <div class="b31-ba">${ed?`<button type="button" class="b31-btn" data-b31-save="1" data-act="${act(()=>b31Version(id,a,"Brouillon "+(B31.mode[id]||"manuel")).then(v=>{toast("Brouillon v"+v.version+" enregistré (immuable).");render();}).catch(e=>toast("Enregistrement impossible : "+(e&&e.message||e))))}">${b31Ic("save")}Enregistrer le brouillon</button>`:""}
-    <button type="button" class="b31-btn" data-b31-pdf="1" data-act="${act(()=>b31Pdf(id))}" ${B31.pdfBusy?"disabled":""}>${b31Ic("doc")}${B31.pdfBusy?"PDF en préparation…":"Aperçu PDF"}</button>
+    <button type="button" class="b31-btn" data-b31-pdf="1" data-act="${act(()=>b31Pdf(id))}" ${B31.pdfBusy?"disabled":""}>${b31Ic("doc")}${B31.pdfBusy?"PDF en préparation…":"Aperçu PDF du bordereau"}</button>
     ${ed?`<button type="button" class="b31-btn" data-b31-rep="1" data-act="${act(()=>b31Reprendre(id,a))}">${b31Ic("undo")}À reprendre</button><button type="button" class="b31-btn b31-gold" data-b31-val="1" ${B.length?`aria-disabled="true" title="${esc(B.join(" ; "))}"`:""} data-act="${act(()=>b31Valider(id,a))}">${b31Ic("send")}Valider le chiffrage</button>`:""}</div>
     <p class="b31-bn">Valider le chiffrage fige l'offre de ${esc(socCourt(a.soc))} ; ce n'est ni la décision Go / No-Go d'Ahmed, ni une soumission sur le portail (aucun dépôt automatique).</p></div>`;}
 function b31Dialog(id,a,ET){const D=B31.dlg,ferme=act(()=>{B31.dlg=null;render();});let t="",c="";
@@ -578,30 +578,93 @@ function b31Dialog(id,a,ET){const D=B31.dlg,ferme=act(()=>{B31.dlg=null;render()
     c+=`<div class="b31-row"><button type="button" class="b31-btn b31-sm" data-b31-cmpo="2" data-act="${act(()=>{B31.dlg={id,k:"cmp"};render();})}">${b31Ic("bar")}Comparer côte à côte</button></div>`;
     if(D.pct!=null&&!D.cible)c+=`<p class="b31-src">Pourcentage courant ${esc(b31PctTxt(D.pct))} : choisissez le scénario où l'enregistrer.</p>${B31_SCEN.map(([k,l])=>`<button type="button" class="b31-btn b31-sm" data-act="${act(()=>{B31.dlg={id,k:"scen",pct:D.pct,cible:k};render();})}">Placer dans « ${l} »</button>`).join(" ")}`;}
   return`<div class="fsheet b31-dlg" role="dialog" aria-modal="true" aria-label="${esc(t)}"><div class="fsback" data-act="${ferme}"></div><div class="fspanel b31-dp"><div class="fshead"><div><div class="fshtitle">${esc(t)}</div><div class="fshsub">${esc(a.ref||id)} · lecture des preuves conservées, rien n'est effacé</div></div><button type="button" class="fsx" aria-label="Fermer" data-act="${ferme}">${b31Ic("x")}</button></div><div class="fsbody b31" id="fsbody">${c}</div></div></div>`;}
-/* ---------- PDF vectoriel du récapitulatif (pdfmake, déjà utilisé par B2.1) : document de travail, pas une pièce de dépôt ---------- */
+/* ---------- b31-6c · PDF du bordereau fidèle au DCE (pdfmake, document texte vectoriel) ----------
+   Structure dérivée du bordereau extrait du DCE DE CE DOSSIER (S.bp : lots, sections dans l'ordre, N°, désignations, unités, quantités) :
+   pour chaque section « TOTAL <intitulé sans numéro> », puis Total HT, TVA au taux documenté (une ligne par taux), Total TTC,
+   récapitulatif des sections et arrêté en lettres. Seuls les PU / PT de la société du dossier sont remplis ; un prix manquant reste vide
+   et aucun total ni arrêté n'est produit. Les contrôles EAIOS sont rejetés dans une annexe interne séparée, après le bordereau.
+   Aucun modèle d'arrêté dans le DCE lu → formule française standard. Document de travail interne : aucune signature ni cachet. */
+const B31_COLS=["N° Prix","Désignation des Ouvrages","Unité","Quantité","Prix Unitaire (DH)","Prix Total (DH)"];
+const b31SecNum=s=>{const m=String(s||"").match(/^\s*(\d+)\s*(?:[.\-–)]|\s)/);return m?+m[1]:null;};
+const b31SecNom=s=>String(s||"").replace(/^\s*\d+(?:\.\d+)*\s*[.\-–)]?\s*/,"").replace(/\s+/g," ").trim();
+function b31BpModele(id,a){const b=S.bp[id],X=bpX(id),M=b31TvaM(id,a);if(!b)return null;
+  const lots=b.lots.map((L,l)=>{const secs=[];let cur=null,ht=0,miss=0;const G={};
+    L.lignes.forEach((x,i)=>{const k=l+"-"+i,s=String(x.s||"").replace(/\s+/g," ").trim();if(!cur||cur.titre!==s){cur={titre:s,lignes:[],htC:0,miss:0};secs.push(cur);}
+      const p=X.p[k],has=p!==undefined&&p!==""&&p!=null,q=bpQ(id,l,i,x),mc=has&&q!=null?ligneC(q,p):null;
+      cur.lignes.push({k,n:String(x.n||""),d:String(x.d||""),u:String(x.u||""),q,pu:has?+p:null,pt:mc,r:M.rate(k)});
+      if(mc==null){cur.miss++;miss++;}else{cur.htC+=mc;ht+=mc;const r=M.rate(k);if(r!=null)G[r]=(G[r]||0)+mc;}});
+    secs.forEach(s=>{s.total=s.titre?"TOTAL "+b31SecNom(s.titre):null;});
+    const nums=secs.map(s=>b31SecNum(s.titre)),seq=secs.length>1&&nums.every((v,j)=>v===j+1),N=secs.length;
+    const libHT=seq?"TOTAL ("+(N<=3?nums.join("+"):"1+2+…+"+N)+") HT":"TOTAL HT";
+    const tv=Object.entries(G).sort((u,w)=>w[0]-u[0]).map(([r,h])=>({r:+r,htC:h,tvaC:Math.floor((h*+r+50)/100)}));
+    const ok=!miss&&M.calc,tvaC=ok?tv.reduce((t,z)=>t+z.tvaC,0):null;
+    return{lot:String(L.lot||""),secs,libHT,htC:miss?null:ht,miss,tv,tvaC,ttcC:ok?ht+tvaC:null,mixte:tv.length>1};});
+  return{titre:b.titre||"BORDEREAU DES PRIX - DÉTAIL ESTIMATIF",cols:b.colonnes&&b.colonnes.length===6?b.colonnes:B31_COLS,lots,M,source:b.source||null,cadre:!!b.cadre};}
+const b31ArreteTxt=c=>"Arrêté le présent bordereau à la somme de : "+enLettres(c/100)+" toutes taxes comprises.";
+function b31PdfDoc(id,a){const ET=b31Etat(id,a),Mo=b31BpModele(id,a),K=B21_PDF.K,now=new Date(),gen=fmt(now)+" à "+pad(now.getHours())+"h"+pad(now.getMinutes()),T=ET.T;
+  const brou=!ET.valide,soc=socCourt(a.soc),c2=c=>c==null?"":fmtN(c/100),R={alignment:"right"},th={fillColor:K.th,bold:true,fontSize:8.5,alignment:"center"};
+  const lab=(t,o)=>Object.assign({text:t,colSpan:5,alignment:"right",bold:true},o||{}),em=()=>({}),tvaLab=(z,lot)=>"TVA ("+String(z.r).replace(".",",")+"%)"+(lot.mixte?" sur "+c2(z.htC)+" HT":"");
+  const content=[{text:(a.procedure||"Appel d'offres ouvert")+" n° "+(a.ref||id),bold:true,fontSize:11},{text:String(a.mo||""),color:K.ink2,margin:[0,1,0,0]},
+    {text:[{text:"Objet : ",bold:true},String(a.obj||"")],margin:[0,3,0,0]},{text:[{text:"Concurrent : ",bold:true},soc],margin:[0,2,0,6]}];
+  if(brou)content.push({table:{widths:["*"],body:[[{text:"DOCUMENT DE TRAVAIL INTERNE — chiffrage non validé (brouillon). Ne pas déposer : la pièce de l'offre est établie, signée et cachetée par la gérance ; aucune signature ni cachet n'est apposé ici.",color:K.red,bold:true,fontSize:8.5,margin:[4,3,4,3]}]]},layout:{hLineColor:()=>K.red,vLineColor:()=>K.red},margin:[0,0,0,6]});
+  const inc=Mo.lots.reduce((t,L)=>t+L.miss,0);
+  if(inc||!ET.tva.calc)content.push({text:(inc?inc+" prix unitaire(s) manquant(s) : cellules laissées vides, totaux et arrêté non produits. ":"")+(!ET.tva.calc?"TVA non renseignée pour ce dossier : TVA et TTC non calculés (aucun taux supposé).":""),color:K.red,fontSize:8.5,margin:[0,0,0,6]});
+  Mo.lots.forEach((L,li)=>{if(li)content.push({text:"",pageBreak:"before"});
+    if(L.lot)content.push({text:L.lot,bold:true,fontSize:11,margin:[0,2,0,4]});
+    content.push({text:Mo.titre,style:"titre"});
+    L.secs.forEach((s,si)=>{const body=[Mo.cols.map(c=>Object.assign({text:c},th))];/* cellules neuves par tableau : pdfmake les modifie */if(s.titre)body.push([{text:s.titre,colSpan:6,bold:true,fillColor:K.voile,fontSize:9},em(),em(),em(),em(),em()]);
+      s.lignes.forEach(r=>body.push([{text:r.n,fontSize:8.5},{text:r.d,fontSize:8.5},{text:r.u,alignment:"center",fontSize:8.5},Object.assign({text:r.q==null?"illisible":fmtQ(r.q),fontSize:8.5},R),Object.assign({text:r.pu==null?"":fmtN(r.pu),fontSize:8.5},R),Object.assign({text:c2(r.pt),fontSize:8.5},R)]));
+      if(s.total)body.push([lab(s.total),em(),em(),em(),em(),Object.assign({text:s.miss?"":c2(s.htC),bold:true},R)]);
+      const last=si===L.secs.length-1;
+      if(last){body.push([lab(L.libHT),em(),em(),em(),em(),Object.assign({text:c2(L.htC),bold:true},R)]);
+        if(Mo.M.calc)L.tv.forEach(z=>body.push([lab(tvaLab(z,L)),em(),em(),em(),em(),Object.assign({text:L.miss?"":c2(z.tvaC),bold:true},R)]));
+        else body.push([lab("TVA (taux non renseigné)"),em(),em(),em(),em(),Object.assign({text:"non calculée",italics:true,color:K.red},R)]);
+        body.push([lab("TOTAL TTC"),em(),em(),em(),em(),Object.assign({text:L.ttcC==null?"":c2(L.ttcC),bold:true},R)]);}
+      content.push({table:{headerRows:s.titre?2:1,keepWithHeaderRows:1,dontBreakRows:true,widths:[34,"*",36,50,66,76],body},layout:{hLineColor:()=>K.line,vLineColor:()=>K.line,paddingTop:()=>3,paddingBottom:()=>3},margin:[0,0,0,8]});});
+    /* récapitulatif et arrêté, groupés (jamais isolés de leurs montants) */
+    const rb=L.secs.filter(s=>s.total).map(s=>[{text:s.total},Object.assign({text:s.miss?"":c2(s.htC)},R)]);
+    rb.push([{text:L.libHT,bold:true},Object.assign({text:c2(L.htC),bold:true},R)]);
+    if(Mo.M.calc)L.tv.forEach(z=>rb.push([{text:tvaLab(z,L),bold:true},Object.assign({text:L.miss?"":c2(z.tvaC),bold:true},R)]));else rb.push([{text:"TVA (taux non renseigné)",bold:true},Object.assign({text:"non calculée",italics:true,color:K.red},R)]);
+    rb.push([{text:"TOTAL TTC",bold:true},Object.assign({text:L.ttcC==null?"":c2(L.ttcC),bold:true},R)]);
+    content.push({unbreakable:true,stack:[{table:{widths:["*",96],body:rb},fontSize:8.5,layout:{hLineColor:()=>K.line,vLineColor:()=>K.line,paddingTop:()=>1.5,paddingBottom:()=>1.5},margin:[90,0,0,6]},
+      L.ttcC!=null?{text:b31ArreteTxt(L.ttcC),bold:true,margin:[0,2,0,0]}:{text:"Arrêté non produit : "+(L.miss?L.miss+" prix manquant(s)":"TVA non renseignée")+".",italics:true,color:K.red,margin:[0,2,0,0]},
+      {text:Mo.M.txt+".",fontSize:7.5,color:K.muted,margin:[0,4,0,0]}]});});
+  /* annexe interne : contrôles EAIOS, hors bordereau */
+  const E=ET.E,Mg=b31Marge(ET.C,T),kv=(k,v)=>[{text:k,color:K.ink2},{text:v,bold:true}];
+  content.push({text:"Annexe interne EAIOS — contrôles du chiffrage (ne fait pas partie du bordereau)",style:"h",pageBreak:"before"},
+    {table:{widths:[190,"*"],body:[kv("Statut",ET.statut.t),kv("Estimation du maître d'ouvrage",E.c==null?"non renseignée":b31Dh(E.c)+" — telle que publiée (source : "+(E.src||"non indiquée")+") ; nature HT / TTC non convertie : EAIOS la compare au TTC de l'offre par convention, à vérifier dans l'avis"),
+      kv("Offre",ET.complet?b31Dh(T.htC)+" HT · "+b31Dh(T.tvaC)+" TVA · "+b31Dh(T.ttcC)+" TTC":"incomplète ou TTC non calculé"),kv("Écart offre TTC / estimation",ET.complet&&E.c?b31EcartTxt(ET.A44.ecart):"—"),
+      kv("Contrôle art. 44 (décret 2-22-431)",ET.R.lab+" — "+ET.A44.t+(ET.A44.minC!=null?" (bornes "+b31Dh(ET.A44.minC)+" à "+b31Dh(ET.A44.maxC)+")":"")),kv("TVA du dossier",ET.tva.txt),
+      kv("Coût et marge",Mg?"coût de revient "+b31Dh(ET.C.coutC)+" HT · marge "+(Mg.mC<0?"−":"")+b31Dh(Math.abs(Mg.mC))+" ("+Mg.pct.toFixed(1).replace(".",",")+" % de la vente HT)":"coûts incomplets ("+ET.C.k+"/"+ET.C.N+" ligne(s)) : marge non calculée"),
+      kv("Source du bordereau",(Mo.source||"bordereau extrait du DCE")+" ; structure (sections, ordre, N°, désignations, unités, quantités) reprise telle qu'extraite")]},layout:"lightHorizontalLines"},
+    {text:"Source réglementaire : "+B31_DECRET.ref,fontSize:7.5,color:K.muted,margin:[0,6,0,0]});
+  return{dd:{pageSize:"A4",pageOrientation:"portrait",pageMargins:[34,58,34,44],defaultStyle:{font:"Roboto",fontSize:9,color:K.ink,lineHeight:1.12},
+    styles:{titre:{fontSize:12,bold:true,alignment:"center",margin:[0,4,0,8]},h:{fontSize:12,bold:true,margin:[0,0,0,8]}},
+    info:{title:"Bordereau des prix "+(a.ref||id)+" — "+soc+(brou?" (document de travail)":""),author:"EAIOS",subject:"B3.1 · bordereau des prix (document de travail interne)",creator:"EAIOS "+(typeof APP_VERSION!=="undefined"?APP_VERSION:""),producer:"EAIOS "+B31.v+" (pdfmake)"},
+    header:()=>({columns:[{text:(a.ref||id)+" · "+soc,color:K.muted},{text:brou?"DOCUMENT DE TRAVAIL INTERNE · BROUILLON":"Document de travail · chiffrage validé (offre figée)",alignment:"right",color:brou?K.red:K.muted,bold:brou}],fontSize:7.5,margin:[34,24,34,0]}),
+    footer:(p,n)=>({columns:[{text:"EAIOS · B3.1 · généré le "+gen+" · non destiné au dépôt",color:K.muted},{text:"Page "+p+" / "+n,alignment:"right",width:70}],fontSize:7.5,margin:[34,14,34,0]}),content},gen,Mo};}
 async function b31Pdf(id){const a=S.ao[id];if(!a||B31.pdfBusy)return;B31.pdfBusy=true;render();
-  try{const ET=b31Etat(id,a),pm=await b21PdfLib(),K=B21_PDF.K,now=new Date(),gen=fmt(now)+" à "+pad(now.getHours())+"h"+pad(now.getMinutes()),X=ET.X,T=ET.T;
-    const L=b31Lignes(id),body=[[{text:"N°",style:"th"},{text:"Désignation",style:"th"},{text:"Unité",style:"th"},{text:"Qté",style:"th",alignment:"right"},{text:"PU HT",style:"th",alignment:"right"},{text:"PT HT",style:"th",alignment:"right"}]];
-    L.forEach(r=>{const p=X.p[r.k],has=p!==undefined&&p!==""&&p!=null;body.push([{text:String(r.x.n||""),color:K.muted},String(r.x.d||""),String(r.x.u||""),{text:r.qq==null?"illisible":fmtQ(r.qq),alignment:"right"},{text:has?fmtN(p):"manquant",alignment:"right",color:has?K.ink:K.red},{text:has&&r.qq!=null?fmtN(ligneC(r.qq,p)/100):"—",alignment:"right"}]);});
-    const kv=(k,v)=>[{text:k,color:K.ink2},{text:v,bold:true,alignment:"right"}];
-    const dd={pageSize:"A4",pageOrientation:"landscape",pageMargins:[40,50,40,46],defaultStyle:{font:"Roboto",fontSize:9.5,color:K.ink},styles:{th:{bold:true,fillColor:K.th,fontSize:9},h:{fontSize:13,bold:true,margin:[0,10,0,4]}},
-      info:{title:"Chiffrage "+(a.ref||id)+" — "+socCourt(a.soc),author:"EAIOS",subject:"B3.1 Chiffrage · document de travail",creator:"EAIOS "+(typeof APP_VERSION!=="undefined"?APP_VERSION:""),producer:"EAIOS "+B31.v+" (pdfmake)"},
-      footer:(p,n)=>({columns:[{text:"EAIOS · B3.1 Chiffrage · "+(a.ref||id)+" · "+socCourt(a.soc)+" · généré le "+gen+" · document de travail interne, non destiné au dépôt",color:K.muted},{text:"Page "+p+" / "+n,alignment:"right",width:70}],fontSize:8,margin:[40,14,40,0]}),
-      content:[{text:"Chiffrage · "+(a.ref||id),fontSize:18,bold:true},{text:String(a.obj||""),margin:[0,2,0,2]},{text:socCourt(a.soc)+" · "+(a.mo||"")+" · statut : "+ET.statut.t,color:K.ink2,margin:[0,0,0,8]},
-        {columns:[{width:"*",table:{widths:["*","auto"],body:[kv("Estimation MO TTC",ET.E.c==null?"non renseignée":b31Dh(ET.E.c)),kv("Offre TTC",ET.complet?b31Dh(T.ttcC):ET.prixComplet?"non calculée (TVA)":"incomplète ("+T.miss+" PU manquants)"),kv("Écart (TTC / TTC)",ET.complet&&ET.E.c?b31EcartTxt(ET.A44.ecart):"—")]},layout:"lightHorizontalLines"},
-          {width:"*",table:{widths:["*","auto"],body:[kv("Total HT",ET.prixComplet?b31Dh(T.htC):"incomplet")].concat(ET.complet&&Object.keys(T.parTaux||{}).length>1?Object.entries(T.parTaux).sort((u,w)=>w[0]-u[0]).map(([r,z])=>kv("TVA "+b31TxPct(r)+" (sur "+fmtN(z.htC/100)+" HT)",b31Dh(z.tvaC))):[kv(ET.tva.lab,ET.complet?b31Dh(T.tvaC):"non calculée")]).concat([kv("Total TTC",ET.complet?b31Dh(T.ttcC):"non calculé")])},layout:"lightHorizontalLines"}],columnGap:18},
-        ET.complet?{text:"Arrêté à : "+enLettres(T.ttcC/100)+" toutes taxes comprises.",italics:true,margin:[0,6,0,0]}:{text:"Montant en lettres non produit : "+(ET.prixComplet?"TVA non renseignée ou incomplète (TTC non calculé)":"offre incomplète")+".",italics:true,color:K.red,margin:[0,6,0,0]},
-        {text:"Contrôle art. 44 (décret 2-22-431)",style:"h"},{text:ET.R.lab+" — "+ET.A44.t+(ET.A44.minC!=null?" (bornes "+b31Dh(ET.A44.minC)+" à "+b31Dh(ET.A44.maxC)+" TTC)":""),margin:[0,0,0,2]},{text:"Source : "+B31_DECRET.ref+" — "+B31_DECRET.url,color:K.muted,fontSize:8},
-        {text:"Coût et marge",style:"h"},{text:(Mg=>Mg?"Déboursé sec HT "+b31Dh(ET.C.dsC)+" · coût de revient HT (hors bénéfice) "+b31Dh(ET.C.coutC)+" · vente HT "+b31Dh(T.htC)+" · marge "+(Mg.mC<0?"−":"")+b31Dh(Math.abs(Mg.mC))+" · "+Mg.pct.toFixed(1).replace(".",",")+" % de la vente HT"+(Mg.perte?" — OFFRE À PERTE":"")+(ET.C.kDefaut?" (taux de frais : hypothèses)":""):"Coûts incomplets : "+ET.C.k+"/"+ET.C.N+" ligne(s) avec coût connu ; marge globale non calculée.")(b31Marge(ET.C,T))},
-        {text:"TVA du dossier",style:"h"},{text:ET.tva.txt,color:K.ink2,margin:[0,2,0,0]},
-        {text:"Bordereau des prix ("+L.length+" lignes)",style:"h",pageBreak:"before"},{table:{headerRows:1,widths:[34,"*",44,60,72,82],body},layout:"lightHorizontalLines"}]};
-    const buf=await new Promise((res,rej)=>{try{pm.createPdf(dd).getBuffer(b=>res(b));}catch(e){rej(e);}}),bytes=new Uint8Array(buf),nom="Chiffrage_"+safeN(a.ref||id)+"_"+safeN(socCourt(a.soc))+".pdf";
-    B31.pdf[id]={bytes,nom,gen};
-    const v=$("#viewer"),bd=dceVue("Chiffrage "+(a.ref||id)+" · "+socCourt(a.soc)+" · "+gen,nom,bytes);bd.innerHTML='<p class="hint" style="padding:16px">Ouverture du PDF…</p>';
-    const lib=await ensurePdf(),pdf=await lib.getDocument({data:bytes.slice(),isEvalSupported:false}).promise;if(v.hidden)return;
-    bd.innerHTML=`<p class="hint" style="margin:0 0 8px">PDF vectoriel · ${pdf.numPages} page(s) · « Enregistrer » sauvegarde exactement ce fichier.</p>`;const w=Math.max(200,Math.min(bd.clientWidth-20,1000));
-    for(let i=1;i<=pdf.numPages;i++){if(v.hidden)return;const pg=await pdf.getPage(i),s=w/pg.getViewport({scale:1}).width,vp=pg.getViewport({scale:s}),c=document.createElement("canvas");c.width=Math.floor(vp.width);c.height=Math.floor(vp.height);c.className="dce-ap-page";bd.appendChild(c);await pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;}}
+  try{const pm=await b21PdfLib(),{dd,gen}=b31PdfDoc(id,a);
+    const buf=await new Promise((res,rej)=>{try{pm.createPdf(dd).getBuffer(b=>res(b));}catch(e){rej(e);}}),bytes=new Uint8Array(buf),nom="Bordereau_"+safeN(a.ref||id)+"_"+safeN(socCourt(a.soc))+".pdf";
+    B31.pdf[id]={bytes,nom,gen};await b31PdfVue(bytes,"Bordereau des prix "+(a.ref||id)+" · "+socCourt(a.soc)+" · "+gen,nom);}
   catch(e){toast("PDF indisponible : "+(e&&(e.message||e.code)||"erreur"));}finally{B31.pdfBusy=false;render();}}
+/* lecteur : pages rendues à la densité de l'écran (net), couche de texte pdf.js (sélection, recherche du navigateur), zoom */
+const B31_TL_CSS=`.b31v-bar{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 0 8px;background:inherit}.b31v-bar button{border:1px solid #c9c2b5;background:#fff;color:#16171A;border-radius:6px;padding:4px 10px;font:600 13px system-ui;cursor:pointer}.b31v-bar span{font-size:12.5px;opacity:.8}
+.b31v-p{position:relative;margin:0 auto 12px;box-shadow:0 1px 4px rgba(0,0,0,.25);background:#fff}.b31v-p canvas{display:block}.b31v-p .textLayer{position:absolute;inset:0;overflow:hidden;line-height:1;text-align:initial;opacity:1;forced-color-adjust:none;transform-origin:0 0}
+.b31v-p .textLayer span,.b31v-p .textLayer br{color:transparent;position:absolute;white-space:pre;cursor:text;transform-origin:0% 0%}.b31v-p .textLayer ::selection{background:rgba(0,90,255,.3)}`;
+async function b31PdfVue(bytes,titre,nom){const v=$("#viewer"),bd=dceVue(titre,nom,bytes);if(!document.getElementById("b31v-css")){const st=document.createElement("style");st.id="b31v-css";st.textContent=B31_TL_CSS;document.head.appendChild(st);}
+  bd.innerHTML='<p class="hint" style="padding:16px">Ouverture du PDF…</p>';const lib=await ensurePdf(),pdf=await lib.getDocument({data:bytes.slice(),isEvalSupported:false}).promise;if(v.hidden)return;
+  const st={z:1,pdf};B31.pdfVue=st;
+  const dessin=async()=>{const tok=st.tok={};const fit=Math.max(200,Math.min(bd.clientWidth-24,900)),dpr=Math.min(window.devicePixelRatio||1,3);
+    bd.innerHTML=`<div class="b31v-bar" data-b31-pdfbar="1"><button type="button" data-z="-" aria-label="Zoom arrière">−</button><span data-b31-zoom="1">${Math.round(st.z*100)} %</span><button type="button" data-z="+" aria-label="Zoom avant">+</button><button type="button" data-z="1">Largeur</button><span>PDF texte (vectoriel) · ${pdf.numPages} page(s) A4 · texte sélectionnable ; recherche : Ctrl+F · « Télécharger » enregistre exactement ce fichier.</span></div>`;
+    bd.querySelectorAll("[data-z]").forEach(btn=>btn.addEventListener("click",()=>{const z=btn.dataset.z;st.z=z==="+"?Math.min(st.z*1.25,4):z==="-"?Math.max(st.z/1.25,0.4):1;dessin();}));
+    for(let i=1;i<=pdf.numPages;i++){if(v.hidden||st.tok!==tok)return;const pg=await pdf.getPage(i),s=fit*st.z/pg.getViewport({scale:1}).width,vpC=pg.getViewport({scale:s}),vp=pg.getViewport({scale:s*dpr});
+      const box=document.createElement("div");box.className="b31v-p";box.dataset.b31Page=i;box.style.width=Math.floor(vpC.width)+"px";box.style.height=Math.floor(vpC.height)+"px";
+      const c=document.createElement("canvas");c.width=Math.floor(vp.width);c.height=Math.floor(vp.height);c.style.width=Math.floor(vpC.width)+"px";c.style.height=Math.floor(vpC.height)+"px";box.appendChild(c);
+      const tl=document.createElement("div");tl.className="textLayer";tl.style.setProperty("--scale-factor",vpC.scale);box.appendChild(tl);bd.appendChild(box);
+      await pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;
+      try{if(lib.renderTextLayer){const t=lib.renderTextLayer({textContentSource:pg.streamTextContent(),container:tl,viewport:vpC,textDivs:[]});if(t&&t.promise)await t.promise;}}catch(e){tl.dataset.erreur=String(e&&e.message||e);}}};
+  await dessin();}
 /* ---------- b31-6 · carte « TVA du dossier » ---------- */
 function b31TvaEd(id,a){const M=b31TvaM(id,a),D=M.D||{};return B31.tvaEd[id]||(B31.tvaEd[id]={taux:M.taux!=null?String(M.taux).replace(".",","):"",etat:M.etat==="confirme"?"confirme":"hypothese",doc:(D.src&&D.src.doc)||"",page:(D.src&&D.src.page)||"",mixte:!!D.mixte,lignes:Object.assign({},D.lignes||{})});}
 function b31TvaCard(id,a,ET){const M=ET.tva,ed=editable(),o=B31.ouv[id+"|tva"]||M.etat==="absent"||M.conflit;

@@ -105,7 +105,7 @@ with sync_playwright() as p:
     ev("()=>b31Pdf('fx-v6m')");pg.wait_for_function("()=>B31.pdf['fx-v6m']&&!B31.pdfBusy",timeout=30000)
     b64=ev("()=>{const e=B31.pdf['fx-v6m'].bytes;let s='';for(let i=0;i<e.length;i+=0x8000)s+=String.fromCharCode.apply(null,e.subarray(i,i+0x8000));return btoa(s)}")
     open(f"{OUT}/fx_v6m.pdf","wb").write(base64.b64decode(b64));Tp=re.sub(r"\s+"," "," ".join(x.extract_text() or "" for x in pypdf.PdfReader(f"{OUT}/fx_v6m.pdf").pages))
-    chk("TVA 10 %" in Tp and "TVA 20 %" in Tp and "Arrêté à" in Tp and "TVA du dossier" in Tp and "confirmée" in Tp,"PDF (taux mixtes) : TVA par taux, arrêté, état et source de la TVA")
+    chk("TVA (10%) sur" in Tp and "TVA (20%) sur" in Tp and "Arrêté le présent bordereau à la somme de" in Tp and "TVA du dossier" in Tp and "confirmée" in Tp,"PDF (taux mixtes) : TVA par taux, arrêté (b31-6c), état et source de la TVA")
     pg.keyboard.press("Escape");ev("()=>{const v=document.getElementById('viewer');if(v)v.hidden=true;}")
     # validation et offre figée avec TVA documentée (fictif)
     vl=ev("""id=>{const a=S.ao[id];b31Valider(id,a);b31Valider(id,a);const O=offreCourante(id,a),T=bpTot(id);return{pv:a.prixValide&&a.prixValide.tva,ttc:O&&O.total_ttc,tv:O&&O.bpu.map(l=>l.tva),int:O?offreIntegre(O):['absente'],fait:prixFait(id,a,T),st:b31Etat(id,a).statut.k}}""","fx-v6m")

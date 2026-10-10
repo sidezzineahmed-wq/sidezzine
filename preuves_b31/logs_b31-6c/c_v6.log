@@ -1,0 +1,80 @@
+OK TVA 20 % confirmée (CPS fictif, p. 1) : HT 201200.00, TVA 40240.00, TTC 241440.00 ; bpTot identique
+OK TVA absente : HT calculé, TVA et TTC non calculés, « aucun taux inventé »
+OK objectif % refusé sans taux de TVA (cible TTC non convertible en HT)
+OK taux « confirmé » sans page : refusé, rien n'est écrit
+OK taux non numérique : refusé, rien n'est écrit
+OK TVA 10 % saisie en hypothèse : TVA 20120.00, TTC 221320.00 ; événement e1 PUIS bordereau ([['set', 'chiffrage_evenements/fx-v6a~e1'], ['set', 'bpx/fx-v6a']])
+OK validation bloquée tant que la TVA n'est qu'une hypothèse
+OK objectif 0 % avec TVA 10 % : cible HT = cible TTC ÷ 1,10 (227272.73) — aucun 20 % codé
+OK TVA 0 % confirmée (exonération fictive, p. 4) : TTC = HT = 201200.00
+OK changement de taux tracé : événement « tva » avec TTC avant / après, état, société, auteur
+OK taux relevé dans le DCE (14 %) ≠ taux saisi (20 %) : conflit bloquant (validation et garde d'application)
+OK taux seulement relevé automatiquement dans le DCE : utilisé pour le calcul, affiché « à confirmer », validation exigée
+OK DCE mixte : TVA 10 % sur 80400.00 + 20 % sur 120800.00 = 32200.00 ; TTC 233400.00 (B3.1 = bpTot)
+OK objectif −5 % en taux mixtes : cible 237500.00, obtenu 237509.75 (facteur sur les TTC de chaque ligne)
+OK export Excel (taux mixtes) : une ligne de TVA par taux, TTC identique au calcul, arrêté en lettres
+OK export Excel (20 % confirmée) : TTC identique
+OK export sans taux : TVA « non renseignée », TTC « non calculé », aucun arrêté en lettres
+OK PDF (taux mixtes) : TVA par taux, arrêté (b31-6c), état et source de la TVA
+OK validation (fictif, TVA mixte confirmée) : offre figée au même TTC, taux par ligne figés, intégrité vérifiée, prixValide avec TVA documentée
+OK offres figées réelles antérieures (sans taux par ligne) : intégrité inchangée (3 offres, recalcul d'origine)
+OK objectif −10 % : événement immuable écrit AVANT le bordereau, sans « Enregistrer le brouillon » ([['set', 'chiffrage_evenements/fx-v6e~e1'], ['set', 'bpx/fx-v6e']])
+OK événement : 5 lignes (verrouillée exclue), avant / après, TTC avant / après, auteur, date, contexte (%, verrous), empreinte
+OK provenance enregistrée : PU avant, base avant coefficient, coefficient %, facteur, PU appliqué, auteur, date, événement ; ligne verrouillée sans provenance nouvelle
+OK après rechargement : provenance détaillée relue depuis le stockage
+OK interface : détail de provenance (base, coefficient, auteur, date, événement) accessible après rechargement
+OK historique : événement e1 listé avec statut « appliqué » (déduit du bordereau enregistré)
+OK frappe en cours : rien n'est écrit, montant affiché « non enregistré » (valeur en attente)
+OK frappe en cours : PU enregistré inchangé tant que la saisie n'est pas validée
+OK saisie manuelle validée (Entrée) : événement « manuel » puis bordereau ; provenance « saisie manuelle »
+OK même valeur ressaisie : modification non effective, rien n'est écrit
+OK ligne verrouillée : saisie manuelle et acceptation IA refusées, rien n'est écrit
+OK acceptation IA : événement « ia », provenance (proposé, appliqué, hypothèses, confiance, auteur)
+OK historique refusé par le stockage : AUCUN prix écrit, bordereau inchangé, message explicite
+OK bordereau refusé après l'historique : état local restauré, événement « échec » ajouté, aucun « enregistré » affiché
+OK historique : l'événement e4 est affiché « non appliqué : écriture du bordereau refusée »
+OK bordereau modifié ailleurs (version concurrente) : rien n'est écrit, rechargement demandé
+OK numéro d'événement déjà pris (écriture concurrente) : création refusée, aucun écrasement (l'événement e6 existe déjà (écriture concurrente) : rien n'e)
+OK coût complet 6/6 : déboursé sec 126100.00, coût de revient (hors bénéfice) 145856.20, vente 201200.00, marge 55343.80 = 27.51 % de la vente HT
+OK récapitulatif : déboursé sec, coût de revient (hors bénéfice), vente, marge et base du taux explicites
+OK ressource sans prix : coût de la ligne INCONNU (jamais 0), couverture 5/6, marge globale non calculée
+OK ligne vendue sous son coût de revient signalée (N° 5) ; marge globale 28343.80
+OK offre à perte (PU divisés par 2, calcul pur) : marge -45256.20 DH, « Offre à perte » affiché
+OK bibliothèque de sous-détail : seules les ressources de SAKDAT ; 2 entrées du groupe (sans société / autre société) exclues ; aucun prix d'ALWAAD (5 entrées)
+OK panneau sous-détail : matériaux, main-d'œuvre, matériel, transport, frais, coût de revient, prix de vente ; bibliothèque du groupe hors société exclue (message)
+OK suggestions de ressources : uniquement la société (['Ciment propre sakdat', 'Ressource mat (fictive)'])
+OK ressource rattachée à une autre société : exclue du coût (ligne inconnue) et validation bloquée (FIN-ISO-001)
+OK proposition IA de sous-détail : affichée comme hypothèse, aucun devis / fournisseur / date inventé, rien n'est écrit
+OK invite IA : interdiction d'inventer fournisseur, date ou devis ; société nommée
+OK acceptation humaine : ressources marquées « proposition IA (hypothèse) », sans fournisseur ni date ; PU du bordereau inchangé
+OK ressource IA sans prix : coût inconnu, report impossible
+OK report du sous-détail : événement puis bordereau ; PU = prix de vente théorique 826.42 ; base = coût de revient 751.29 ; hypothèses signalées
+OK comparaison : 3 scénarios calculés sur les PU de la société, cibles [262500.0, 237500.0, 187500.0]
+OK chaque scénario : lignes verrouillées (1), couverture du coût 6/6, marge calculée (coût complet)
+OK scénario « Compétitif » −25 % en travaux : hors bornes art. 44 B → application bloquée (signalé), les autres dans les bornes
+OK tableau côte à côte : % demandé, TTC cible / obtenu, HT, TVA, coût connu, marge, art. 44, verrous
+OK comparaison : aucune écriture (aperçus non destructifs)
+OK coût partiel : marge des scénarios NON calculée (jamais estimée)
+OK comparaison figée : un seul événement immuable avec les métriques des 3 scénarios ; prix inchangés
+OK « Prévisualiser ce scénario » : aperçu frais du scénario (coût et marge affichés)
+OK application du scénario (après aperçu) : événement avec métriques (scénario, coût, marge) puis bordereau
+OK aperçu périmé si la TVA change (rien n'est écrit) ; aperçu falsifié hors bornes (−30 %) : garde b31-5 recalculée dans le gestionnaire, rien n'est écrit
+OK brouillon immuable : TVA documentée, coûts / marge, métriques des scénarios et dernier événement inclus dans l'empreinte
+OK événement rattaché à une autre société : ignoré et signalé
+OK dossier réel ALWAAD : aucun événement inventé ni passé reconstitué (« Aucun événement de prix enregistré pour ALWAAD ATAIB. L'historique automatique commence avec b31-6 ; aucun PU … »), aucune écriture
+OK dossier réel ALWAAD : TVA « non renseignée », aucun taux supposé
+OK 1440 : aucune erreur JavaScript []
+OK dossiers réels : offres, PU, décisions strictement inchangés ; aucune écriture []
+OK 390 : aucun défilement horizontal, carte TVA et récapitulatif (0 px)
+OK 390 : panneau sous-détail sans débordement horizontal (0 px)
+OK 390 : comparaison des scénarios lisible (tableau défilant dans son cadre, page sans débordement : 0 px)
+OK 390 : aucune erreur JavaScript []
+OK 390_sombre : aucun défilement horizontal, carte TVA et récapitulatif (0 px)
+OK 390_sombre : panneau sous-détail sans débordement horizontal (0 px)
+OK 390_sombre : comparaison des scénarios lisible (tableau défilant dans son cadre, page sans débordement : 0 px)
+OK 390_sombre : aucune erreur JavaScript []
+OK sombre : aucun défilement horizontal, carte TVA et récapitulatif (0 px)
+OK sombre : panneau sous-détail sans débordement horizontal (0 px)
+OK sombre : comparaison des scénarios lisible (tableau défilant dans son cadre, page sans débordement : 0 px)
+OK sombre : aucune erreur JavaScript []
+79 / 79

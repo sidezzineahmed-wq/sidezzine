@@ -1,0 +1,34 @@
+B2.1 — Décision d'Ahmed par société (b21d-1)
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Version avant : 1791667622-bbb3 (b31-6e), index sha256 dcf293c2…7e88 — relue, identique à la publication b31-6e.
+Version publiée : 1791668856-49c7 (version 282), index 1 579 991 octets, sha256 7576f8e5894921ae60efa2cefc4307774b6aefb12beeea215066a642758a13e7
+Corps sha256 00e618cc0f609a5588162550c9349fbe623b201b75988522387671b624fe31df ; index = squelette + corps (diff 0) ; 16 fichiers ; capabilities inchangées ; sans force.
+Diff : AJOUT pur d'un module (part_b21dec.js, 124 lignes) après B3.1 ; aucune autre ligne modifiée (DCE, collecteur, chiffrage, TVA, PDF b31-6e intacts).
+
+Inspection préalable (modèle existant réutilisé) :
+  - une société = un dossier ao/<base>~<société> (b31Sibs / consultSibs) ; décision a.decision {verdict, le, qui, motif} écrite par decide() ;
+  - pièces : b21Check (pièces du RC, enveloppe, contrôle, source) ; preuves : coffre (critB23), dcePieces.*.cachete statut VÉRIFIÉ, fichiers.refs VÉRIFIÉ ;
+  - ajout d'une société : creerSib (contrôles parCompat : art. 27, FIN-ISO-001, aucune pièce/prix recopié) ;
+  - ancien panneau aoDecision : « Conclusion automatique … société la plus avancée » + menu présélectionné → NON repris.
+Implémentation (étape « dec » du bureau B2.1, pleine largeur) :
+  - une carte par société candidate (dossier séparé) : tableau Pièce / Statut / Action, sections Enveloppe 1 administratif puis technique,
+    Enveloppe 2 financier, après attribution ; liste issue des pièces du RC du dossier (aucune pièce codée) ; « Pièces du RC non relevées » sinon ;
+  - statuts : Prêt seulement sur preuve vérifiée (coffre valide, CPS/RC cachetés VÉRIFIÉ au nom de la société, références VÉRIFIÉ à son nom) ;
+    À vérifier / À joindre / À compléter ; Non exigé ; Si attribué ;
+  - actions réelles de la bonne société : coffre (handler de la barre latérale), pièces B3.2 ou chiffrage B3.1 de SON dossier ;
+  - chiffrage de la carte : uniquement ses propres prix (b31Etat / b31ResumeTTC du dossier) ;
+  - « Votre décision » à droite (sous le tableau en mobile) : Go / No-Go / À reprendre, motif (obligatoire hors Go), confirmation en deux appuis,
+    aucune présélection ; décision remplacée conservée dans a.decisionHist et tracée au journal ; société du dossier jamais changée ;
+    Go → statut « En préparation » + prepDemarrer (comme decide) même si des pièces restent à compléter (signalées, contrôles avant dépôt inchangés) ;
+    No-Go → « Abandonné » ; À reprendre → « À examiner » (pièces conservées, réversible par un nouveau Go) ;
+  - consultation clôturée (date + heure limite passées) : décision en lecture seule, ni ajout ni retrait, aucune nouvelle soumission ;
+  - « Entreprises retenues pour la préparation » = dossiers avec Go réel ; Modifier (va à la carte), Retirer (= À reprendre, motif requis),
+    Ajouter (creerSib, confirmation, sociétés sans dossier compatibles parCompat) ;
+  - note d'analyse : lien repliable seulement, aucun avis ni recommandation repris ; « Actualiser » relit sans écrire ;
+  - auteur affiché selon la convention existante (prospQui) : « vous » / « Ahmed / gérance ».
+Recette (fixtures fx-dec*, dossiers réels lus seulement) — qa_b21dec 31/31 ; non-régression B3.1 : qa_b31 64, hist 16, pct 44, art44 24, v6 79,
+  v6b 30, v6c 34, v6e 14 ; module b21 : qa_qual 21/21, qa_hist 17/17, qa_pdf 9/9, qa_ergo 344/344 ; qa.py 36 OK / 7 ÉCHEC strictement identiques
+  au journal du 06/10/2026 (ancienne suite antérieure à la refonte de la note), aucun introduit par ce module.
+Limites : bordereau financier = pièces du RC + état du chiffrage (pas de contrôle de signature des pièces financières) ; « Prêt » des pièces du coffre
+  repose sur le contrôle critB23 existant ; Retirer / À reprendre utilise le statut existant « À examiner » ; l'auteur n'est pas nominatif
+  (identifiant de compte seulement dans le modèle) ; les états de la maquette (SAKDAT À vérifier, ALWAAD Prêt à décider) ne sont pas des données.

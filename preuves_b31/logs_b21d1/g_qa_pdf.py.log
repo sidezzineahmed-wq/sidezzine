@@ -1,0 +1,16 @@
+SAP 41 p. 300 Ko 3058 ms Note_analyse_15-2026-SAP_2026-10-10.pdf arabe: False
+AO43 50 p. 342 Ko 2041 ms Note_analyse_AO43-26_2026-10-10.pdf arabe: False
+PEU 21 p. 162 Ko 850 ms Note_analyse_01-2026_2026-10-10.pdf arabe: False
+ARABE 21 p. 164 Ko 1603 ms Note_analyse_14-2026_2026-10-10.pdf arabe: True
+LONG 21 p. 164 Ko 756 ms Note_analyse_TEST-LONG-QA_2026-10-10.pdf arabe: False
+OK aperçu = téléchargement : mêmes octets (sha256 3752fb2e4f72…), Note_analyse_15-2026-SAP_2026-10-10.pdf
+OK aperçu : toutes les pages rendues (41) — PDF vectoriel · 41 pages · 301 Ko · empreinte 3752fb2e4f72 — « Télécharger » enregistre ex
+OK cache : données inchangées → mêmes octets réutilisés (aucune régénération)
+OK cache invalidé au changement de société du dossier et au changement des données (RC)
+OK ARABE : pdf.js (moteur de l'aperçu EAIOS) extrait l'objet arabe à l'identique
+OK moteur : pdfmake chargé ; html2canvas et jsPDF jamais chargés pour la note ({'h2c': False, 'jspdf': False, 'pdfmake': True})
+OK aucune requête html2canvas/jsPDF ; requêtes CDN : @pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js, bidi-js@1.0.3/dist/bidi.min.js, pdf.js/3.11.174/pdf.min.js, pdf.js/3.11.174/pdf.worker.min.js, pdfmake/0.2.12/pdfmake.min.js, pdfmake/0.2.12/vfs_fonts.min.js
+OK aucune écriture en base pendant la génération (0)
+OK aucune erreur JavaScript (CSP sans eval) : []
+console: ['Failed to load resource: the server responded with a status of 404 (File not found)', 'Failed to load resource: the server responded with a status of 404 (File not found)', 'Failed to load resource: the server responded with a status of 404 (File not found)', 'Failed to load resource: the server responded with a status of 404 (File not found)', 'Failed to load resource: the server responded with a status of 404 (File not found)']
+9 / 9

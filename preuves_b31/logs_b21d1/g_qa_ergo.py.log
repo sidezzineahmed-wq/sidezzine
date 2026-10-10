@@ -1,0 +1,361 @@
+light_1440 BG note {'l': 272, 't': 219, 'w': 1136, 'h': 5553} side 240 subc [267, 267, 267, 267] pans ['affaire', 'obstacles', 'inconnus', 'cons', 'cons-manque', 'res-Technique', 'res-Financier', 'res-Administratif', 'res-Juridique', 'res-autres', 'bp-tout', 'jur', 'conc', 'rais-sakdat', 'chk-sakdat', 'crit', 'questions']
+OK light_1440 BG : aucun dépassement horizontal (page 0px, cartes [])
+OK light_1440 BG : aucune cellule de texte de moins de 44 px (texte vertical) — 0
+OK light_1440 BG : Fiche sans liste de documents, lien compact vers B1.1
+OK light_1440 BG : 17 détails longs ouverts en panneau, aucun dépliage dans les cartes
+OK light_1440 BG : sous-cartes CPS/RC ≥ 200 px ([267, 267, 267, 267])
+plus haute composition 942
+OK light_1440 BG : hauteur maximale d'une carte (hors 08) 942px
+OK light_1440 BG : bordereau/juridique côte à côte, hauteurs propres (640 / 590)
+OK light_1440 BG panneau « L'affaire » : 1120×540 dans l'écran, défilement interne 406/406, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « affaire » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Obstacles relevés » : 1120×852 dans l'écran, défilement interne 799/717, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « obstacles » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Inconnus du dossier » : 1120×344 dans l'écran, défilement interne 209/209, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « inconnus » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Consistance · synthèse des éléments disponibles » : 1120×852 dans l'écran, défilement interne 911/717, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « cons » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Consistance · ce qui manque » : 1120×246 dans l'écran, défilement interne 111/111, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « cons-manque » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Résumé du CPS et du RC · Technique (5) » : 1120×655 dans l'écran, défilement interne 521/521, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « res-Technique » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Résumé du CPS et du RC · Financier (8) » : 1120×670 dans l'écran, défilement interne 535/535, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « res-Financier » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Résumé du CPS et du RC · Administratif (4) » : 1120×435 dans l'écran, défilement interne 300/300, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « res-Administratif » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Résumé du CPS et du RC · Juridique (3) » : 1120×357 dans l'écran, défilement interne 222/222, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « res-Juridique » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Résumé du CPS et du RC · points particuliers et autres informations » : 1120×852 dans l'écran, défilement interne 861/717, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « res-autres » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Bordereau · 58 lignes (sans prix) » : 1120×852 dans l'écran, défilement interne 3326/717, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG bordereau complet : 58/58 lignes dans le panneau
+OK light_1440 BG bordereau : aucun prix dans le panneau
+OK light_1440 BG « bp-tout » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Analyse juridique complète · 9 clause(s), 10 risque(s), 3 question(s) » : 1120×852 dans l'écran, défilement interne 2229/717, sans débord ni colonne étroite, focus sur Fermer
+OK BG juridique complète : 9 clauses, 10 risques, 3 questions, tous présents dans le panneau
+OK light_1440 BG « jur » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Concurrents probables · autres indices (4) » : 1120×356 dans l'écran, défilement interne 222/222, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « conc » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Raisons · SAKDAT » : 1120×641 dans l'écran, défilement interne 506/506, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « rais-sakdat » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Checklist · SAKDAT » : 1120×852 dans l'écran, défilement interne 1086/717, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « chk-sakdat » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Critères d'évaluation et d'élimination » : 1120×569 dans l'écran, défilement interne 435/435, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « crit » : Échap ferme, focus rendu au bouton
+OK light_1440 BG panneau « Questions, contradictions et suivi des réponses (3) » : 1120×550 dans l'écran, défilement interne 415/415, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 BG « questions » : Échap ferme, focus rendu au bouton
+OK BG : bouton Fermer
+OK BG : clic sur le fond ferme
+OK BG : re-rendu de la page pendant l'ouverture, panneau intact
+OK BG : 10 sources longues repliées sur une ligne (22px), texte complet à l'ouverture (22px)
+light_1440 SAP note {'l': 272, 't': 219, 'w': 1136, 'h': 5664} side 240 subc [267, 267, 267, 267] pans ['affaire', 'obstacles', 'actions', 'inconnus', 'cons', 'cons-manque', 'res-Technique', 'res-Financier', 'res-Administratif', 'res-Juridique', 'res-autres', 'jur', 'rais-alwaad-ataib', 'chk-alwaad-ataib', 'crit', 'questions']
+OK light_1440 SAP : aucun dépassement horizontal (page 0px, cartes [])
+OK light_1440 SAP : aucune cellule de texte de moins de 44 px (texte vertical) — 0
+OK light_1440 SAP : Fiche sans liste de documents, lien compact vers B1.1
+OK light_1440 SAP : 16 détails longs ouverts en panneau, aucun dépliage dans les cartes
+OK light_1440 SAP : sous-cartes CPS/RC ≥ 200 px ([267, 267, 267, 267])
+plus haute composition 991
+OK light_1440 SAP : hauteur maximale d'une carte (hors 08) 991px
+OK light_1440 SAP : bordereau/juridique côte à côte, hauteurs propres (263 / 590)
+OK light_1440 SAP panneau « L'affaire » : 1120×601 dans l'écran, défilement interne 466/466, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « affaire » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Obstacles relevés » : 1120×688 dans l'écran, défilement interne 553/553, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « obstacles » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Prochaines actions » : 1120×417 dans l'écran, défilement interne 282/282, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « actions » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Inconnus du dossier » : 1120×385 dans l'écran, défilement interne 251/251, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « inconnus » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Consistance · synthèse des éléments disponibles » : 1120×852 dans l'écran, défilement interne 940/717, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « cons » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Consistance · ce qui manque » : 1120×268 dans l'écran, défilement interne 133/133, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « cons-manque » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Résumé du CPS et du RC · Technique (5) » : 1120×690 dans l'écran, défilement interne 555/555, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « res-Technique » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Résumé du CPS et du RC · Financier (8) » : 1120×671 dans l'écran, défilement interne 536/536, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « res-Financier » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Résumé du CPS et du RC · Administratif (4) » : 1120×435 dans l'écran, défilement interne 300/300, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « res-Administratif » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Résumé du CPS et du RC · Juridique (3) » : 1120×418 dans l'écran, défilement interne 284/284, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « res-Juridique » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Résumé du CPS et du RC · points particuliers et autres informations » : 1120×852 dans l'écran, défilement interne 918/717, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « res-autres » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Analyse juridique complète · 7 clause(s), 5 risque(s), 1 question(s) » : 1120×852 dans l'écran, défilement interne 1742/717, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « jur » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Raisons · ALWAAD ATAIB » : 1120×663 dans l'écran, défilement interne 528/528, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « rais-alwaad-ataib » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Checklist · ALWAAD ATAIB » : 1120×852 dans l'écran, défilement interne 1124/717, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « chk-alwaad-ataib » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Critères d'évaluation et d'élimination » : 1120×590 dans l'écran, défilement interne 455/455, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « crit » : Échap ferme, focus rendu au bouton
+OK light_1440 SAP panneau « Questions, contradictions et suivi des réponses (2) » : 1120×493 dans l'écran, défilement interne 359/359, sans débord ni colonne étroite, focus sur Fermer
+OK light_1440 SAP « questions » : Échap ferme, focus rendu au bouton
+OK SAP : bouton Fermer
+OK SAP : clic sur le fond ferme
+OK SAP : re-rendu de la page pendant l'ouverture, panneau intact
+OK SAP : 10 sources longues repliées sur une ligne (22px), texte complet à l'ouverture (22px)
+OK lien Fiche → B1.1 « Récupérer le DCE » du même dossier (carte DCE affichée)
+OK light_1440 : aucune écriture en base
+OK light_1440 : aucune erreur JavaScript []
+light_1280 BG note {'l': 272, 't': 219, 'w': 976, 'h': 5891} side 240 subc [227, 227, 227, 227] pans ['affaire', 'obstacles', 'inconnus', 'cons', 'cons-manque', 'res-Technique', 'res-Financier', 'res-Administratif', 'res-Juridique', 'res-autres', 'bp-tout', 'jur', 'conc', 'rais-sakdat', 'chk-sakdat', 'crit', 'questions']
+OK light_1280 BG : aucun dépassement horizontal (page 0px, cartes [])
+OK light_1280 BG : aucune cellule de texte de moins de 44 px (texte vertical) — 0
+OK light_1280 BG : Fiche sans liste de documents, lien compact vers B1.1
+OK light_1280 BG : 17 détails longs ouverts en panneau, aucun dépliage dans les cartes
+OK light_1280 BG : sous-cartes CPS/RC ≥ 200 px ([227, 227, 227, 227])
+plus haute composition 1016
+OK light_1280 BG : hauteur maximale d'une carte (hors 08) 1016px
+OK light_1280 BG : bordereau/juridique côte à côte, hauteurs propres (658 / 590)
+OK light_1280 BG panneau « L'affaire » : 1120×540 dans l'écran, défilement interne 406/406, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « affaire » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Obstacles relevés » : 1120×752 dans l'écran, défilement interne 799/617, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « obstacles » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Inconnus du dossier » : 1120×344 dans l'écran, défilement interne 209/209, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « inconnus » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Consistance · synthèse des éléments disponibles » : 1120×752 dans l'écran, défilement interne 911/617, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « cons » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Consistance · ce qui manque » : 1120×246 dans l'écran, défilement interne 111/111, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « cons-manque » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Résumé du CPS et du RC · Technique (5) » : 1120×655 dans l'écran, défilement interne 521/521, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « res-Technique » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Résumé du CPS et du RC · Financier (8) » : 1120×670 dans l'écran, défilement interne 535/535, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « res-Financier » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Résumé du CPS et du RC · Administratif (4) » : 1120×435 dans l'écran, défilement interne 300/300, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « res-Administratif » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Résumé du CPS et du RC · Juridique (3) » : 1120×357 dans l'écran, défilement interne 222/222, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « res-Juridique » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Résumé du CPS et du RC · points particuliers et autres informations » : 1120×752 dans l'écran, défilement interne 861/617, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « res-autres » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Bordereau · 58 lignes (sans prix) » : 1120×752 dans l'écran, défilement interne 3326/617, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG bordereau complet : 58/58 lignes dans le panneau
+OK light_1280 BG bordereau : aucun prix dans le panneau
+OK light_1280 BG « bp-tout » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Analyse juridique complète · 9 clause(s), 10 risque(s), 3 question(s) » : 1120×752 dans l'écran, défilement interne 2229/617, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « jur » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Concurrents probables · autres indices (4) » : 1120×356 dans l'écran, défilement interne 222/222, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « conc » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Raisons · SAKDAT » : 1120×641 dans l'écran, défilement interne 506/506, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « rais-sakdat » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Checklist · SAKDAT » : 1120×752 dans l'écran, défilement interne 1086/617, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « chk-sakdat » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Critères d'évaluation et d'élimination » : 1120×569 dans l'écran, défilement interne 435/435, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « crit » : Échap ferme, focus rendu au bouton
+OK light_1280 BG panneau « Questions, contradictions et suivi des réponses (3) » : 1120×550 dans l'écran, défilement interne 415/415, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 BG « questions » : Échap ferme, focus rendu au bouton
+light_1280 SAP note {'l': 272, 't': 219, 'w': 976, 'h': 6037} side 240 subc [227, 227, 227, 227] pans ['affaire', 'obstacles', 'actions', 'inconnus', 'cons', 'cons-manque', 'res-Technique', 'res-Financier', 'res-Administratif', 'res-Juridique', 'res-autres', 'jur', 'rais-alwaad-ataib', 'chk-alwaad-ataib', 'crit', 'questions']
+OK light_1280 SAP : aucun dépassement horizontal (page 0px, cartes [])
+OK light_1280 SAP : aucune cellule de texte de moins de 44 px (texte vertical) — 0
+OK light_1280 SAP : Fiche sans liste de documents, lien compact vers B1.1
+OK light_1280 SAP : 16 détails longs ouverts en panneau, aucun dépliage dans les cartes
+OK light_1280 SAP : sous-cartes CPS/RC ≥ 200 px ([227, 227, 227, 227])
+plus haute composition 1047
+OK light_1280 SAP : hauteur maximale d'une carte (hors 08) 1047px
+OK light_1280 SAP : bordereau/juridique côte à côte, hauteurs propres (263 / 590)
+OK light_1280 SAP panneau « L'affaire » : 1120×601 dans l'écran, défilement interne 466/466, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « affaire » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Obstacles relevés » : 1120×688 dans l'écran, défilement interne 553/553, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « obstacles » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Prochaines actions » : 1120×417 dans l'écran, défilement interne 282/282, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « actions » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Inconnus du dossier » : 1120×385 dans l'écran, défilement interne 251/251, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « inconnus » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Consistance · synthèse des éléments disponibles » : 1120×752 dans l'écran, défilement interne 940/617, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « cons » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Consistance · ce qui manque » : 1120×268 dans l'écran, défilement interne 133/133, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « cons-manque » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Résumé du CPS et du RC · Technique (5) » : 1120×690 dans l'écran, défilement interne 555/555, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « res-Technique » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Résumé du CPS et du RC · Financier (8) » : 1120×671 dans l'écran, défilement interne 536/536, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « res-Financier » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Résumé du CPS et du RC · Administratif (4) » : 1120×435 dans l'écran, défilement interne 300/300, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « res-Administratif » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Résumé du CPS et du RC · Juridique (3) » : 1120×418 dans l'écran, défilement interne 284/284, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « res-Juridique » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Résumé du CPS et du RC · points particuliers et autres informations » : 1120×752 dans l'écran, défilement interne 918/617, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « res-autres » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Analyse juridique complète · 7 clause(s), 5 risque(s), 1 question(s) » : 1120×752 dans l'écran, défilement interne 1742/617, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « jur » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Raisons · ALWAAD ATAIB » : 1120×663 dans l'écran, défilement interne 528/528, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « rais-alwaad-ataib » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Checklist · ALWAAD ATAIB » : 1120×752 dans l'écran, défilement interne 1124/617, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « chk-alwaad-ataib » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Critères d'évaluation et d'élimination » : 1120×590 dans l'écran, défilement interne 455/455, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « crit » : Échap ferme, focus rendu au bouton
+OK light_1280 SAP panneau « Questions, contradictions et suivi des réponses (2) » : 1120×493 dans l'écran, défilement interne 359/359, sans débord ni colonne étroite, focus sur Fermer
+OK light_1280 SAP « questions » : Échap ferme, focus rendu au bouton
+OK light_1280 : aucune écriture en base
+OK light_1280 : aucune erreur JavaScript []
+light_390 BG note {'l': 16, 't': 269, 'w': 358, 'h': 11873} side 0 subc [332, 332, 332, 332] pans ['affaire', 'obstacles', 'inconnus', 'cons', 'cons-manque', 'res-Technique', 'res-Financier', 'res-Administratif', 'res-Juridique', 'res-autres', 'bp-tout', 'jur', 'conc', 'rais-sakdat', 'chk-sakdat', 'crit', 'questions']
+OK light_390 BG : aucun dépassement horizontal (page 0px, cartes [])
+OK light_390 BG : aucune cellule de texte de moins de 44 px (texte vertical) — 0
+OK light_390 BG : Fiche sans liste de documents, lien compact vers B1.1
+OK light_390 BG : 17 détails longs ouverts en panneau, aucun dépliage dans les cartes
+OK light_390 BG : sous-cartes CPS/RC ≥ 200 px ([332, 332, 332, 332])
+plus haute composition 2006
+OK light_390 BG : hauteur maximale d'une carte (hors 08) 2006px
+OK light_390 BG panneau « L'affaire » : 390×844 dans l'écran, défilement interne 722/722, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « affaire » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Obstacles relevés » : 390×844 dans l'écran, défilement interne 1630/722, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « obstacles » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Inconnus du dossier » : 390×844 dans l'écran, défilement interne 722/722, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « inconnus » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Consistance · synthèse des éléments disponibles » : 390×844 dans l'écran, défilement interne 2006/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « cons » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Consistance · ce qui manque » : 390×844 dans l'écran, défilement interne 722/722, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « cons-manque » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Résumé du CPS et du RC · Technique (5) » : 390×844 dans l'écran, défilement interne 1000/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « res-Technique » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Résumé du CPS et du RC · Financier (8) » : 390×844 dans l'écran, défilement interne 903/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « res-Financier » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Résumé du CPS et du RC · Administratif (4) » : 390×844 dans l'écran, défilement interne 700/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « res-Administratif » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Résumé du CPS et du RC · Juridique (3) » : 390×844 dans l'écran, défilement interne 700/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « res-Juridique » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Résumé du CPS et du RC · points particuliers et autres informations » : 390×844 dans l'écran, défilement interne 1609/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « res-autres » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Bordereau · 58 lignes (sans prix) » : 390×844 dans l'écran, défilement interne 6390/722, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG bordereau complet : 58/58 lignes dans le panneau
+OK light_390 BG bordereau : aucun prix dans le panneau
+OK light_390 BG « bp-tout » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Analyse juridique complète · 9 clause(s), 10 risque(s), 3 question(s) » : 390×844 dans l'écran, défilement interne 4626/679, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « jur » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Concurrents probables · autres indices (4) » : 390×844 dans l'écran, défilement interne 700/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « conc » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Raisons · SAKDAT » : 390×844 dans l'écran, défilement interne 722/722, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « rais-sakdat » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Checklist · SAKDAT » : 390×844 dans l'écran, défilement interne 2622/722, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « chk-sakdat » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Critères d'évaluation et d'élimination » : 390×844 dans l'écran, défilement interne 760/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « crit » : Échap ferme, focus rendu au bouton
+OK light_390 BG panneau « Questions, contradictions et suivi des réponses (3) » : 390×844 dans l'écran, défilement interne 700/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 BG « questions » : Échap ferme, focus rendu au bouton
+light_390 SAP note {'l': 16, 't': 269, 'w': 358, 'h': 11641} side 0 subc [332, 332, 332, 332] pans ['affaire', 'obstacles', 'actions', 'inconnus', 'cons', 'cons-manque', 'res-Technique', 'res-Financier', 'res-Administratif', 'res-Juridique', 'res-autres', 'jur', 'rais-alwaad-ataib', 'chk-alwaad-ataib', 'crit', 'questions']
+OK light_390 SAP : aucun dépassement horizontal (page 0px, cartes [])
+OK light_390 SAP : aucune cellule de texte de moins de 44 px (texte vertical) — 0
+OK light_390 SAP : Fiche sans liste de documents, lien compact vers B1.1
+OK light_390 SAP : 16 détails longs ouverts en panneau, aucun dépliage dans les cartes
+OK light_390 SAP : sous-cartes CPS/RC ≥ 200 px ([332, 332, 332, 332])
+plus haute composition 2139
+OK light_390 SAP : hauteur maximale d'une carte (hors 08) 2139px
+OK light_390 SAP panneau « L'affaire » : 390×844 dans l'écran, défilement interne 816/722, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « affaire » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Obstacles relevés » : 390×844 dans l'écran, défilement interne 1143/722, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « obstacles » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Prochaines actions » : 390×844 dans l'écran, défilement interne 722/722, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « actions » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Inconnus du dossier » : 390×844 dans l'écran, défilement interne 722/722, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « inconnus » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Consistance · synthèse des éléments disponibles » : 390×844 dans l'écran, défilement interne 2030/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « cons » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Consistance · ce qui manque » : 390×844 dans l'écran, défilement interne 722/722, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « cons-manque » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Résumé du CPS et du RC · Technique (5) » : 390×844 dans l'écran, défilement interne 955/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « res-Technique » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Résumé du CPS et du RC · Financier (8) » : 390×844 dans l'écran, défilement interne 924/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « res-Financier » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Résumé du CPS et du RC · Administratif (4) » : 390×844 dans l'écran, défilement interne 700/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « res-Administratif » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Résumé du CPS et du RC · Juridique (3) » : 390×844 dans l'écran, défilement interne 700/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « res-Juridique » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Résumé du CPS et du RC · points particuliers et autres informations » : 390×844 dans l'écran, défilement interne 1828/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « res-autres » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Analyse juridique complète · 7 clause(s), 5 risque(s), 1 question(s) » : 390×844 dans l'écran, défilement interne 3307/679, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « jur » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Raisons · ALWAAD ATAIB » : 390×844 dans l'écran, défilement interne 779/722, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « rais-alwaad-ataib » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Checklist · ALWAAD ATAIB » : 390×844 dans l'écran, défilement interne 2657/722, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « chk-alwaad-ataib » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Critères d'évaluation et d'élimination » : 390×844 dans l'écran, défilement interne 700/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « crit » : Échap ferme, focus rendu au bouton
+OK light_390 SAP panneau « Questions, contradictions et suivi des réponses (2) » : 390×844 dans l'écran, défilement interne 700/700, sans débord ni colonne étroite, focus sur Fermer
+OK light_390 SAP « questions » : Échap ferme, focus rendu au bouton
+OK light_390 : aucune écriture en base
+OK light_390 : aucune erreur JavaScript []
+dark_1280 BG note {'l': 272, 't': 219, 'w': 976, 'h': 5891} side 240 subc [227, 227, 227, 227] pans ['affaire', 'obstacles', 'inconnus', 'cons', 'cons-manque', 'res-Technique', 'res-Financier', 'res-Administratif', 'res-Juridique', 'res-autres', 'bp-tout', 'jur', 'conc', 'rais-sakdat', 'chk-sakdat', 'crit', 'questions']
+OK dark_1280 BG : aucun dépassement horizontal (page 0px, cartes [])
+OK dark_1280 BG : aucune cellule de texte de moins de 44 px (texte vertical) — 0
+OK dark_1280 BG : Fiche sans liste de documents, lien compact vers B1.1
+OK dark_1280 BG : 17 détails longs ouverts en panneau, aucun dépliage dans les cartes
+OK dark_1280 BG : sous-cartes CPS/RC ≥ 200 px ([227, 227, 227, 227])
+plus haute composition 1016
+OK dark_1280 BG : hauteur maximale d'une carte (hors 08) 1016px
+OK dark_1280 BG : bordereau/juridique côte à côte, hauteurs propres (658 / 590)
+OK dark_1280 BG panneau « L'affaire » : 1120×540 dans l'écran, défilement interne 406/406, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « affaire » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Obstacles relevés » : 1120×752 dans l'écran, défilement interne 799/617, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « obstacles » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Inconnus du dossier » : 1120×344 dans l'écran, défilement interne 209/209, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « inconnus » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Consistance · synthèse des éléments disponibles » : 1120×752 dans l'écran, défilement interne 911/617, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « cons » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Consistance · ce qui manque » : 1120×246 dans l'écran, défilement interne 111/111, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « cons-manque » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Résumé du CPS et du RC · Technique (5) » : 1120×655 dans l'écran, défilement interne 521/521, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « res-Technique » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Résumé du CPS et du RC · Financier (8) » : 1120×670 dans l'écran, défilement interne 535/535, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « res-Financier » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Résumé du CPS et du RC · Administratif (4) » : 1120×435 dans l'écran, défilement interne 300/300, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « res-Administratif » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Résumé du CPS et du RC · Juridique (3) » : 1120×357 dans l'écran, défilement interne 222/222, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « res-Juridique » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Résumé du CPS et du RC · points particuliers et autres informations » : 1120×752 dans l'écran, défilement interne 861/617, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « res-autres » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Bordereau · 58 lignes (sans prix) » : 1120×752 dans l'écran, défilement interne 3326/617, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG bordereau complet : 58/58 lignes dans le panneau
+OK dark_1280 BG bordereau : aucun prix dans le panneau
+OK dark_1280 BG « bp-tout » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Analyse juridique complète · 9 clause(s), 10 risque(s), 3 question(s) » : 1120×752 dans l'écran, défilement interne 2229/617, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « jur » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Concurrents probables · autres indices (4) » : 1120×356 dans l'écran, défilement interne 222/222, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « conc » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Raisons · SAKDAT » : 1120×641 dans l'écran, défilement interne 506/506, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « rais-sakdat » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Checklist · SAKDAT » : 1120×752 dans l'écran, défilement interne 1086/617, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « chk-sakdat » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Critères d'évaluation et d'élimination » : 1120×569 dans l'écran, défilement interne 435/435, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « crit » : Échap ferme, focus rendu au bouton
+OK dark_1280 BG panneau « Questions, contradictions et suivi des réponses (3) » : 1120×550 dans l'écran, défilement interne 415/415, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 BG « questions » : Échap ferme, focus rendu au bouton
+dark_1280 SAP note {'l': 272, 't': 219, 'w': 976, 'h': 6037} side 240 subc [227, 227, 227, 227] pans ['affaire', 'obstacles', 'actions', 'inconnus', 'cons', 'cons-manque', 'res-Technique', 'res-Financier', 'res-Administratif', 'res-Juridique', 'res-autres', 'jur', 'rais-alwaad-ataib', 'chk-alwaad-ataib', 'crit', 'questions']
+OK dark_1280 SAP : aucun dépassement horizontal (page 0px, cartes [])
+OK dark_1280 SAP : aucune cellule de texte de moins de 44 px (texte vertical) — 0
+OK dark_1280 SAP : Fiche sans liste de documents, lien compact vers B1.1
+OK dark_1280 SAP : 16 détails longs ouverts en panneau, aucun dépliage dans les cartes
+OK dark_1280 SAP : sous-cartes CPS/RC ≥ 200 px ([227, 227, 227, 227])
+plus haute composition 1047
+OK dark_1280 SAP : hauteur maximale d'une carte (hors 08) 1047px
+OK dark_1280 SAP : bordereau/juridique côte à côte, hauteurs propres (263 / 590)
+OK dark_1280 SAP panneau « L'affaire » : 1120×601 dans l'écran, défilement interne 466/466, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « affaire » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Obstacles relevés » : 1120×688 dans l'écran, défilement interne 553/553, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « obstacles » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Prochaines actions » : 1120×417 dans l'écran, défilement interne 282/282, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « actions » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Inconnus du dossier » : 1120×385 dans l'écran, défilement interne 251/251, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « inconnus » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Consistance · synthèse des éléments disponibles » : 1120×752 dans l'écran, défilement interne 940/617, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « cons » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Consistance · ce qui manque » : 1120×268 dans l'écran, défilement interne 133/133, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « cons-manque » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Résumé du CPS et du RC · Technique (5) » : 1120×690 dans l'écran, défilement interne 555/555, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « res-Technique » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Résumé du CPS et du RC · Financier (8) » : 1120×671 dans l'écran, défilement interne 536/536, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « res-Financier » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Résumé du CPS et du RC · Administratif (4) » : 1120×435 dans l'écran, défilement interne 300/300, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « res-Administratif » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Résumé du CPS et du RC · Juridique (3) » : 1120×418 dans l'écran, défilement interne 284/284, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « res-Juridique » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Résumé du CPS et du RC · points particuliers et autres informations » : 1120×752 dans l'écran, défilement interne 918/617, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « res-autres » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Analyse juridique complète · 7 clause(s), 5 risque(s), 1 question(s) » : 1120×752 dans l'écran, défilement interne 1742/617, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « jur » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Raisons · ALWAAD ATAIB » : 1120×663 dans l'écran, défilement interne 528/528, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « rais-alwaad-ataib » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Checklist · ALWAAD ATAIB » : 1120×752 dans l'écran, défilement interne 1124/617, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « chk-alwaad-ataib » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Critères d'évaluation et d'élimination » : 1120×590 dans l'écran, défilement interne 455/455, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « crit » : Échap ferme, focus rendu au bouton
+OK dark_1280 SAP panneau « Questions, contradictions et suivi des réponses (2) » : 1120×493 dans l'écran, défilement interne 359/359, sans débord ni colonne étroite, focus sur Fermer
+OK dark_1280 SAP « questions » : Échap ferme, focus rendu au bouton
+OK dark_1280 : aucune écriture en base
+OK dark_1280 : aucune erreur JavaScript []
+344 / 344

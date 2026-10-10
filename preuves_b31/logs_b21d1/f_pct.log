@@ -1,0 +1,46 @@
+OK pourcentages acceptés (hausse, baisse, décimal, zéro) / refusés : [5, -10, 7.25, 0, 0, -12.5, -99.99, None, None, None, None, None, 1000]
+OK refus explicites : −100 % et moins (cible ≤ 0), valeur non numérique ; champ vide sans message
+OK cibles TTC exactes : +7,25 % 1287000.00 · 0 % 1200000.00 · +5 % 1260000.00 · −10 % 1080000.00
+OK vide sans IA : aperçu refusé, 5 lignes sans base (la 6e a une référence interne) — « Base de prix incomplète : 5 ligne(s) non verrouillée(s) sans base — ni PU saisi, ni référence intern… »
+OK référence interne de la MÊME société utilisée pour le béton m³ : ['0-0', 'ref', 1550, 'Référence interne de SAKDAT : dossier FX-PREF']
+OK FIN-ISO-001 : aucun prix du dossier d'une autre société (ALWAAD fictif, 999 DH) n'est repris
+OK interface : IA indisponible annoncée, pas de répartition inventée
+OK vide sans IA : aucune écriture
+OK IA en échec : message clair, aucune proposition — « Proposition IA interrompue (trop de demandes, réessayez plus tard) : aucune nouvelle propo… »
+OK IA : réponse illisible → échec explicite, aucune proposition
+OK échecs IA : aucune écriture
+OK proposition IA : 5 PU (lignes sans base seulement), société SAKDAT : ['0-1', '0-2', '0-3', '0-4', '0-5']
+OK invite : désignations, unités, quantités, références de la même société ; aucun prix ni nom d'une autre société
+OK invite : aucune mercuriale prétendue, hypothèses déclarées
+OK proposition IA : aucune écriture (ni bordereau, ni chiffrage, ni journal)
+OK +5 % sur bordereau vide : cible 1260000.00 TTC, obtenu 1259999.94, écart d'arrondi -0.06 DH
+OK structure conservée (même coefficient 5.168594 sur toutes les bases), PU hétérogènes selon la nature — pas de répartition égale : [8011.32, 1137.09, 18090.08, 930.35, 129214.87, 72.36]
+OK chaque PU proposé porte sa source, sa justification et sa confiance
+OK aperçu : aucune écriture
+OK interface : bandeau « Proposition IA / hypothèses à vérifier », TTC cible / obtenu, arrondi, TVA documentée (état et source)
+OK interface : justification ligne par ligne (6)
+OK aucune écriture avant « Appliquer »
+OK appliquer (b31-6) : l'événement d'historique PUIS le bordereau du dossier fictif, rien d'autre : [['set', 'chiffrage_evenements/fx-pvide~e1'], ['set', 'bpx/fx-pvide']]
+OK PU enregistrés avec leur origine (objectif %, base IA / référence) ; base de coût « HYPOTHÈSE »
+OK rien n'est validé : pas de prix validé, décision et statut inchangés (brouillon)
+OK statut après application : brouillon, offre complète 1259999.94 TTC (brouillon)
+OK partiel sans proposition : 2 lignes sans base indiquées (['4', '6']) — béton couvert par la référence interne
+OK −10 % sur partiel : 3 PU saisis + 1 référence (la plus récente : Référence interne de SAKDAT : dossier FX-PVIDE (+1 autre(s))) + 2 IA, obtenu 1079990.83 / cible 1080000.00 (borne d'arrondi 17.23 DH)
+OK partiel appliqué : PU saisis ajustés (base « existant »), PU manquants remplis (base « ia »)
+OK complet +5 % : ajustement proportionnel seul (aucune proposition), obtenu 1259993.76 / cible 1260000.00 (écart dans la borne d'arrondi 17.25 DH)
+OK complet -10 % : ajustement proportionnel seul (aucune proposition), obtenu 1080007.09 / cible 1080000.00 (écart dans la borne d'arrondi 17.25 DH)
+OK décimal +7,25 % → cible 1287000.00 (obtenu 1286995.42) ; 0 % → cible = estimation 1200000.00 (obtenu 1200007.82)
+OK ligne verrouillée : prix et source conservés, hors ajustement
+OK verrouillées > cible : objectif inatteignable annoncé — « Objectif inatteignable : les 1 ligne(s) verrouillée(s) totalisent déjà 2 000 000,00 DH HT, pour une cible de 9… »
+OK aperçu invalidé (rien appliqué, aucune écriture) si PU, quantité, pourcentage, société ou verrou changent avant « Appliquer »
+OK changement de société : la proposition IA de la société précédente n'est plus utilisée
+OK interface : aperçu périmé signalé, bouton « Appliquer » retiré
+OK quantité illisible : obstacle explicite, ligne indiquée, aucune quantité inventée
+OK IA partielle : la ligne sans estimation reste à saisir ; aperçu refusé, rien d'arbitraire
+OK réel ALWAAD (lecture) : aperçu base annoncé, bases {'existant': 0, 'ref': 0, 'chiffreur': 0, 'ia': 0, 'sans': 58, 'lock': 0, 'qnull': 0}, références internes toutes de alwaad-ataib, aucune écriture
+OK réel ALWAAD : interface ouverte en mode %, aucune écriture
+OK mobile 390 px sombre : aucun débordement horizontal (0px)
+OK données réelles (BG, SIDITRAV, ALWAAD, SAP) : offres, PU, décisions et prix validés inchangés ; aucune écriture réelle
+OK aucune erreur JavaScript ([])
+
+44/44 OK

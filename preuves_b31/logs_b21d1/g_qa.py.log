@@ -1,0 +1,43 @@
+OK 15/2026/SAP : écart références affiché (texte lu vs règle automatique)
+OK 15/2026/SAP : règle automatique (2) nommée, non résolue
+OK 12 sections numérotées + note d'origine conservée
+OK Consistance absente : « À compléter », aucune analyse fabriquée
+ECHEC juridique : 5 risques tous présents
+ECHEC juridique : 1 questions toutes présentes
+OK composition : 12 pièces du RC toutes présentes avec source
+OK bordereau : aucun prix ni montant affiché (seul le titre de la pièce source cite « bordereau des prix »)
+OK vue pleine : classe b21-full, un seul titre #mpn-h (dans la note), résumé de décision dupliqué retiré
+OK navigation des bureaux conservée (10 boutons), bandeau 3 indicateurs
+OK largeur de la note : 976px (plus de colonne latérale vide)
+ECHEC rangée 02/03 côte à côte : 50 % / 50 %
+ECHEC rangée 05/06/07 en trois colonnes
+OK cartes 01, 04, 08, 09 pleine largeur
+OK cartes 01–09 visibles sans dépliage ; 4 sous-cartes CPS/RC sur une ligne
+OK carte 09 : bouton sombre vers la décision
+OK onglets : 9 sociétés réelles
+OK onglets : chaque panneau ne nomme que sa société
+OK onglets : contenus distincts par société
+OK onglets : aucune offre/prix d'une société
+ECHEC impression : aucun bouton ni action
+OK impression : les 9 sociétés reproduites
+ECHEC impression : 12 cartes, 53 détails tous ouverts, aucune ligne masquée
+OK PDF : aperçu rendu (2 pages)
+OK PDF : téléchargement Note_analyse_AO43-26_2026-10-10.pdf (350486 o)
+OK données absentes (pmmp-1037461) : « non renseigné », pas « non exigé »
+OK données absentes : aucune mention « Non exigé » inventée
+OK fraîcheur : absence de lecture signalée
+OK caractères spéciaux : échappés, arabe conservé
+OK fraîcheur inconnue : « non vérifiée »
+OK fraîcheur connue : DCE rattaché après lecture → « Note à actualiser »
+ECHEC blocage confirmé : « Obstacle confirmé — non favorable », jamais Favorable
+OK décision : ouvre le parcours existant (B2.1 · décision)
+OK vue décision inchangée : un seul titre, pas de mise en page pleine
+OK aucune écriture en base pendant toute la recette ([])
+OK B2.2 inchangé (note d'origine)
+OK light_1280 : aucune erreur JavaScript ([])
+OK 390 : cartes empilées sur une colonne
+OK 390 SAP : aucun défilement horizontal (0px)
+OK light_390 : aucun défilement horizontal de page (0px)
+OK light_390 : aucune erreur JavaScript ([])
+OK dark_1280 : aucun défilement horizontal de page (0px)
+OK dark_1280 : aucune erreur JavaScript ([])

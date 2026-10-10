@@ -1,0 +1,18 @@
+OK 1er obstacle = échéance calculée aujourd'hui : « Date limite passée (25/09/2026 à 11:00) — calculée aujourd'hui. »
+OK alerte historique « soit demain » reprise avec son texte d'origine exact (non réécrite)
+OK alerte historique datée et étiquetée : « Observation du 23/09/2026 (heure du Maroc) · lecture du DCE — à réévaluer »
+OK observation périmée classée après l'échéance calculée et les obstacles actuels (rang 11/12)
+OK « soit demain » → à réévaluer : Observation du 24/09/2026 (heure du Maroc) · lecture du DCE — à réévaluer
+OK date citée déjà passée → à réévaluer
+OK date future sans formulation relative → datée, non périmée : Observation du 24/09/2026 (heure du Maroc) · lecture du DCE
+OK sans date de lecture → « Observation antérieure (date non enregistrée) · analyse juridique — à réévaluer »
+OK date limite réelle demain : échéance calculée en tête « Date limite dans 1 jour (11/10/2026 à 11:00) — calculée aujourd'hui. », ancienne alerte en dernier
+OK synthèse écran, 1re ligne : « Calcul du jour Date limite passée (25/09/2026 à 11:00) — calculée aujourd'hui. »
+OK synthèse écran : aucune « Échéance immédiate … demain » sans date ni étiquette
+OK panneau détaillé : texte d'origine intact, source et mention « texte d'origine conservé »
+OK PDF : échéance calculée avant l'observation historique
+OK PDF : observation historique précédée de sa date et de « à réévaluer »
+OK PDF : mention du texte d'origine conservé
+OK données stockées inchangées, aucune écriture en base
+OK aucune erreur JavaScript []
+17 / 17

@@ -31,6 +31,11 @@ M["bpx"]["fx-v6a"]={"p":dict(PU),"q":{},"soc":"sakdat"}                         
 M["bpx"]["fx-v6c"]={"p":dict(PU),"q":{},"soc":"sakdat","tva":dict(TVA20,soc="sakdat"),"k":K6,"sd":{k:sd_of(v,"sakdat") for k,v in DSR.items()}}
 M["bpx"]["fx-v6o"]={"p":{k:999 for k in PU},"q":{},"soc":"alwaad-ataib","tva":dict(TVA20,soc="alwaad-ataib"),
     "sd":{"0-0":{"mat":[{"d":"Ciment CPJ45 autre société","u":"t","q":1,"pu":999,"st":"devis","four":"FOURNISSEUR AUTRE","date":"2026-09-01","soc":"alwaad-ataib"}],"mo":[],"mt":[],"tr":[]}}}
+# b31-6b : cartes de liste (hypothèse, mixte) et coût seul sur ligne verrouillée
+for k,t in (("fx-v6h",{"taux":10,"etat":"hypothese","src":None,"mixte":False,"lignes":{}}),("fx-v6x",{"taux":20,"etat":"confirme","src":{"doc":"CPS FICTIF art. 9","page":"6"},"mixte":True,"lignes":{"0-1":10,"0-3":10}})):
+    M["ao"][k]=ao(k.upper(),250000);M["bp"][k]={"lots":[{"lignes":json.loads(json.dumps(L6))}],"cadre":False,"alertes":[]};M["bpx"][k]={"p":dict(PU),"q":{},"soc":"sakdat","tva":dict(t,par="u_qa",le="2026-10-01T00:00:00.000Z",soc="sakdat")}
+M["ao"]["fx-v6k"]=ao("FX-V6K",250000);M["bp"]["fx-v6k"]={"lots":[{"lignes":json.loads(json.dumps(L6))}],"cadre":False,"alertes":[]}
+M["bpx"]["fx-v6k"]=json.loads(json.dumps(M["bpx"]["fx-v6c"]));M["bpx"]["fx-v6k"]["lock"]={"0-4":True}
 M["prix"]={"biblio":{"items":[{"t":"mat","d":"Ciment groupe sans société","u":"t","pu":777,"at":"2026-01-01"},{"t":"mat","d":"Ciment groupe alwaad","u":"t","pu":888,"at":"2026-01-01","soc":"alwaad-ataib"},{"t":"mat","d":"Ciment propre sakdat","u":"t","pu":1111,"at":"2026-02-01","soc":"sakdat","src":"Devis fournisseur fictif"}]}}
 json.dump(M,open(os.path.join(ICI0,"srv","mockdb_b31_v6.json"),"w",encoding="utf-8"),ensure_ascii=False)
 src=open(os.path.join(ICI0,"qa_b31.py"),encoding="utf-8").read().replace("mockdb_b31.json","mockdb_b31_v6.json").replace('OUT=os.path.join(ICI,"qa_b31")','OUT=os.path.join(ICI,"qa_b31_v6")')

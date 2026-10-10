@@ -1,0 +1,46 @@
+B3.1 Chiffrage — b31-6b (correctifs après vérification Codex de b31-6)
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Version avant : 1791664820-f49e (b31-6), index sha256 a2331196…338f — relue, identique octet pour octet à la publication b31-6.
+Version publiée : 1791665415-691d (version 278), index 1 548 023 octets, sha256 734942de7b331ae03291dc483fc5ddf1861b5f78edc4fbd90dffe9addacfaa91
+Corps sha256 85199c22becd5f6e171b86bfe614ff2c1174dfdf3ad2bb7dc0d2493be131dada ; index = squelette + corps (diff 0) ; 16 fichiers ; capabilities inchangées ; sans force.
+Diff b31-6 → b31-6b : module B3.1 + 1 ligne hors module (résumé « Bordereau chiffré » du parcours express, même fonction que les cartes).
+
+1. Cartes / liste du bureau B3.1 (étape « Prix ») recalculées avec la TVA v6 :
+   taux absent → « <HT> DH HT · TTC non calculé — TVA à renseigner » ; hypothèse / relevé DCE → TTC suivi de « TVA x % hypothèse non confirmée » /
+   « relevée dans le DCE, à confirmer » ; mixte → total v6 par taux « (TVA mixte (20 %, 10 %) confirmée) » ; confirmé unique → libellé existant.
+   Montant « Validé à … » avec TVA non confirmée → suffixe « montant historique de l'offre figée, pas un TTC actuel ».
+2. Sous-détail : « Enregistrer le sous-détail sans changer le PU » (événement « cout » : coût avant / après, PU actuel inchangé, marge sur le PU
+   de vente actuel, frais avant / après) distinct de « Reporter le prix de vente au bordereau ». Les modifications du sous-détail ne sont plus
+   écrites en arrière-plan (avant : enregistrement automatique sans historique) : elles restent en attente jusqu'à l'une des deux actions, ou
+   « Annuler les modifications ». Coût documentable aussi sur une ligne verrouillée (Reporter y est absent). Une autre écriture de prix pendant
+   qu'un sous-détail est en attente écrit le sous-détail ENREGISTRÉ, jamais celui en attente ; changement de verrou refusé pendant l'attente.
+3. Bouton « Sous-détail » : actions de ligne en conteneur souple (flex-wrap), colonne 128 px ; mobile inchangé (cartes).
+
+Recette (fixtures uniquement ; dossiers réels lus, aucune écriture, inchangés) — 257 contrôles, tous OK :
+  qa_b31 64/64 · qa_b31_hist 16/16 · qa_b31_pct 44/44 · qa_b31_art44 24/24 · qa_b31_v6 79/79 · qa_b31_v6b 30/30 (nouveau)
+Audit exact des assertions modifiées depuis b31-5 (suites existantes) :
+  qa_b31 (3 assertions remplacées, 4 ajoutées) : BG réel « art. 44 dans les bornes à 20 % » → TVA absente : TTC/art. 44 non calculés + même
+    contrôle « dans les bornes » par calcul pur à 20 % en hypothèse ; SIDITRAV « 2 863 577,76 TTC » → TTC null + même montant par calcul pur ;
+    PDF BG « arrêté » → pas d'arrêté (TVA absente) + nouveau PDF fictif à TVA confirmée avec arrêté ; ajout : aperçu −10 % BG refusé (TVA).
+    Préparation fx-fou enregistrée dans la base simulée (contrôle de version) ; aperçu BG attend le refus TVA au lieu de l'aperçu.
+  qa_b31_hist (0 assertion modifiée) : appels b31Appliquer attendus (asynchrone) ; préparation par saisie réelle b31Manuel au lieu d'une
+    modification locale non enregistrée.
+  qa_b31_pct (4 assertions) : « TVA à confirmer » → « TVA 20 % confirmée » + source ; écritures [bpx] → [événement, bpx] (×2, ordre vérifié) ;
+    « −10 % sur partiel » : tolérance 6 DH → borne théorique Σqté×0,6 c = 17,23 DH + contrôle que la référence retenue est la plus récente
+    (FX-PVIDE) — SEUL seuil élargi, cause : horodatage local désormais relu après écriture.
+  qa_b31_art44 (1 assertion) : écritures [bpx] → [événement, bpx] ; clones fictifs aussi écrits dans la base simulée.
+  Fixtures fx-* : TVA 20 % confirmée « CPS FICTIF » ajoutée.
+
+Limites exactes :
+  - Atomicité de l'historique : le stockage n'offre pas de transaction. Ordre garanti : (1) relecture du bordereau enregistré (refus si différent
+    de l'affichage), (2) numéro d'événement libre vérifié puis événement créé, (3) bordereau écrit. Si (2) échoue → rien n'est écrit. Si (3)
+    échoue → état local restauré et événement « échec_ecriture » ajouté en meilleur effort ; si cet ajout échoue aussi (coupure réseau totale),
+    il reste un événement sans échec explicite : l'interface le marque alors « bordereau actuel différent de l'état après (écriture non
+    constatée) » d'après les empreintes, jamais « appliqué ». La vérification du numéro libre puis la création ne sont pas atomiques : deux
+    écritures simultanées exactes peuvent se départager au dernier écrivain (la seconde relecture du bordereau détecte ensuite l'écart).
+  - Dossiers réels : aucun taux saisi → HT, « TVA non renseignée », TTC / art. 44 / objectif non calculés jusqu'à saisie humaine. Les écrans hors
+    B3.1 (autres que les cartes et le parcours express corrigés ici) gardent leur calcul existant à 20 % pour ces dossiers.
+  - Aucun passé reconstitué : historique à partir de la première action b31-6 ; PU antérieurs « provenance non documentée ».
+  - Sous-détail en attente : non persistant (perdu au rechargement de la page tant qu'il n'est pas enregistré, ce qui est signalé dans le panneau).
+  - Base simulée : le journal (journal.add) n'existe pas dans le simulateur → toast « Enregistrement refusé » parasite pendant la recette.
+  - Intégrations mcp (Claude Code Remote, Google Drive) non modifiées et non rappelées dans cette session.

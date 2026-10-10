@@ -1,0 +1,101 @@
+4646c4646
+<     else{const T=bpTot(id);step(T.miss?"vous":"ok",T.miss?"À vous : fixer "+T.miss+" prix sur "+b.nb+" lignes (étape 4).":"Bordereau chiffré : "+dh(T.ttc)+" TTC.");}
+---
+>     else{const T=bpTot(id);step(T.miss?"vous":"ok",T.miss?"À vous : fixer "+T.miss+" prix sur "+b.nb+" lignes (étape 4).":"Bordereau chiffré : "+(b31ResumeTTC(id,a)||dh(T.ttc)+" TTC")+".");}
+8725c8725
+< const B31={v:"b31-6",ev:{},evErr:{},ecr:{},saisie:{},sd:null,sdIA:{},sdBusy:null,sdErr:{},tvaEd:{},cmp:{},provOuv:{},propIA:{},propBusy:null,propErr:{},mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
+---
+> const B31={v:"b31-6b",sdBase:{},ev:{},evErr:{},ecr:{},saisie:{},sd:null,sdIA:{},sdBusy:null,sdErr:{},tvaEd:{},cmp:{},provOuv:{},propIA:{},propBusy:null,propErr:{},mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
+8946a8947,8948
+>     /* b31-6b : un sous-détail modifié mais non enregistré n'est jamais écrit en passant par une autre action */
+>     const SB=B31.sdBase[id];if(SB&&o.type!=="cout"&&o.type!=="sous_detail"){d.sd=JSON.parse(JSON.stringify(SB.sd));if(SB.k)d.k=JSON.parse(JSON.stringify(SB.k));else delete d.k;}
+9177c9179
+<       <td class="b31-a">${ed?`<button type="button" class="b31-ib" aria-pressed="${lk}" aria-label="${lk?"Déverrouiller":"Verrouiller"} la ligne ${esc(x.n||k)}" title="${lk?"Ligne verrouillée : l'objectif en % ne la modifie pas":"Verrouiller la ligne"}" data-b31-lock="${esc(k)}" data-act="${act(()=>{if(B31.ecr[id])return toast("Écriture de prix en cours : réessayez dans un instant.");const Y=bpX(id);Y.lock=Y.lock||{};if(Y.lock[k])delete Y.lock[k];else Y.lock[k]=true;bpSave(id);delete B31.prev[id];render();})}">${b31Ic(lk?"lock":"unlock")}</button>`:""}<button type="button" class="b31-sdb${cu?" on":""}" aria-expanded="${!!ouv}" data-b31-sd="${esc(k)}" data-act="${act(()=>{B31.ouv[id+"|"+k]=!ouv;render();})}">${b31Ic("chev")}Sous-détail</button></td></tr>`;
+---
+>       <td class="b31-a"><div class="b31-acts">${ed?`<button type="button" class="b31-ib" aria-pressed="${lk}" aria-label="${lk?"Déverrouiller":"Verrouiller"} la ligne ${esc(x.n||k)}" title="${lk?"Ligne verrouillée : l'objectif en % ne la modifie pas":"Verrouiller la ligne"}" data-b31-lock="${esc(k)}" data-act="${act(()=>{if(B31.ecr[id])return toast("Écriture de prix en cours : réessayez dans un instant.");if(B31.sdBase[id])return toast("Sous-détail modifié non enregistré : enregistrez-le ou annulez ses modifications avant de changer un verrou.");const Y=bpX(id);Y.lock=Y.lock||{};if(Y.lock[k])delete Y.lock[k];else Y.lock[k]=true;bpSave(id);delete B31.prev[id];render();})}">${b31Ic(lk?"lock":"unlock")}</button>`:""}<button type="button" class="b31-sdb${cu?" on":""}" aria-expanded="${!!ouv}" data-b31-sd="${esc(k)}" data-act="${act(()=>{B31.ouv[id+"|"+k]=!ouv;render();})}">${b31Ic("chev")}Sous-détail</button></div></td></tr>`;
+9347c9349
+< function b31SdPanel(id,a){const k=B31.sd.k,b=S.bp[id];if(!b)return"";const[l,i]=k.split("-").map(Number),x=b.lots[l].lignes[i],X=bpX(id),ed=editable()&&!(X.lock||{})[k],sd=(X.sd||{})[k]||{},c=b31SdCalc(id,k,a),K=sdK(id),Bi=b31SdBiblio(a),p=X.p[k],has=p!==undefined&&p!==""&&p!=null;
+---
+> function b31SdPanel(id,a){const k=B31.sd.k,b=S.bp[id];if(!b)return"";const[l,i]=k.split("-").map(Number),x=b.lots[l].lignes[i],X=bpX(id),ed=editable(),lkP=!!(X.lock||{})[k],sd=(X.sd||{})[k]||{},c=b31SdCalc(id,k,a),K=sdK(id),Bi=b31SdBiblio(a),p=X.p[k],has=p!==undefined&&p!==""&&p!=null;
+9357,9358c9359,9360
+<       ${etr?`<small class="b31-ko-t">Ressource rattachée à ${esc(socCourt(r.soc))} : exclue du calcul (FIN-ISO-001)</small>`:""}<span class="b31-sdx"><span class="b31-sdm">${b31Num(r.q)!=null&&b31Num(r.pu)!=null?"Montant "+fmtN(b31Num(r.q)*b31Num(r.pu))+" DH":"Montant inconnu"}</span>${r.ref?`<small class="b31-src">${esc(r.ref)}</small>`:""}${ed?`<button type="button" class="b31-lnk" aria-label="Supprimer la ressource" data-act="${act(()=>{X.sd[k][t].splice(j,1);bpSave(id);render();})}">${b31Ic("x")}</button>`:""}</span></div>`;}).join("")+
+<       (ed?`<button type="button" class="b31-btn b31-xs" data-b31-sdadd="${t}" data-act="${act(()=>{X.sd=X.sd||{};X.sd[k]=X.sd[k]||{mat:[],mo:[],mt:[],tr:[]};(X.sd[k][t]=X.sd[k][t]||[]).push({d:"",u:t==="mo"||t==="mt"?"h":"",q:"",pu:"",st:"",soc:a.soc});bpSave(id);render();})}">+ Ajouter</button>`:"")+
+---
+>       ${etr?`<small class="b31-ko-t">Ressource rattachée à ${esc(socCourt(r.soc))} : exclue du calcul (FIN-ISO-001)</small>`:""}<span class="b31-sdx"><span class="b31-sdm">${b31Num(r.q)!=null&&b31Num(r.pu)!=null?"Montant "+fmtN(b31Num(r.q)*b31Num(r.pu))+" DH":"Montant inconnu"}</span>${r.ref?`<small class="b31-src">${esc(r.ref)}</small>`:""}${ed?`<button type="button" class="b31-lnk" aria-label="Supprimer la ressource" data-act="${act(()=>{b31SdAvant(id);X.sd[k][t].splice(j,1);render();})}">${b31Ic("x")}</button>`:""}</span></div>`;}).join("")+
+>       (ed?`<button type="button" class="b31-btn b31-xs" data-b31-sdadd="${t}" data-act="${act(()=>{b31SdAvant(id);X.sd=X.sd||{};X.sd[k]=X.sd[k]||{mat:[],mo:[],mt:[],tr:[]};(X.sd[k][t]=X.sd[k][t]||[]).push({d:"",u:t==="mo"||t==="mt"?"h":"",q:"",pu:"",st:"",soc:a.soc});render();})}">+ Ajouter</button>`:"")+
+9367c9369,9370
+<   const foot=`<div class="fsfoot">${ed?`<button type="button" class="b31-btn b31-gold" data-b31-sdrep="1" ${c&&c.complet?"":"disabled"} data-act="${wact(()=>b31SdReporter(id,a,k))}">Reporter le prix de vente au bordereau</button>`:(X.lock||{})[k]?`<span class="b31-src">Ligne verrouillée : report impossible.</span>`:""}<button type="button" class="b31-btn" data-act="${ferme}">Fermer</button></div>`;
+---
+>   h+=`<p class="b31-pend" id="b31-sdpend" data-b31-sdpend="1"${B31.sdBase[id]?"":" hidden"}>Modifications du sous-détail non enregistrées : « Enregistrer le sous-détail » les trace dans l'historique sans changer le PU.</p>`;
+>   const foot=`<div class="fsfoot b31-sdfoot">${ed?`<button type="button" class="b31-btn" data-b31-sdsave="1" data-act="${wact(()=>b31SdEnregistrer(id,a,k))}">Enregistrer le sous-détail sans changer le PU</button>`+(lkP?`<span class="b31-src">Ligne verrouillée : le PU n'est jamais remplacé ; le coût peut être documenté.</span>`:`<button type="button" class="b31-btn b31-gold" data-b31-sdrep="1" ${c&&c.complet?"":"disabled"} data-act="${wact(()=>b31SdReporter(id,a,k))}">Reporter le prix de vente au bordereau</button>`):""}${ed&&B31.sdBase[id]?`<button type="button" class="b31-btn b31-sm" data-b31-sdannul="1" data-act="${act(()=>{const B=B31.sdBase[id];X.sd=JSON.parse(JSON.stringify(B.sd));if(B.k)X.k=JSON.parse(JSON.stringify(B.k));else delete X.k;delete B31.sdBase[id];render();})}">Annuler les modifications</button>`:""}<button type="button" class="b31-btn" data-act="${ferme}">Fermer</button></div>`;
+9393c9396
+< function b31SdAccepterIA(id,a,k){if(!editable())return toast(RO_MSG);const IA=B31.sdIA[id+"|"+k],X=bpX(id);if(!IA||IA.soc!==a.soc)return toast("Proposition absente ou d'une autre société : rien n'est accepté.");if((X.lock||{})[k])return toast("Ligne verrouillée : rien n'est modifié.");
+---
+> function b31SdAccepterIA(id,a,k){if(!editable())return toast(RO_MSG);const IA=B31.sdIA[id+"|"+k],X=bpX(id);if(!IA||IA.soc!==a.soc)return toast("Proposition absente ou d'une autre société : rien n'est accepté.");
+9395c9398,9412
+<   X.sd=X.sd||{};X.sd[k]=sd;bpSave(id);delete B31.sdIA[id+"|"+k];render();toast("Sous-détail accepté comme HYPOTHÈSE (aucun devis, aucun fournisseur ni date) : vérifiez chaque ressource. Le PU du bordereau n'est pas modifié.");}
+---
+>   b31SdAvant(id);X.sd=X.sd||{};X.sd[k]=sd;delete B31.sdIA[id+"|"+k];render();toast("Sous-détail accepté comme HYPOTHÈSE (aucun devis, aucun fournisseur ni date), non encore enregistré : vérifiez chaque ressource puis « Enregistrer le sous-détail ». Le PU du bordereau n'est pas modifié.");}
+> /* b31-6b · les modifications du sous-détail restent en attente (rien n'est écrit en arrière-plan) jusqu'à « Enregistrer le sous-détail »
+>    (coût seul, PU inchangé) ou « Reporter » (coût + PU) : chacune crée d'abord un événement d'historique avec le coût avant / après */
+> function b31SdAvant(id){if(!B31.sdBase[id]){const X=bpX(id);B31.sdBase[id]={sd:JSON.parse(JSON.stringify(X.sd||{})),k:X.k?JSON.parse(JSON.stringify(X.k)):null};}}
+> function b31SdCalcAvec(id,k,a,sd,K){const X=bpX(id),s0=X.sd,k0=X.k;try{X.sd=sd;if(K)X.k=K;else delete X.k;return b31SdCalc(id,k,a);}finally{X.sd=s0;if(k0)X.k=k0;else delete X.k;}}
+> function b31CoutJ(c){return c?{deb_sec:c.ds,cout_revient:c.complet?c.cr:null,prix_vente_theorique:c.complet?c.pv:null,complet:c.complet,inconnus:c.inc.concat(c.etr).slice(0,10)}:{complet:false,absent:true};}
+> function b31SdCtx(id,a,k){const X=bpX(id),B=B31.sdBase[id]||{sd:X.sd||{},k:X.k||null},av=b31SdCalcAvec(id,k,a,B.sd,B.k),ap=b31SdCalc(id,k,a),p=X.p[k],has=p!==undefined&&p!==""&&p!=null;
+>   const Kf=K=>(z=>({fc:+z.fc||0,fg:+z.fg||0,al:+z.al||0,ben:+z.ben||0}))(Object.assign({},SD_K0,K||{}));
+>   return{ligne:k,cout_avant:b31CoutJ(av),cout_apres:b31CoutJ(ap),pu_actuel:has?+p:null,marge_unitaire:has&&ap&&ap.complet?Math.round((+p-ap.cr)*100)/100:null,
+>     marge_pct_pu:has&&ap&&ap.complet&&+p>0?Math.round((+p-ap.cr)/+p*10000)/100:null,frais_avant:Kf(B.k),frais_apres:Kf(X.k),frais_defaut:!X.k,
+>     ressources:JSON.parse(JSON.stringify((X.sd||{})[k]||null))};}
+> async function b31SdEnregistrer(id,a,k){const X=bpX(id),p0=JSON.stringify(X.p||{}),l0=JSON.stringify(X.lock||{});const ctx=b31SdCtx(id,a,k);
+>   try{await b31Ecrire(id,a,{type:"cout",label:"Sous-détail ligne "+k+" enregistré (PU inchangé) : coût de revient "+(ctx.cout_apres.cout_revient==null?"inconnu":fmtN(ctx.cout_apres.cout_revient)+" DH")+(ctx.marge_unitaire!=null?", marge "+fmtN(ctx.marge_unitaire)+" DH sur le PU actuel":""),lignes:[],contexte:ctx});
+>     if(JSON.stringify(X.p||{})!==p0||JSON.stringify(X.lock||{})!==l0)throw new Error("incohérence : PU ou verrous modifiés");delete B31.sdBase[id];render();toast("Sous-détail enregistré et tracé dans l'historique ; PU du bordereau inchangé.");}
+>   catch(e){render();toast("Sous-détail non enregistré, rien n'est écrit : "+(e&&e.message||e));}}
+9400,9401c9417,9418
+<   try{await b31Ecrire(id,a,{type:"sous_detail",label:"Report du sous-détail ligne "+k+" : "+fmtN(c.pv)+" DH HT",lignes:[{k,apres:c.pv,prov}],contexte:{deb_sec:c.ds,cout_revient:c.cr,frais:{fc:c.K.fc,fg:c.K.fg,al:c.K.al,ben:c.K.ben},hypotheses:c.nh,frais_defaut:c.kDefaut},base:"SOUS-DÉTAIL SOCIÉTÉ"});
+<     B31.sd=null;render();toast("Prix de vente "+fmtN(c.pv)+" DH HT reporté au bordereau et tracé dans l'historique.");}
+---
+>   try{await b31Ecrire(id,a,{type:"sous_detail",label:"Report du sous-détail ligne "+k+" : "+fmtN(c.pv)+" DH HT",lignes:[{k,apres:c.pv,prov}],contexte:Object.assign(b31SdCtx(id,a,k),{deb_sec:c.ds,cout_revient:c.cr,frais:{fc:c.K.fc,fg:c.K.fg,al:c.K.al,ben:c.K.ben},hypotheses:c.nh,frais_defaut:c.kDefaut}),base:"SOUS-DÉTAIL SOCIÉTÉ"});
+>     delete B31.sdBase[id];B31.sd=null;render();toast("Prix de vente "+fmtN(c.pv)+" DH HT reporté au bordereau et tracé dans l'historique.");}
+9429c9446
+<     ${e.tva_apres&&e.type==="tva"?`<p class="b31-src">${esc(e.tva_avant?e.tva_avant.txt:"")} → ${esc(e.tva_apres.txt)}</p>`:""}${e.contexte&&e.contexte.scenarios?`<p class="b31-src">${esc(e.contexte.scenarios.map(z=>z.scenario+" "+(z.pct!=null?b31PctTxt(z.pct):"")+" : TTC "+(z.ttc||"—")+", marge "+(z.marge_ht!=null?z.marge_ht+" ("+z.marge_pct_vente+" %)":"non calculée")+", art. 44 "+(z.art44||"—")).join(" ; "))}</p>`:""}
+---
+>     ${e.contexte&&e.contexte.cout_apres?`<p class="b31-src" data-b31-evcout="1">Ligne ${esc(e.contexte.ligne)} : coût de revient ${e.contexte.cout_avant&&e.contexte.cout_avant.cout_revient!=null?fmtN(e.contexte.cout_avant.cout_revient)+" DH":"inconnu"} → ${e.contexte.cout_apres.cout_revient!=null?fmtN(e.contexte.cout_apres.cout_revient)+" DH":"inconnu"} · PU ${e.contexte.pu_actuel==null?"non saisi":fmtN(e.contexte.pu_actuel)+" DH"}${e.type==="cout"?" (inchangé)":""}${e.contexte.marge_unitaire!=null?" · marge "+fmtN(e.contexte.marge_unitaire)+" DH ("+String(e.contexte.marge_pct_pu).replace(".",",")+" % du PU)":""}</p>`:""}${e.tva_apres&&e.type==="tva"?`<p class="b31-src">${esc(e.tva_avant?e.tva_avant.txt:"")} → ${esc(e.tva_apres.txt)}</p>`:""}${e.contexte&&e.contexte.scenarios?`<p class="b31-src">${esc(e.contexte.scenarios.map(z=>z.scenario+" "+(z.pct!=null?b31PctTxt(z.pct):"")+" : TTC "+(z.ttc||"—")+", marge "+(z.marge_ht!=null?z.marge_ht+" ("+z.marge_pct_vente+" %)":"non calculée")+", art. 44 "+(z.art44||"—")).join(" ; "))}</p>`:""}
+9471,9472c9488,9489
+<       if(t.dataset.b31sdk){const v=b31Num(String(t.value).replace(",","."));X.k=Object.assign({},sdK(id),{[t.dataset.b31sdk]:v==null||v<0?0:v});}
+<       else{if((X.lock||{})[k])return;const[g,j,f]=t.dataset.b31sd.split("|"),r=((X.sd||{})[k]||{})[g]&&X.sd[k][g][+j];if(!r)return;
+---
+>       b31SdAvant(id);if(t.dataset.b31sdk){const v=b31Num(String(t.value).replace(",","."));X.k=Object.assign({},sdK(id),{[t.dataset.b31sdk]:v==null||v<0?0:v});}
+>       else{const[g,j,f]=t.dataset.b31sd.split("|"),r=((X.sd||{})[k]||{})[g]&&X.sd[k][g][+j];if(!r)return;
+9475c9492
+<       const sm=document.getElementById("b31-sdsum");if(sm)sm.innerHTML=b31SdSum(id,k,a);clearTimeout(tS);tS=setTimeout(()=>bpSave(id),700);}};
+---
+>       const sm=document.getElementById("b31-sdsum");if(sm)sm.innerHTML=b31SdSum(id,k,a);const pe=document.getElementById("b31-sdpend");if(pe)pe.hidden=false;const rb=document.querySelector("[data-b31-sdrep]");if(rb){const cc=b31SdCalc(id,k,a);rb.disabled=!(cc&&cc.complet);}}};
+9495c9512,9521
+< {const _aoStepsB31=aoSteps;aoSteps=function(id,a){const L=_aoStepsB31(id,a),n=L.find(s=>s.k==="prix");if(n)n.body=()=>vB31(id,a);return L;};}
+---
+> /* b31-6b : résumé du prix des listes (cartes de bureau, parcours express) recalculé avec la TVA documentée du dossier ;
+>    taux absent → HT et « TTC non calculé — TVA à renseigner » ; hypothèse / relevé DCE nommés ; montant validé antérieur nommé historique */
+> function b31ResumeTTC(id,a){let M,T;try{M=b31TvaM(id,a);T=b31Tot(id,bpX(id).p||{},M);}catch(e){return null;}if(!T)return null;
+>   if(T.ttcC==null)return b31Dh(T.htC)+" HT · TTC non calculé — "+(M.etat==="absent"?"TVA à renseigner":"TVA à compléter ("+M.sans.length+" ligne(s) sans taux)");
+>   return b31Dh(T.ttcC)+" TTC"+(M.etat==="confirme"?(M.set.length>1?" ("+M.lab+" confirmée)":""):" — "+M.lab+" "+B31_TVA_ETAT[M.etat]);}
+> {const _aoStepsB31=aoSteps;aoSteps=function(id,a){const L=_aoStepsB31(id,a),n=L.find(s=>s.k==="prix");if(n)n.body=()=>vB31(id,a);
+>   try{const b=S.bp[id],T=b?bpTot(id):null;if(n&&T&&!T.miss&&typeof n.res==="string"){const v=" : "+dh(T.ttc)+" TTC",M=b31TvaM(id,a),r=b31ResumeTTC(id,a);
+>     if(r&&n.res.endsWith("Bordereau chiffré, à valider"+v))n.res=n.res.slice(0,-v.length)+" : "+r;
+>     else if(r&&/Validé à [^:]*$/.test(n.res.slice(0,-v.length))&&n.res.endsWith(v)&&!M.ok)n.res+=" — montant historique de l'offre figée, pas un TTC actuel ("+(M.etat==="absent"?"TVA non renseignée":M.lab+" "+B31_TVA_ETAT[M.etat])+")";}}catch(e){}
+>   return L;};}
+9568c9594
+< .b31-tab col.c1{width:46px}.b31-tab col.c3{width:52px}.b31-tab col.c4{width:74px}.b31-tab col.c5{width:112px}.b31-tab col.c6{width:116px}.b31-tab col.c7{width:112px}
+---
+> .b31-tab col.c1{width:46px}.b31-tab col.c3{width:52px}.b31-tab col.c4{width:74px}.b31-tab col.c5{width:112px}.b31-tab col.c6{width:116px}.b31-tab col.c7{width:128px}
+9577c9603
+< .b31-a{text-align:right;white-space:nowrap}
+---
+> .b31-a{text-align:right}.b31-acts{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:2px;min-width:0}.b31-sdb{white-space:nowrap}
+9617c9643
+< .b31-sdm{font-weight:600;font-size:12.5px;white-space:nowrap}.b31-etr{background:var(--b21-kobg)}
+---
+> .b31-sdm{font-weight:600;font-size:12.5px;white-space:nowrap}.b31-sdfoot{flex-wrap:wrap;gap:8px}.b31-etr{background:var(--b21-kobg)}
+9647c9673
+<   .b31-tab td.b31-q,.b31-tab td.b31-u{text-align:left}.b31-tab td.b31-a{grid-column:1 / -1;text-align:left}
+---
+>   .b31-tab td.b31-q,.b31-tab td.b31-u{text-align:left}.b31-tab td.b31-a{grid-column:1 / -1;text-align:left}.b31-tab .b31-acts{justify-content:flex-start}

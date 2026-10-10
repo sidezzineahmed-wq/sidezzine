@@ -1,0 +1,17 @@
+OK BG : l'ancienne proposition contient le bouton legacy « Appliquer au bordereau » (cas réel)
+OK historique BG : aucune action d'écriture legacy active (6 actions restantes, toutes de consultation) []
+OK « Appliquer au bordereau » affiché désactivé (lecture seule) : ["Appliquer au bordereau — désactivé dans l'historique (lectur", "Préparer une demande de devis — désactivé dans l'historique ", "Joindre un devis reçu — désactivé dans l'historique (lecture"]
+OK téléchargements et preuves (offres figées, ancienne proposition) conservés
+OK aucun champ de saisie ni envoi de fichier actif dans l'historique
+OK aperçus / téléchargements de documents conservés (0/0)
+OK après dépliage des outils précédents : toujours aucune action ni saisie d'écriture (9 actions)
+OK clic sur l'action legacy neutralisée : aucune écriture, bordereau BG inchangé
+OK historique : plus aucune action d'écriture, y compris « Recharger » (déplacé vers « Brouillons »)
+OK % : ligne verrouillée APRÈS l'aperçu → rien n'est appliqué, aperçu à refaire
+OK % : ligne verrouillée inchangée, autres lignes ajustées
+OK IA : acceptation refusée sur une ligne verrouillée
+OK bureau : panneau « Brouillons » avec « Recharger dans le brouillon »
+OK rechargement d'un brouillon : ligne verrouillée conservée, autres lignes rechargées
+OK dossiers réels : aucune écriture, offres et prix inchangés
+OK aucune erreur JavaScript []
+16 / 16

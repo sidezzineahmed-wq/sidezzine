@@ -1,0 +1,16 @@
+[
+ "OK formule commune : 3 048 097,90 → « Arrêté le présent bordereau à la somme de : Trois millions … quatre-vingt-dix centimes toutes taxes comprises. »",
+ "OK Récapitulatif (TVA 20 % confirmée) : arrêté juste sous Total TTC — « Arrêté le présent bordereau à la somme de : Deux cent quarante et un mille quatre cent quarante dirh… »",
+ "OK texte identique à l'arrêté du PDF du bordereau",
+ "OK la phrase sous le tableau utilise la même formule",
+ "OK après changement de PU (ligne 2 → 215) : arrêté recalculé (242280.00 TTC)",
+ "OK après changement de TVA (20 → 10 %) : arrêté recalculé (222090.00 TTC)",
+ "OK TVA mixte : arrêté sur le TTC calculé par taux",
+ "OK TVA absente : « Arrêté non disponible : TVA non renseignée (aucun taux supposé). » (aucun montant)",
+ "OK bordereau incomplet : « Arrêté non disponible : 1 PU manquant(s) sur 6. »",
+ "OK réel BG (lecture, base simulée) : arrêté non disponible tant que la TVA n'est pas renseignée",
+ "OK dossiers réels inchangés, aucune écriture réelle, aucune erreur []",
+ "OK 390 : arrêté lisible dans la carte, sans débordement (texte rgb(22, 23, 26) sur rgb(251, 247, 239))",
+ "OK 390_sombre : arrêté lisible dans la carte, sans débordement (texte rgb(237, 234, 228) sur rgba(195, 160, 106, 0.07))",
+ "OK 1440_sombre : arrêté lisible dans la carte, sans débordement (texte rgb(237, 234, 228) sur rgba(195, 160, 106, 0.07))"
+]

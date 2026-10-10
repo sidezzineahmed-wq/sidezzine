@@ -1,0 +1,13 @@
+B3.1 Chiffrage — b31-6e (arrêté en lettres dans la carte Récapitulatif)
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Version avant : 1791667269-9167 (b31-6d), index sha256 a51ae8bc…91a3 — relue, identique à la publication b31-6d.
+Version publiée : 1791667622-bbb3 (version 281), index 1 557 166 octets, sha256 dcf293c2e89b711eeb4d003b7bbac13977864614b106a973b175dacb442d7e88
+Corps sha256 177ef65f44f6b65cb84d8c21d857bc35848e792b4b752886064ed490f8ad2d34 ; index = squelette + corps (diff 0) ; 16 fichiers ; capabilities inchangées ; sans force.
+Diff b31-6d → b31-6e (module B3.1, affichage seulement) :
+  - b31Recap : juste sous « Total TTC », b31ArreteTxt(TTC) — même fonction que le PDF (enLettres) ; recalculé à chaque rendu (saisie, TVA, société) ;
+    sinon « Arrêté non disponible : n PU manquant(s) sur N » / « TVA non renseignée (aucun taux supposé) » / « TVA incomplète (n ligne(s) sans taux) » ;
+  - phrase sous le tableau du bordereau : même formule ; style .b31-arrl (thème clair / sombre).
+  Aucune donnée écrite, aucun changement de PU, TVA ou validation. Réversible (sauvegarde part_b31_b31-6d.js).
+Recette — 305 contrôles OK : qa_b31 64 · hist 16 · pct 44 · art44 24 · v6 79 · v6b 30 · v6c 34 · v6e 14 (nouveau : formule commune et exemple
+  3 048 097,90 ; position sous Total TTC ; texte identique au PDF ; recalcul après PU puis TVA ; mixte ; TVA absente ; incomplet ; BG réel lu ;
+  390 clair / sombre, 1440 sombre sans débordement). Fixtures uniquement ; dossiers réels inchangés.

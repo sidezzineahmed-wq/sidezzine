@@ -15,7 +15,7 @@
    (2) provenance durable de chaque PU appliqué (srcL v:6) ; (3) événements de prix immuables chiffrage_evenements/<id>~e<n>, écrits
    AVANT le bordereau ; (4) sous-détail B3.1 propre à la société (matériaux, main-d'œuvre, matériel, transport, sources de devis,
    frais), déboursé sec / coût de revient / vente / marge ; (5) comparaison des scénarios sans écriture. */
-const B31={v:"b31-6d",sdBase:{},ev:{},evErr:{},ecr:{},saisie:{},sd:null,sdIA:{},sdBusy:null,sdErr:{},tvaEd:{},cmp:{},provOuv:{},propIA:{},propBusy:null,propErr:{},mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
+const B31={v:"b31-6e",sdBase:{},ev:{},evErr:{},ecr:{},saisie:{},sd:null,sdIA:{},sdBusy:null,sdErr:{},tvaEd:{},cmp:{},provOuv:{},propIA:{},propBusy:null,propErr:{},mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
 const B31_DECRET={url:"https://www.tgr.gov.ma/wps/wcm/connect/1f3081fc-2d01-41de-8339-9a2c7de0480f/DECRET%2B2-22-431%2BFR.pdf?MOD=AJPERES",
   ref:"Décret n° 2-22-431 du 8 mars 2023, art. 44 (édition TGR 2023, p. 69-70)",sha:"d08109b9cee1364870c99659dbe58a3aef3556ab2d87209426dc97a314e07c78"};
 const B31_SCEN=[["prudent","Prudent"],["equilibre","Équilibré"],["competitif","Compétitif"]];
@@ -473,7 +473,7 @@ function b31Table(id,a,ET,mode){const b=S.bp[id],X=ET.X,L=b31Lignes(id),lock=X.l
     if(ouv)rows+=`<tr class="b31-sdr"><td></td><td colspan="6">${b31SdInline(id,k,p,cu,ed)}</td></tr>`;n++;});
   h+=`<div class="b31-tw"><table class="b31-tab"><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"><col class="c6"><col class="c7"></colgroup><thead><tr><th>N°</th><th>Désignation</th><th>Unité</th><th>Qté</th><th>PU HT (DH)</th><th>PT HT (DH)</th><th><span class="b31-sr">Actions</span></th></tr></thead><tbody>${rows||`<tr><td colspan="7" class="b31-none">Aucune ligne ne correspond.</td></tr>`}</tbody></table></div>`;
   if(F.length>N)h+=`<button type="button" class="b31-more" data-b31-more="1" data-act="${act(()=>{B31.n[id]=N+60;render();})}">Afficher 60 lignes de plus (${F.length-N} restantes sur ${F.length})</button>`;
-  const T=ET.T;h+=`<div class="b31-arr">${b31Ic("doc")}<div>${ET.complet?`<b>Arrêté à : ${esc(enLettres(T.ttcC/100))} toutes taxes comprises.</b>`:ET.prixComplet?`<b>Arrêté non disponible :</b> TVA non renseignée ou incomplète, TTC non calculé (aucun taux supposé).`:`<b>Arrêté non disponible :</b> ${T.miss} PU manquant(s). Aucun montant en lettres n'est produit pour une offre incomplète.`}<span>Écart calculé sur la même base TTC (estimation TTC / offre TTC).</span></div></div>`;
+  const T=ET.T;h+=`<div class="b31-arr">${b31Ic("doc")}<div>${ET.complet?`<b>${esc(b31ArreteTxt(T.ttcC))}</b>`:ET.prixComplet?`<b>Arrêté non disponible :</b> TVA non renseignée ou incomplète, TTC non calculé (aucun taux supposé).`:`<b>Arrêté non disponible :</b> ${T.miss} PU manquant(s). Aucun montant en lettres n'est produit pour une offre incomplète.`}<span>Écart calculé sur la même base TTC (estimation TTC / offre TTC).</span></div></div>`;
   return h;}
 function b31SdInline(id,k,p,cu,ed){const open=act(()=>{B31.sd={id,k};render();}),a=S.ao[id],c=b31SdCalc(id,k,a);
   if(!c)return`<div class="b31-sdi"><p>Aucun sous-détail pour ce prix : coût inconnu (jamais compté à zéro).</p>${ed?`<button type="button" class="b31-btn b31-sm" data-b31-sdopen="${esc(k)}" data-act="${open}">Saisir le sous-détail</button>`:""}</div>`;
@@ -490,6 +490,9 @@ function b31Recap(id,a,ET){const T=ET.T,C=ET.C,inc=!ET.prixComplet,M=ET.tva,SA=O
   if(inc)h+=row(esc(M.lab),"—");else if(T.tvaC==null)h+=row(esc(M.lab),`<span class="b31-ko-t">non calculée</span>`);
   else if(PT.length>1)PT.forEach(([r,z])=>{h+=row("TVA "+esc(b31TxPct(r))+" <small>sur "+fmtN(z.htC/100)+" HT</small>",b31Dh(z.tvaC));});else h+=row(esc(M.lab),b31Dh(T.tvaC));
   h+=row("Total TTC",inc?`<span class="b31-ko-t">incomplet (${T.miss} PU)</span>`:T.ttcC==null?`<span class="b31-ko-t">non calculé (TVA)</span>`:b31Dh(T.ttcC),"b31-ttc");
+  /* b31-6e : arrêté en lettres, même formule que le PDF (b31ArreteTxt), recalculé à chaque rendu ; jamais de montant supposé */
+  h+=!inc&&T.ttcC!=null?`<p class="b31-arrl" data-b31-arrete="ok">${esc(b31ArreteTxt(T.ttcC))}</p>`
+    :`<p class="b31-arrl b31-arrko" data-b31-arrete="indisponible">Arrêté non disponible : ${esc(inc?T.miss+" PU manquant(s) sur "+(T.n+T.miss):M.etat==="absent"?"TVA non renseignée (aucun taux supposé)":"TVA incomplète ("+M.sans.length+" ligne(s) sans taux)")}.</p>`;
   if(inc)h+=`<p class="b31-src">Somme des seules lignes chiffrées : ${b31Dh(T.htC)} HT — ce n'est pas une offre.</p>`;
   if(SA)h+=`<p class="b31-pend" data-b31-pendn="${SA}">${SA} saisie(s) en attente, non enregistrée(s) : les totaux ci-dessus portent sur les prix enregistrés.</p>`;
   const cov=C.k+"/"+C.N+" ligne(s) avec coût connu",Mg=b31Marge(C,T);
@@ -973,6 +976,7 @@ const B31_CSS=`.b31{--b21-card:#FFFFFF;--b21-ivoire:#FBF7EF;--b21-line:#E6DFD2;-
 .b31-arr{display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border-top:1px solid var(--b21-line);color:var(--b21-or-p)}.b31-arr div{display:flex;flex-direction:column;gap:2px;min-width:0}.b31-arr b{color:var(--b21-ink);font-size:13px;overflow-wrap:anywhere}.b31-arr span{font-size:11.5px;color:var(--b21-muted)}
 .b31-rec .b31-rr{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--b21-line2);margin:0;color:var(--b21-ink);font-size:13px}
 .b31-rec .b31-rr b{font-variant-numeric:tabular-nums;text-align:right}
+.b31-arrl{margin:2px 0 8px;padding:8px 10px;border-left:3px solid var(--b21-or);background:var(--b21-ivoire);border-radius:6px;font-size:12.5px;line-height:1.45;font-weight:600;color:var(--b21-ink);overflow-wrap:anywhere}.b31-arrko{border-left-color:var(--red,#A63D32);font-weight:400;color:var(--b21-muted)}
 .b31-rec .b31-ttc{background:var(--b21-ivoire);border:1px solid var(--b21-or);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14.5px}
 .b31-ctl ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
 .b31-ctl li>button,.b31-ctl li>div{display:flex;gap:8px;align-items:flex-start;width:100%;text-align:left;background:none;border:none;padding:6px 4px;font:13px/1.4 var(--body,inherit);color:var(--b21-ink);border-radius:6px}

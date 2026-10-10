@@ -1,0 +1,36 @@
+xls: 58 lignes, 8 sections, TOTAL (1+2+…...+8) HT
+OK 8 sections dans l'ordre exact du bordereau original (8)
+OK libellés « TOTAL <section> » identiques à l'original (ex. « TOTAL ETANCHEITE »)
+OK 58 lignes : N°, désignations complètes, unités et quantités identiques à l'original, même ordre
+OK titre identique à l'original : « BORDEREAU DES PRIX » (xls A10 « BORDEREAU DES PRIX »)
+OK colonnes et libellé du total HT conformes (TOTAL (1+2+…+8) HT / original « TOTAL (1+2+…...+8) HT »)
+OK PDF : les 58 N° de prix apparaissent tous, dans l'ordre du DCE
+OK PDF : totaux de section, TOTAL (1+2+…+8) HT, TVA (20%), TOTAL TTC
+OK montants recalculés indépendamment : HT 10557568.90, TVA 2111513.78, TTC 12669082.68
+OK arrêté unique en fin de bordereau : « Arrêté le présent bordereau à la somme de : Douze millions six cent soixante-neuf mille quatre-vingt-deux dirh… »
+OK 3 048 097,90 → « Trois millions quarante-huit mille quatre-vingt-dix-sept dirhams et quatre-vingt-dix centimes »
+OK lettres : singulier, millions de, quatre-vingts, deux cents ; jamais « dirhams » en double ['Un dirham', 'Deux millions de dirhams', 'Mille un dirhams et un centime', 'Quatre-vingts dirhams et quatre-vingts centimes', 'Deux cents dirhams']
+OK ALWAAD attendu (vérification arithmétique hors page) : TVA 20 % de 2 540 081,58 = 508 016,32 ; TTC 3 048 097,90
+OK récapitulatif (totaux de section, HT, TVA, TTC) et arrêté groupés sur la même page
+OK 5 pages A4 portrait, aucune page vide
+OK contrôles internes dans une annexe séparée APRÈS le bordereau ; estimation MO non convertie HT/TTC
+OK brouillon : mention « document de travail interne » sur chaque page, aucune signature ni cachet
+OK PDF entièrement vectoriel (aucune image)
+OK 400 lignes, 27 pages : en-tête de colonnes répété (25 pages), chaque page commence par une ligne entière ou une section (jamais la suite d'une ligne coupée) ['1. SECTION FICTIVE 1 1.14 Ouvr', '1. SECTION FICTIVE 1 1.31 Ouvr', '2. SECTION FICTIVE 2 2.6 Ouvra', '2. SECTION FICTIVE 2 2.23 Ouvr']
+OK chaque tableau de section : lignes insécables, en-têtes répétés, intitulé de section jamais isolé (10 tableaux)
+OK TVA absente : ligne « TVA (taux non renseigné) », TTC vide, arrêté non produit
+OK TVA mixte : une ligne « TVA (x%) sur … HT » par taux, arrêté sur le TTC v6
+OK bordereau à deux lots : chaque lot avec ses sections, ses totaux et son arrêté
+OK société isolée : le dossier frère SIDITRAV ne montre aucun PU de SAKDAT (cellules vides, 58 PU manquants)
+OK écran Retina (×2) : page rendue à 1800 px pour 900 px affichés (net) ; couche de texte (3436 fragments)
+OK texte sélectionnable dans l'aperçu (« BORDEREAU ») ; recherche du navigateur possible
+OK zoom + : 900 → 1125 px, affiché « 125 % »
+OK page 4 atteinte par défilement : barre de zoom opaque (rgb(246, 243, 238)) collée en haut, haut de page visible sous la barre (105 ≥ 93)
+OK « Largeur » : retour à l'ajustement
+OK lecteur : aucune erreur JavaScript []
+OK 390 : aperçu ajusté à la largeur, sans débordement ({'ov': 0, 'pw': 365, 'bw': 390})
+OK 390 : barre opaque adaptée au thème (rgb(246, 243, 238)), page 3 non masquée après défilement
+OK 390_sombre : aperçu ajusté à la largeur, sans débordement ({'ov': 0, 'pw': 365, 'bw': 390})
+OK 390_sombre : barre opaque adaptée au thème (rgb(16, 17, 20)), page 3 non masquée après défilement
+OK génération et aperçu PDF : aucune écriture (aucune donnée réelle modifiée), aucune erreur []
+34 / 34

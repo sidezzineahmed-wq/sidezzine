@@ -1,0 +1,14 @@
+8725c8725
+< const B31={v:"b31-6d",sdBase:{},ev:{},evErr:{},ecr:{},saisie:{},sd:null,sdIA:{},sdBusy:null,sdErr:{},tvaEd:{},cmp:{},provOuv:{},propIA:{},propBusy:null,propErr:{},mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
+---
+> const B31={v:"b31-6e",sdBase:{},ev:{},evErr:{},ecr:{},saisie:{},sd:null,sdIA:{},sdBusy:null,sdErr:{},tvaEd:{},cmp:{},provOuv:{},propIA:{},propBusy:null,propErr:{},mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
+9183c9183
+<   const T=ET.T;h+=`<div class="b31-arr">${b31Ic("doc")}<div>${ET.complet?`<b>Arrêté à : ${esc(enLettres(T.ttcC/100))} toutes taxes comprises.</b>`:ET.prixComplet?`<b>Arrêté non disponible :</b> TVA non renseignée ou incomplète, TTC non calculé (aucun taux supposé).`:`<b>Arrêté non disponible :</b> ${T.miss} PU manquant(s). Aucun montant en lettres n'est produit pour une offre incomplète.`}<span>Écart calculé sur la même base TTC (estimation TTC / offre TTC).</span></div></div>`;
+---
+>   const T=ET.T;h+=`<div class="b31-arr">${b31Ic("doc")}<div>${ET.complet?`<b>${esc(b31ArreteTxt(T.ttcC))}</b>`:ET.prixComplet?`<b>Arrêté non disponible :</b> TVA non renseignée ou incomplète, TTC non calculé (aucun taux supposé).`:`<b>Arrêté non disponible :</b> ${T.miss} PU manquant(s). Aucun montant en lettres n'est produit pour une offre incomplète.`}<span>Écart calculé sur la même base TTC (estimation TTC / offre TTC).</span></div></div>`;
+9199a9200,9202
+>   /* b31-6e : arrêté en lettres, même formule que le PDF (b31ArreteTxt), recalculé à chaque rendu ; jamais de montant supposé */
+>   h+=!inc&&T.ttcC!=null?`<p class="b31-arrl" data-b31-arrete="ok">${esc(b31ArreteTxt(T.ttcC))}</p>`
+>     :`<p class="b31-arrl b31-arrko" data-b31-arrete="indisponible">Arrêté non disponible : ${esc(inc?T.miss+" PU manquant(s) sur "+(T.n+T.miss):M.etat==="absent"?"TVA non renseignée (aucun taux supposé)":"TVA incomplète ("+M.sans.length+" ligne(s) sans taux)")}.</p>`;
+9682a9686
+> .b31-arrl{margin:2px 0 8px;padding:8px 10px;border-left:3px solid var(--b21-or);background:var(--b21-ivoire);border-radius:6px;font-size:12.5px;line-height:1.45;font-weight:600;color:var(--b21-ink);overflow-wrap:anywhere}.b31-arrko{border-left-color:var(--red,#A63D32);font-weight:400;color:var(--b21-muted)}

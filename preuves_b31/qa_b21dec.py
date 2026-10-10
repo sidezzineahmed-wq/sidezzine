@@ -18,7 +18,7 @@ for k in ("fx-dec","fx-decc"):M["rc"][k]=json.loads(json.dumps(RC))
 L3=[{"n":"1","d":"Ligne fictive A","u":"U","q":3,"s":"A. Section"},{"n":"2","d":"Ligne fictive B","u":"m²","q":10,"s":"A. Section"}]
 for k in ("fx-dec","fx-dec~siditrav"):M["bp"][k]={"lots":[{"lignes":L3}],"cadre":False,"alertes":[]}
 M["bpx"]["fx-dec"]={"p":{"0-0":1111.11,"0-1":22.22},"q":{},"soc":"sakdat","tva":{"taux":20,"etat":"confirme","src":{"doc":"CPS FICTIF","page":"1"},"mixte":False,"lignes":{}}}
-M["bpx"]["fx-dec~siditrav"]={"p":{"0-0":999.99,"0-1":33.33},"q":{},"soc":"siditrav","tva":{"taux":20,"etat":"confirme","src":{"doc":"CPS FICTIF","page":"1"},"mixte":False,"lignes":{}}}
+M["bpx"]["fx-dec~siditrav"]={"p":{"0-0":999.99},"q":{},"soc":"siditrav","tva":{"taux":20,"etat":"confirme","src":{"doc":"CPS FICTIF","page":"1"},"mixte":False,"lignes":{}}}
 json.dump(M,open(os.path.join(ICI0,"srv","mockdb_b21dec.json"),"w",encoding="utf-8"),ensure_ascii=False)
 src=open(os.path.join(ICI0,"qa_b31.py"),encoding="utf-8").read().replace("mockdb_b31.json","mockdb_b21dec.json").replace('OUT=os.path.join(ICI,"qa_b31")','OUT=os.path.join(ICI,"qa_b21dec")')
 exec(src.split("\nwith sync_playwright() as p:")[0])
@@ -38,9 +38,17 @@ with sync_playwright() as p:
     st=lambda s,piece:ev("([s,p])=>{const c=document.querySelector('[data-b21d-soc=\"'+s+'\"]');const r=[...c.querySelectorAll('tbody tr')].find(r=>r.innerText.includes(p));return r?r.dataset.b21dK:null}",[s,piece])
     chk(st("siditrav","CPS et RC")=="pret" and st("sakdat","CPS et RC")!="pret" and st("alwaad-ataib","CPS et RC")!="pret","« CPS et RC signés » Prêt seulement pour SIDITRAV (CPS et RC cachetés VÉRIFIÉ à son nom)")
     chk(st("sakdat","attestations de référence")=="pret" and st("alwaad-ataib","attestations de référence")!="pret","références Prêt pour SAKDAT (fichier VÉRIFIÉ à son nom) ; jamais pour ALWAAD avec un fichier au nom d'une autre société")
-    ks=ev("()=>[...document.querySelectorAll('[data-b21d-k]')].map(r=>r.dataset.b21dK)");chk(set(ks)<= {"pret","verif","joindre","compl","nonexige","attrib"} and "joindre" in ks and "compl" in ks and "verif" in ks,f"statuts limités à Prêt / À vérifier / À joindre / À compléter (+ non exigé, si attribué) : {sorted(set(ks))}")
+    ks=ev("()=>[...document.querySelectorAll('[data-b21d-k]')].map(r=>r.dataset.b21dK)");chk(set(ks)<= {"pret","verif","joindre","compl","nonexige","attrib","chiffre","chval"} and "joindre" in ks and "compl" in ks and "verif" in ks,f"statuts limités à Prêt / À vérifier / À joindre / À compléter (+ non exigé, si attribué, chiffré) : {sorted(set(ks))}")
     fin=ev("()=>Object.fromEntries([...document.querySelectorAll('[data-b21d-oid]')].map(c=>[c.dataset.b21dSoc,(c.querySelector('[data-b21d-fin]')||{}).innerText||'']))")
-    chk("1 111,11" not in fin.get("siditrav","").replace(" "," ") and "999,99" not in fin.get("sakdat","") and "Chiffrage de SIDITRAV" in fin.get("siditrav",""),"chiffrage affiché par carte avec les seuls prix de la société (aucun prix d'une autre société)")
+    TT=pg.inner_text("[data-b21d]").replace(" "," ").replace("\xa0"," ")
+    chk("2/2 PU saisis" in fin["sakdat"] and "1/2 PU saisis" in fin["siditrav"] and not re.search(r"TTC|\bHT\b",TT) and not re.search(r"1 111,11|999,99|22,22",TT),"aucun montant HT / TVA / TTC ni PU dans la vue multi-sociétés : couverture (2/2, 1/2 PU) et validation seulement")
+    chk(st("sakdat","Bordereau des prix")=="chiffre" and st("siditrav","Bordereau des prix")=="compl","bordereau : « Chiffré · à valider » quand tous les PU de la société sont saisis (non validé), « À compléter » si partiel")
+    bp=ev("""()=>{const r=[...document.querySelectorAll('[data-b21d-soc="sakdat"] tbody tr')].find(r=>r.innerText.includes('Bordereau des prix'));return{t:r.innerText,go:r.querySelector('[data-b21d-go]').dataset.b21dGo}}""")
+    chk("Chiffré · à valider" in bp["t"] and "Couverture 2/2 PU saisis" in bp["t"] and "signature et cachet restent à faire" in bp["t"] and "Ouvrir" in bp["t"] and bp["go"]=="prix","bordereau rempli : couverture réelle, signature non prétendue, action « Ouvrir » le chiffrage B3.1")
+    ae=ev("""()=>{const r=[...document.querySelectorAll('[data-b21d-soc="sakdat"] tbody tr')].find(r=>r.innerText.includes("Acte d'engagement"));return r.querySelector('[data-b21d-go]').dataset.b21dGo}""")
+    chk(ae=="pieces","acte d'engagement : action vers sa préparation (pièces B3.2), pas le chiffrage")
+    hd=ev("""()=>[...document.querySelectorAll('[data-b21d-oid]')].map(c=>{const t=c.querySelector('table.b21d-tab'),th=[...t.querySelectorAll('thead th')];return{txt:th.map(x=>x.innerText.trim()),vis:getComputedStyle(t.tHead).display!=='none'&&th.every(x=>x.getBoundingClientRect().height>0),scope:th.every(x=>x.getAttribute('scope')==='col'),cap:!!t.caption,lab:t.getAttribute('aria-label')}})""")
+    chk(all(h["txt"]==["Pièce","Statut","Action"] and h["vis"] and h["scope"] and h["cap"] and "pièce, statut, action" in h["lab"] for h in hd),"en-têtes Pièce / Statut / Action visibles (scope=col), légende et libellé accessibles sur chaque tableau")
     chk(len(W())==w0,"affichage : aucune écriture")
     # actions = handlers existants de la bonne société
     ev("()=>{const c=document.querySelector('[data-b21d-soc=\"siditrav\"] [data-b21d-go=\"pieces\"]');c.click();}");pg.wait_for_timeout(400)
@@ -86,6 +94,9 @@ with sync_playwright() as p:
         c=b.new_context(viewport={"width":w,"height":h},color_scheme=sch);c.add_init_script(INIT);q=c.new_page();e=[];q.on("pageerror",lambda x:e.append(str(x)))
         q.goto(URL);q.wait_for_function("()=>typeof S!=='undefined'&&S.aoState==='ok'&&Object.keys(S.ao).length>50",timeout=20000);q.wait_for_timeout(800);dec(q,"fx-dec")
         L=q.evaluate("()=>{const c=document.querySelector('[data-b21d-soc=\"siditrav\"]'),t=c.querySelector('.b21d-main').getBoundingClientRect(),d=c.querySelector('.b21d-dec').getBoundingClientRect();return{ov:document.documentElement.scrollWidth-document.documentElement.clientWidth,dessous:d.top>=t.bottom-2,droite:d.left>=t.right-2}}")
+        hv=q.evaluate("""()=>{const t=document.querySelector('[data-b21d-soc="siditrav"] table.b21d-tab');return getComputedStyle(t.tHead).display!=='none'&&[...t.tHead.querySelectorAll('th')].map(x=>x.innerText.trim()).join('|')==='Pièce|Statut|Action'}""")
+        tw=q.evaluate("""()=>[...document.querySelectorAll('.b21d-tw')].map(t=>t.scrollWidth-t.clientWidth)""")
+        chk(hv and max(tw)<=1,f"{tag} : en-têtes Pièce / Statut / Action visibles, colonne Action entière (aucun défilement interne : {max(tw)} px)")
         chk(L["ov"]<=1 and (L["dessous"] if w<600 else L["droite"]) and not e,f"{tag} : {'décision sous le tableau' if w<600 else 'décision à droite'}, aucun débordement ({L})")
         q.locator('[data-b21d-soc="siditrav"]').screenshot(path=f"{OUT}/fx_dec_{tag}.png");c.close()
 print(sum(x.startswith("OK") for x in R),"/",len(R))

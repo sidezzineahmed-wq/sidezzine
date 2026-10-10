@@ -1,0 +1,17 @@
+B2.1 — Décision d'Ahmed par société (b21d-2, corrections finales après vérification indépendante de b21d-1)
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Version avant : 1791668856-49c7 (b21d-1), index sha256 7576f8e5…13e7 — relue, identique à la publication b21d-1.
+Version publiée : 1791669242-c9cf (version 283), index 1 581 698 octets, sha256 9632640e998e5f503831f3822dceeba53910e6185c3a51f5e3b5dba95e851431
+Corps sha256 504ca4db6c27e25f192c2290daa959d8480fc9c4c4e511a8019c58d051ed7c39 ; index = squelette + corps (diff 0) ; 16 fichiers ; capabilities inchangées ; sans force.
+Diff : module part_b21dec.js uniquement (b31-6e intact).
+1) Aucun montant (HT, TVA, TTC, PU) dans la vue multi-sociétés : chaque carte affiche « n/N PU saisis · validé / non validé · TVA non confirmée »
+   et « Ouvrir le chiffrage » de SA société ; le récapitulatif « Entreprises retenues » ne contient aucun montant (FIN-ISO-001).
+2) Bordereau des prix : statut tiré du chiffrage propre de la société (b31Etat du dossier) — « Chiffré · à valider » (tous les PU saisis, non validé),
+   « Chiffré · validé » (offre figée), « À compléter » (couverture partielle) ; mention « signature et cachet restent à faire » (jamais prétendue acquise) ;
+   action « Ouvrir » vers B3.1 si rempli. Acte d'engagement : action vers sa préparation dans les pièces (B3.2, genFor « ae »).
+3) Tableaux : en-têtes Pièce / Statut / Action toujours visibles (y compris mobile, plus de masquage), scope="col", légende et aria-label ;
+   colonnes mobiles ajustées (aucun défilement interne, action entière).
+Décisions réelles conservées ; consultations clôturées toujours en lecture seule ; aucune saisie réelle.
+Recette (fixtures) : qa_b21dec 38/38 (31 + 7 : absence de montants, bordereau chiffré / partiel, action Ouvrir, AE → B3.2, en-têtes accessibles,
+  en-têtes visibles et action entière en 390 clair / sombre et 1440 sombre) ; non-régression : qa_b31 64/64, qa_b31_v6e 14/14 (b31-6e),
+  qa_qual 21/21, qa_hist 17/17.

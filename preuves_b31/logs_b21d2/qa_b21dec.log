@@ -1,0 +1,39 @@
+OK une carte par société candidate (3), 12 pièces chacune, construites depuis les pièces du RC
+OK sections Enveloppe 1 (administratif puis technique) puis Enveloppe 2 (financier)
+OK aucune recommandation, conclusion automatique ni présélection ; SAKDAT sans décision affiché « Aucune décision »
+OK « CPS et RC signés » Prêt seulement pour SIDITRAV (CPS et RC cachetés VÉRIFIÉ à son nom)
+OK références Prêt pour SAKDAT (fichier VÉRIFIÉ à son nom) ; jamais pour ALWAAD avec un fichier au nom d'une autre société
+OK statuts limités à Prêt / À vérifier / À joindre / À compléter (+ non exigé, si attribué, chiffré) : ['attrib', 'chiffre', 'compl', 'joindre', 'nonexige', 'pret', 'verif']
+OK aucun montant HT / TVA / TTC ni PU dans la vue multi-sociétés : couverture (2/2, 1/2 PU) et validation seulement
+OK bordereau : « Chiffré · à valider » quand tous les PU de la société sont saisis (non validé), « À compléter » si partiel
+OK bordereau rempli : couverture réelle, signature non prétendue, action « Ouvrir » le chiffrage B3.1
+OK acte d'engagement : action vers sa préparation (pièces B3.2), pas le chiffrage
+OK en-têtes Pièce / Statut / Action visibles (scope=col), légende et libellé accessibles sur chaque tableau
+OK affichage : aucune écriture
+OK action « pièces » de SIDITRAV : ouvre SON dossier au bureau B3.2 ({'id': 'fx-dec~siditrav', 'bur': 'MP-B3.2', 'k': 'pieces'})
+OK action « coffre » de SAKDAT : ouvre le coffre de SAKDAT (handler de la barre latérale)
+OK Go : premier appui = demande de confirmation, rien n'est écrit
+OK Go confirmé : décision (verdict, date, auteur) sur le seul dossier SAKDAT, société inchangée ([['set', 'ao/fx-dec']])
+OK les décisions des autres sociétés sont conservées
+OK No-Go sans motif : refusé, rien n'est écrit
+OK No-Go avec motif : décision remplacée tracée (historique), pièces conservées
+OK historique des décisions affiché dans la carte
+OK « Entreprises retenues » = uniquement les Go réels (['siditrav'])
+OK Retirer sans motif : refusé (motif demandé dans la carte)
+OK Retirer = « À reprendre » tracé, pièces cachetées conservées
+OK retirée de la liste des entreprises retenues
+OK réversible : nouveau Go, historique complet (2 décisions remplacées)
+OK « Ajouter » propose seulement des sociétés sans dossier, contrôlées par parCompat (['structure-chantier', 'up-modulor', 'build-chantier', 'riyada-build', 'signalsud-sahara', 'sahara-iaamar'])
+OK Ajouter : confirmation demandée, rien n'est créé au premier appui
+OK Ajouter confirmé : dossier séparé créé par le modèle existant (creerSib), aucun prix ni pièce recopié
+OK consultation clôturée : décision en lecture, ni Go / No-Go, ni ajout, aucune soumission
+OK décision existante conservée (clôturée)
+OK Actualiser : relecture sans écriture ni changement de décision
+OK dossier réel BG (base simulée) : 3 cartes en lecture, décisions et statuts inchangés, aucune écriture réelle, aucune erreur []
+OK 390 : en-têtes Pièce / Statut / Action visibles, colonne Action entière (aucun défilement interne : 0 px)
+OK 390 : décision sous le tableau, aucun débordement ({'ov': 0, 'dessous': True, 'droite': False})
+OK 390_sombre : en-têtes Pièce / Statut / Action visibles, colonne Action entière (aucun défilement interne : 0 px)
+OK 390_sombre : décision sous le tableau, aucun débordement ({'ov': 0, 'dessous': True, 'droite': False})
+OK 1440_sombre : en-têtes Pièce / Statut / Action visibles, colonne Action entière (aucun défilement interne : 0 px)
+OK 1440_sombre : décision à droite, aucun débordement ({'ov': 0, 'dessous': False, 'droite': True})
+38 / 38

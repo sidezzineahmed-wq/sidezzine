@@ -5,15 +5,21 @@
    a.decision {verdict, le, qui, motif} ; jamais de Go automatique ni de présélection ; une décision remplacée est conservée
    (a.decisionHist) et tracée au journal ; la société d'un dossier n'est jamais changée ici. L'avis et la recommandation de
    l'Analyste restent dans la note d'analyse. Consultation clôturée : décision affichée en lecture, aucune nouvelle soumission. */
-const B21D={v:"b21d-1",motif:{},conf:null};
-const B21D_ST={pret:["b21d-ok","Prêt"],verif:["b21d-amb","À vérifier"],joindre:["b21d-ko","À joindre"],compl:["b21d-amb","À compléter"],nonexige:["b21d-neu","Non exigé"],attrib:["b21d-neu","Si attribué"]};
-const B21D_COFFRE=["qc","refs","fis","cnss","rc","pouvoirs"],B21D_FIN=["ae","bpu","sdp"];
+const B21D={v:"b21d-2",motif:{},conf:null};
+const B21D_ST={chiffre:["b21d-amb","Chiffré · à valider"],chval:["b21d-ok","Chiffré · validé"],pret:["b21d-ok","Prêt"],verif:["b21d-amb","À vérifier"],joindre:["b21d-ko","À joindre"],compl:["b21d-amb","À compléter"],nonexige:["b21d-neu","Non exigé"],attrib:["b21d-neu","Si attribué"]};
+const B21D_COFFRE=["qc","refs","fis","cnss","rc","pouvoirs"],B21D_FIN=["bpu","sdp"];   /* l'acte d'engagement se prépare dans les pièces (B3.2) */
+/* b21d-2 : état du chiffrage de LA société, sans aucun montant (FIN-ISO-001) : couverture des PU et validation seulement */
+function b21dChiffrage(oid,a){if(!S.bp[oid])return null;try{const ET=b31Etat(oid,a),T=ET.T;return{n:T.n,N:T.n+T.miss,complet:!T.miss&&T.n>0,valide:!!ET.valide,tva:ET.tva.ok,statut:ET.statut.k};}catch(e){return null;}}
 function b21dSibs(id,a){let L=[];try{L=b31Sibs(id,a);}catch(e){L=[{id,soc:a.soc,statut:a.statut}];}return L.map(s=>({oid:s.id,sid:s.soc,a:S.ao[s.id]})).filter(x=>x.a&&x.sid);}
 function b21dRcId(oid,a){return[oid,a.base].filter(Boolean).find(x=>S.rc[x]&&Array.isArray(S.rc[x].pieces)&&S.rc[x].pieces.length)||oid;}
 function b21dLim(a){if(!a.lim)return null;const m=String(a.heure||"").match(/(\d{1,2})\s*[hH:]\s*(\d{2})?/),d=new Date(a.lim+"T"+(m?String(m[1]).padStart(2,"0")+":"+(m[2]||"00"):"23:59")+":00");return isNaN(d)?null:d;}
 const b21dClos=a=>{const d=b21dLim(a);return!!d&&d<new Date()&&!["Déposé","Attribué","Non retenu"].includes(a.statut);};
 /* statut d'une pièce : « Prêt » uniquement sur preuve vérifiée */
-function b21dPiece(row,p,oa,sid){const std=p&&p.std,st=row.st,dp=oa.dcePieces||{},F=oa.fichiers||{};
+function b21dPiece(row,p,oa,sid,CH){const std=p&&p.std,st=row.st,dp=oa.dcePieces||{},F=oa.fichiers||{};
+  if(std==="bpu"&&CH&&CH.n){const cov=CH.n+"/"+CH.N+" PU saisis";
+    if(CH.valide)return{k:"chval",ctrl:"Couverture "+cov+" · chiffrage validé (offre figée) ; signature et cachet du bordereau restent à faire"};
+    if(CH.complet)return{k:"chiffre",ctrl:"Couverture "+cov+" · chiffrage non validé"+(CH.tva?"":" ; TVA non confirmée")+" ; signature et cachet restent à faire"};
+    return{k:"compl",ctrl:"Couverture "+cov+" : "+(CH.N-CH.n)+" PU à saisir"};}
   if(std==="cpsrc"){const ok=["cps","rc"].every(k=>dp[k]&&dp[k].cachete&&dp[k].cachete.soc===sid&&dp[k].cachete.statut==="VÉRIFIÉ");
     if(ok)return{k:"pret",ctrl:"CPS et RC paraphés et cachetés au nom de "+socCourt(sid)+" : statut VÉRIFIÉ"};}
   if(std==="refs"&&F.refs&&F.refs.soc===sid&&F.refs.statut==="VÉRIFIÉ")return{k:"pret",ctrl:"Attestations de référence jointes au nom de "+socCourt(sid)+" : statut VÉRIFIÉ"};
@@ -22,18 +28,19 @@ function b21dPiece(row,p,oa,sid){const std=p&&p.std,st=row.st,dp=oa.dcePieces||{
   if(st==="manquant"||st==="bloquant")return{k:"joindre"};if(st==="remplir")return{k:"compl"};return{k:"verif"};}
 function b21dAller(oid,bur,k){if(typeof MPN!=="undefined"&&MPN.dos&&typeof mpnDosAller==="function"){S.aoId=oid;MPN.dos=Object.assign({},MPN.dos,{id:oid});mpnDosAller(bur,k);}else{S.aoId=oid;S.stepOpen={...(S.stepOpen||{}),[oid]:k};}
   render();window.scrollTo(0,0);if(typeof mpdFocus==="function")mpdFocus("#mpn-h");}
-function b21dAction(row,p,K,oid,sid){const std=p&&p.std,lab=K==="pret"?"Voir":K==="joindre"?"Joindre":K==="compl"?(B21D_FIN.includes(std)||std==="memoire"||std==="moyens"||std==="planning"?"Saisir":"Compléter"):"Vérifier";
+function b21dAction(row,p,K,oid,sid){const std=p&&p.std,lab=K==="pret"||K==="chiffre"||K==="chval"?"Ouvrir":K==="joindre"?"Joindre":K==="compl"?(B21D_FIN.includes(std)||std==="memoire"||std==="moyens"||std==="planning"?"Saisir":"Compléter"):"Vérifier";
   if(K==="nonexige"||K==="attrib")return"";
   if(B21D_COFFRE.includes(std))return`<button type="button" class="b21d-act" data-b21d-go="coffre" data-act="${act(()=>go(()=>{S.soc=sid;S.dept=null;}))}">${lab}<small>coffre ${esc(socCourt(sid))}</small></button>`;
   if(B21D_FIN.includes(std))return`<button type="button" class="b21d-act" data-b21d-go="prix" data-act="${act(()=>b21dAller(oid,"MP-B3.1","prix"))}">${lab}<small>chiffrage B3.1</small></button>`;
   return`<button type="button" class="b21d-act" data-b21d-go="pieces" data-act="${act(()=>b21dAller(oid,"MP-B3.2","pieces"))}">${lab}<small>pièces B3.2</small></button>`;}
 function b21dCarteData(oid,oa,sid){const rcId=b21dRcId(oid,oa),r=S.rc[rcId]||{},P=Array.isArray(r.pieces)?r.pieces:[];let rows=[];try{rows=b21Check(rcId,oa,sid);}catch(e){rows=[];}
   const env={"Administratif":["e1","adm"],"Technique":["e1","tec"],"Technique (offre technique)":["e1","tec"],"Financier":["e2","fin"],"Si attribué":["att","att"]};
-  const L=rows.filter(x=>x.pi!=null||x.st==="nonrens").map(x=>{const p=x.pi!=null?P[x.pi]:null,K=p?b21dPiece(x,p,oa,sid):{k:"verif"},e=env[x.g]||["e1","aut"];
+  const CH=b21dChiffrage(oid,oa);
+  const L=rows.filter(x=>x.pi!=null||x.st==="nonrens").map(x=>{const p=x.pi!=null?P[x.pi]:null,K=p?b21dPiece(x,p,oa,sid,CH):{k:"verif"},e=env[x.g]||["e1","aut"];
     return{piece:x.piece,ctrl:K.ctrl||x.ctrl,k:K.k,src:x.src,std:p&&p.std,env:e[0],sec:e[1],act:p?b21dAction(x,p,K.k,oid,sid):""};});
-  return{rcId,rows:L,reste:L.filter(x=>!["pret","nonexige","attrib"].includes(x.k)),rcOk:P.length>0,F:(()=>{try{return b21Fraicheur(rcId,oa);}catch(e){return null;}})()};}
-function b21dTable(D){const sec=[["e1","adm","Enveloppe 1 · Dossier administratif"],["e1","tec","Enveloppe 1 · Dossier technique"],["e1","aut","Enveloppe 1 · Autres pièces du RC"],["e2","fin","Enveloppe 2 · Offre financière"],["att","att","Après attribution (si le marché est attribué)"]];
-  let h=`<div class="b21d-tw"><table class="b21d-tab"><thead><tr><th scope="col">Pièce</th><th scope="col">Statut</th><th scope="col">Action</th></tr></thead><tbody>`;
+  return{rcId,CH,rows:L,reste:L.filter(x=>!["pret","nonexige","attrib"].includes(x.k)),rcOk:P.length>0,F:(()=>{try{return b21Fraicheur(rcId,oa);}catch(e){return null;}})()};}
+function b21dTable(D,sid){const sec=[["e1","adm","Enveloppe 1 · Dossier administratif"],["e1","tec","Enveloppe 1 · Dossier technique"],["e1","aut","Enveloppe 1 · Autres pièces du RC"],["e2","fin","Enveloppe 2 · Offre financière"],["att","att","Après attribution (si le marché est attribué)"]];
+  let h=`<div class="b21d-tw"><table class="b21d-tab" aria-label="Pièces de ${esc(socCourt(sid||""))} : pièce, statut, action"><caption class="b21d-sr">Pièces du dossier de ${esc(socCourt(sid||""))} selon le RC</caption><thead><tr><th scope="col">Pièce</th><th scope="col">Statut</th><th scope="col">Action</th></tr></thead><tbody>`;
   sec.forEach(([e,s,t])=>{const R=D.rows.filter(x=>x.env===e&&x.sec===s);if(!R.length)return;h+=`<tr class="b21d-sec"><th colspan="3" scope="colgroup">${esc(t)}</th></tr>`;
     R.forEach(x=>{const S2=B21D_ST[x.k]||B21D_ST.verif;h+=`<tr data-b21d-k="${x.k}"><td><b>${esc(x.piece)}</b>${x.ctrl?`<small>${esc(x.ctrl)}</small>`:""}${x.src?`<small class="b21d-src">Source : ${esc(x.src)}</small>`:""}</td><td><span class="b21d-pill ${S2[0]}">${S2[1]}</span></td><td>${x.act||`<span class="b21d-na">—</span>`}</td></tr>`;});});
   return h+`</tbody></table></div>`;}
@@ -63,13 +70,14 @@ function b21dPanneau(x,clos){const a=x.a,d=a.decision,ed=editable()&&!clos&&!["D
   else h+=`<p class="b21d-src">${clos?"Consultation clôturée : décision en lecture seule, aucune nouvelle soumission.":!editable()?"Lecture seule.":"Dossier "+esc(a.statut)+" : décision figée."}</p>`;
   if(H.length)h+=`<details class="b21d-hist"><summary>Historique des décisions (${H.length})</summary><ul>${H.map(z=>`<li>${esc(b21dDecTxt(z))}<small>remplacée le ${esc(fmtDT(z.remplaceLe))} par ${esc(b21dQui(z.remplacePar))}</small></li>`).join("")}</ul></details>`;
   return h+`</aside>`;}
-function b21dCarte(x,clos){const D=b21dCarteData(x.oid,x.a,x.sid),a=x.a;let fin="";
-  try{const ET=b31Etat(x.oid,a),r=b31ResumeTTC(x.oid,a);fin=S.bp[x.oid]?`<p class="b21d-fin" data-b21d-fin="1"><b>Chiffrage de ${esc(socCourt(x.sid))} (ses propres prix)</b> : ${esc(ET.statut.t)}${r?" · "+esc(r):""} <button type="button" class="b21d-lnk" data-act="${act(()=>b21dAller(x.oid,"MP-B3.1","prix"))}">Ouvrir le chiffrage</button></p>`:`<p class="b21d-fin">Bordereau non extrait pour ce dossier.</p>`;}catch(e){fin="";}
+function b21dCarte(x,clos){const D=b21dCarteData(x.oid,x.a,x.sid),a=x.a,CH=D.CH;
+  /* aucun montant (HT, TVA, TTC) dans cette vue multi-sociétés : couverture et validation seulement (FIN-ISO-001) */
+  const fin=CH?`<p class="b21d-fin" data-b21d-fin="1"><b>Chiffrage de ${esc(socCourt(x.sid))}</b> : ${esc(CH.n+"/"+CH.N)} PU saisis · ${CH.valide?"validé (offre figée)":CH.statut==="reprendre"?"à reprendre":"non validé"}${CH.tva?"":" · TVA non confirmée"} <button type="button" class="b21d-lnk" data-act="${act(()=>b21dAller(x.oid,"MP-B3.1","prix"))}">Ouvrir le chiffrage</button></p>`:`<p class="b21d-fin" data-b21d-fin="0">Bordereau non extrait pour ce dossier.</p>`;
   const FR=D.F?{ajour:["b21d-ok","Lecture à jour"],perimee:["b21d-ko","Note à actualiser"],inconnue:["b21d-amb","Fraîcheur non vérifiée"],absente:["b21d-amb","Aucune lecture"]}[D.F.k]:null;
   let h=`<article class="b21d-card" id="b21d-${esc(x.oid)}" data-b21d-soc="${esc(x.sid)}" data-b21d-oid="${esc(x.oid)}"><header class="b21d-ch"><div><h3>${esc(socCourt(x.sid))}</h3><p class="b21d-src">Dossier séparé · ${esc(a.statut||"")} · ${esc(a.ref||x.oid)}</p></div>
     <div class="b21d-cm"><span class="b21d-pill ${D.reste.length?"b21d-amb":"b21d-ok"}" data-b21d-reste="${D.reste.length}">${D.reste.length?D.reste.length+" point(s) restant(s)":"Aucun point restant relevé"}</span>${FR?`<span class="b21d-pill ${FR[0]}" title="${esc(D.F.txt)}">${FR[1]}</span>`:""}</div></header>
     <div class="b21d-body"><div class="b21d-main">`;
-  h+=D.rcOk?b21dTable(D):`<p class="b21d-warn">Pièces du RC non relevées pour ce dossier : liste indisponible (aucune pièce supposée). <button type="button" class="b21d-lnk" data-act="${act(()=>b21dAller(x.oid,"MP-B2.2","note"))}">Ouvrir la lecture RC / CPS</button></p>`;
+  h+=D.rcOk?b21dTable(D,x.sid):`<p class="b21d-warn">Pièces du RC non relevées pour ce dossier : liste indisponible (aucune pièce supposée). <button type="button" class="b21d-lnk" data-act="${act(()=>b21dAller(x.oid,"MP-B2.2","note"))}">Ouvrir la lecture RC / CPS</button></p>`;
   h+=fin+`<p class="b21d-src">Sources : pièces du RC lues (${esc(D.rcId)}), coffre et pièces de ${esc(socCourt(x.sid))}, chiffrage B3.1 de ce dossier. ${D.F?esc(D.F.txt):""}</p></div>${b21dPanneau(x,clos)}</div></article>`;
   return h;}
 function vDecisionB21(id,a){b21dCss();const X=b21dSibs(id,a),clos=b21dClos(a),lim=b21dLim(a),ed=editable();
@@ -120,5 +128,6 @@ const B21D_CSS=`.b21d{--d-bg:#FBF8F2;--d-card:#FFFFFF;--d-line:#E6DFD2;--d-ink:#
 .b21d-hist summary{cursor:pointer;font-size:12px;color:var(--d-amb)}.b21d-hist ul{margin:6px 0 0;padding-left:16px;font-size:12px}.b21d-hist small{display:block;color:var(--d-mut)}
 .b21d-ret h3{font-size:15px;margin-bottom:8px}.b21d-rl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}.b21d-rl li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid var(--d-line);border-radius:8px}.b21d-rl small{display:block;color:var(--d-mut);font-size:12px}
 .b21d-rla{display:flex;gap:6px;align-items:center}.b21d-add{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.b21d-add p{flex-basis:100%;margin:0;font-size:12.5px}
-@container b21d (max-width:560px){.b21d-tab thead{display:none}.b21d-tab,.b21d-tab tbody,.b21d-tab tr,.b21d-tab td,.b21d-tab th{display:block;width:auto!important}.b21d-tab tr{border-bottom:1px solid var(--d-line);padding:6px 0}.b21d-tab td{border:none;padding:3px 4px}}`;
+.b21d-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@container b21d (max-width:560px){.b21d-tab th,.b21d-tab td{padding:6px 4px}.b21d-tab td:nth-child(2){width:84px}.b21d-tab td:nth-child(3){width:86px}.b21d-tab .b21d-pill{white-space:normal;font-size:11px;padding:2px 7px}.b21d-tab .b21d-act{padding:4px 6px;max-width:100%}.b21d-tab .b21d-act small{display:none}.b21d-tab{table-layout:fixed}.b21d-tab th:nth-child(2),.b21d-tab td:nth-child(2){width:84px}.b21d-tab th:nth-child(3),.b21d-tab td:nth-child(3){width:78px}.b21d-tab td{overflow-wrap:anywhere}}`;
 function b21dCss(){if(document.getElementById("b21d-css"))return;const s=document.createElement("style");s.id="b21d-css";s.textContent=B21D_CSS;document.head.appendChild(s);}

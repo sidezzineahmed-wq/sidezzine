@@ -1,0 +1,5 @@
+B3.1 b31-5 publié : version 1791657927-5504 (base live vérifiée : 1791656412-6345 = b31-4, aucune modification concurrente)
+index.html sha256 35c19c08216711a1a46d885fa4baf1ff48a64bbbb3f1879e3e853ff7f0de2fc5
+corps sha256 8f6a8dddecd4da8c639dfb3e9035cdaaf1eeb0528f239b255bbe6412d99b4bac
+QA : qa_b31 61/61 · qa_b31_hist 16/16 · qa_b31_pct 44/44 · qa_b31_art44 24/24
+Source : décret n° 2-22-431, art. 44 B (édition TGR 2023), https://www.tgr.gov.ma/wps/wcm/connect/1f3081fc-2d01-41de-8339-9a2c7de0480f/DECRET%2B2-22-431%2BFR.pdf?MOD=AJPERES

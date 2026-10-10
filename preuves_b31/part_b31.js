@@ -7,8 +7,10 @@
    Aucune donnée d'une autre société n'est lue pour chiffrer (les onglets n'affichent que nom et statut).
    Contrôle art. 44 du décret n° 2-22-431 (édition TGR 2023, art. 44 B, p. 70) : comparaison en centimes, seuils stricts ;
    régimes études (art. 144), gardiennage / nettoyage / espaces verts (art. 43 II.1.a) ou inconnus : « à vérifier ».
-   b31-4 : objectif en % aussi sur un bordereau vide ou partiel (bases justifiées puis ajustement), voir plus bas. */
-const B31={v:"b31-4",propIA:{},propBusy:null,propErr:{},mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
+   b31-4 : objectif en % aussi sur un bordereau vide ou partiel (bases justifiées puis ajustement), voir plus bas.
+   b31-5 : seuils de l'art. 44 B BLOQUANTS pour l'application de l'objectif en % et pour la validation du chiffrage (garde dans les
+   gestionnaires, pas seulement dans l'interface) ; études et régimes inconnus : « à vérifier », aucun seuil inventé. */
+const B31={v:"b31-5",propIA:{},propBusy:null,propErr:{},mode:{},recherche:{},sansPrix:{},n:{},ouv:{},prev:{},pct:{},ch:{},vers:{},etat:{},ia:{},iaBusy:null,dlg:null,simH:{},pdf:{}};
 const B31_DECRET={url:"https://www.tgr.gov.ma/wps/wcm/connect/1f3081fc-2d01-41de-8339-9a2c7de0480f/DECRET%2B2-22-431%2BFR.pdf?MOD=AJPERES",
   ref:"Décret n° 2-22-431 du 8 mars 2023, art. 44 (édition TGR 2023, p. 69-70)",sha:"d08109b9cee1364870c99659dbe58a3aef3556ab2d87209426dc97a314e07c78"};
 const B31_SCEN=[["prudent","Prudent"],["equilibre","Équilibré"],["competitif","Compétitif"]];
@@ -106,8 +108,18 @@ function b31Bases(id,a){const X=bpX(id),lock=X.lock||{},R=b31Refs(id,a),P=propOw
 function b31BaseStat(B){const o={existant:0,ref:0,chiffreur:0,ia:0,sans:0,lock:0,qnull:0};B.forEach(z=>{if(z.r.qq==null)o.qnull++;if(z.lock)o.lock++;else if(z.pu==null)o.sans++;else o[z.m]++;});return o;}
 /* empreinte de l'aperçu : tout changement de pourcentage, société, estimation, PU, quantités, verrous, lignes ou proposition l'invalide */
 function b31PrevSig(id,a,p){const X=bpX(id),IA=b31PropIA(id,a);
-  return sha256Str(canonJSON({p:+p,soc:a.soc||null,est:b31Est(a).c,pu:X.p||{},q:X.q||{},lock:X.lock||{},ia:IA?IA.le:null,
+  return sha256Str(canonJSON({p:+p,soc:a.soc||null,est:b31Est(a).c,reg:b31Regime(a).k,tva:b31Tva(id,a).txt,pu:X.p||{},q:X.q||{},lock:X.lock||{},ia:IA?IA.le:null,
     l:b31Lignes(id).map(r=>[r.k,r.qq==null?null:+r.qq,r.x.d||"",r.x.u||""]),b:b31Bases(id,a).map(z=>[z.r.k,z.pu==null?null:z.pu,z.m||""])}));}
+/* b31-5 · garde de l'art. 44 B (décret n° 2-22-431) : bornes inclusives ; strictement au-delà = bloqué. Contrôle la cible demandée ET
+   le TTC réellement obtenu après arrondis, recalculés sur l'estimation, la catégorie et la TVA ACTUELLES. Aucune tolérance, aucun PU corrigé. */
+function b31Hors44Txt(l,A){const bas=A.k==="bas",borne=bas?A.minC:A.maxC,dep=bas?borne-A.oC:A.oC-borne;
+  return l+" "+b31Dh(A.oC)+" TTC : "+(bas?"offre anormalement basse (art. 44 B-2)":"offre excessive (art. 44 B-1)")+" — seuil "+(bas?"−"+A.regime.bas:"+20")+" % de l'estimation "+b31Dh(A.eC)+", borne "+b31Dh(borne)+" TTC ; écart "+b31EcartTxt(A.ecart)+", dépassement de "+b31Dh(dep)+".";}
+function b31Garde44(id,a,cibleC,ttcC){const E=b31Est(a),R=b31Regime(a),tva=b31Tva(id,a),G={bloque:false,raisons:[],verifier:null,regime:R.k};
+  if(tva.bloque){G.bloque=true;G.raisons.push(tva.txt+".");}
+  if(E.c==null){G.bloque=true;G.raisons.push("Estimation du maître d'ouvrage inconnue : bornes de l'art. 44 B incalculables.");return G;}
+  if(!R.bas){G.verifier=R.lab+" : aucun seuil de l'art. 44 B appliqué automatiquement (aucun seuil inventé) — à vérifier ("+(R.art||"régime inconnu")+" et RC).";return G;}
+  [["Cible demandée",cibleC],["TTC obtenu après arrondis",ttcC]].forEach(([l,c])=>{if(c==null)return;const A=b31Art44(R,c,E.c);if(A.k==="bas"||A.k==="excessif"){G.bloque=true;G.raisons.push(b31Hors44Txt(l,A));}});
+  return G;}
 function b31Previsu(id,a,p){const ET=b31Etat(id,a),X=ET.X,L=b31Lignes(id);
   if(typeof p!=="number"||!isFinite(p)||p<=-100)return{ok:false,why:"Pourcentage invalide : la cible TTC doit rester strictement positive (pourcentage supérieur à −100 %).",manque:[]};
   if(ET.E.c==null)return{ok:false,why:"Estimation du maître d'ouvrage inconnue : l'objectif en pourcentage n'a pas de base. Renseignez l'estimation (source) dans les exigences.",manque:[]};
@@ -128,9 +140,9 @@ function b31Previsu(id,a,p){const ET=b31Etat(id,a),X=ET.X,L=b31Lignes(id);
   const f=(cibleHtC-lockC)/baseC,P={...X.p},rows=[];
   lib.forEach(z=>{const k=z.r.k,v=X.p[k],n=Math.round(z.pu*f*100+1e-7)/100;rows.push({k,n:z.r.x.n||"",d:z.r.x.d||"",u:z.r.x.u||"",qq:z.r.qq,avant:v===undefined||v===""||v==null?null:+v,base:z.pu,apres:n,m:z.m,lab:z.lab,conf:z.conf,just:z.just});P[k]=n;});
   const zr=rows.filter(r=>!(r.apres>0));if(zr.length)return{ok:false,why:zr.length+" PU arrondi(s) à 0,00 DH avec ce pourcentage : objectif irréaliste pour ces lignes ; changez le pourcentage ou saisissez-les.",manque:zr.map(r=>r.n||r.k)};
-  const T2=b31Tot(id,P),st=b31BaseStat(B);
+  const T2=b31Tot(id,P),st=b31BaseStat(B),g44=b31Garde44(id,a,cibleC,T2.ttcC);
   return{ok:true,p,f,cibleC,cibleHtC,lockC,P,rows,T:T2,resteC:T2.ttcC-cibleC,lockN:lk.length,A44:b31Art44(ET.R,T2.ttcC,ET.E.c),tva:ET.tva,
-    nProp:st.ref+st.chiffreur+st.ia,nIA:st.ia,nRef:st.ref,nCh:st.chiffreur,nEx:st.existant,soc:a.soc,sig:b31PrevSig(id,a,p)};}
+    g44,nProp:st.ref+st.chiffreur+st.ia,nIA:st.ia,nRef:st.ref,nCh:st.chiffreur,nEx:st.existant,soc:a.soc,sig:b31PrevSig(id,a,p)};}
 function b31Appliquer(id,a){const pr=B31.prev[id];if(!pr||!pr.ok)return;if(!editable())return toast(RO_MSG);
   /* b31-2 : verrous relus AU MOMENT d'appliquer (une ligne verrouillée après l'aperçu n'est jamais écrasée) */
   const X=bpX(id),now=new Date().toISOString(),Lk=X.lock||{},rows=pr.rows.filter(r=>!Lk[r.k]),nv=pr.rows.length-rows.length;
@@ -141,6 +153,8 @@ function b31Appliquer(id,a){const pr=B31.prev[id];if(!pr||!pr.ok)return;if(!edit
   if(v!==pr.p){delete B31.prev[id];render();return toast("Pourcentage modifié depuis l'aperçu : rien n'est appliqué. Refaites l'aperçu.");}
   const re=b31Previsu(id,a,pr.p);
   if(!re.ok||re.sig!==pr.sig||canonJSON(re.rows.map(r=>[r.k,r.apres]))!==canonJSON(pr.rows.map(r=>[r.k,r.apres]))){delete B31.prev[id];render();return toast("Les données du bordereau ont changé depuis l'aperçu (prix, quantités, verrous ou proposition) : rien n'est appliqué. Refaites l'aperçu.");}
+  /* b31-5 : seuils de l'art. 44 B recalculés sur les données ACTUELLES juste avant toute écriture (cible et TTC obtenu) */
+  const G=b31Garde44(id,a,re.cibleC,re.T.ttcC);if(G.bloque){B31.prev[id]=re;render();return toast("Application bloquée, rien n'est écrit : "+G.raisons.join(" "));}
   X.srcL=X.srcL||{};rows.forEach(r=>{X.p[r.k]=r.apres;X.srcL[r.k]=Object.assign({m:"pct",p:pr.p,le:now,base:r.m},r.m!=="existant"?{baseLab:String(r.lab||"").slice(0,160),conf:r.conf||null,just:String(r.just||"").slice(0,300)}:{});});
   X._src="B3.1 objectif "+b31PctTxt(pr.p)+" ("+b31PartTxt(pr.p)+")"+(pr.nProp?" — "+pr.nProp+" PU de base proposés (hypothèses à vérifier)":"");
   if(pr.nProp)X._base="HYPOTHÈSE — proposition (IA, références internes ou Chiffreur) à vérifier";
@@ -212,9 +226,10 @@ function b31Consult(h){if(!h)return h;const t=document.createElement("template")
   return t.innerHTML;}
 /* ---------- validation du chiffrage (distincte du Go / No-Go d'Ahmed) ---------- */
 function b31Bloquants(id,a,ET){const B=[];if(!ET.T)B.push("bordereau absent");else{if(ET.T.miss)B.push(ET.T.miss+" PU manquant(s)");if(ET.T.zero)B.push(ET.T.zero+" PU à zéro");}
-  if(ET.tva.bloque)B.push(ET.tva.txt);if(ET.iso.length)B.push("FIN-ISO-001 : "+ET.iso[0]);if(ET.cf.length)B.push(OFR_CONFLIT);return B;}
+  if(ET.tva.bloque)B.push(ET.tva.txt);if(ET.iso.length)B.push("FIN-ISO-001 : "+ET.iso[0]);if(ET.cf.length)B.push(OFR_CONFLIT);
+  /* b31-5 : une offre hors des bornes applicables de l'art. 44 B n'est jamais validée (aucun contournement par la validation) */
+  if(ET.A44.k==="bas"||ET.A44.k==="excessif")B.push(b31Hors44Txt("Offre",ET.A44)+" Validation bloquée : revoyez les prix");return B;}
 function b31Valider(id,a){if(!editable())return toast(RO_MSG);const ET=b31Etat(id,a),B=b31Bloquants(id,a,ET);if(B.length)return toast("Validation impossible : "+B.join(" ; ")+".");
-  if((ET.A44.k==="bas"||ET.A44.k==="excessif")&&!confirmTwice("b31v44"+id))return toast(ET.A44.t+" : l'offre serait écartée. Touchez encore une fois pour valider malgré tout (décision tracée).");
   if(!confirmTwice("b31val"+id))return toast("Valider le chiffrage de "+socCourt(a.soc)+" ("+b31Dh(ET.T.ttcC)+" TTC) : touchez encore une fois. Ce n'est pas la décision Go / No-Go et rien n'est déposé sur le portail.");
   const T=bpTot(id),E=ET.E,moi=E.c?Math.round((1-ET.T.ttcC/E.c)*10000)/100:null;
   a.prixValide={mode:"b31",moi,ttc:T.ttc,ht:T.ht,le:new Date().toISOString(),qui:S.role.me||null,soc:a.soc,source:"B3.1 Chiffrage ("+(B31.mode[id]||"manuel")+")",statut:STATUT_PRIX,
@@ -361,10 +376,11 @@ function b31SimCard(id,a,ET){const v=B31.pct[id]==null?"":B31.pct[id],p=b31Parse
   if(pr&&!pr.ok)h+=`<div class="b31-need" data-b31-need="${esc(pr.k||"1")}">${b31Ic("warn")}<span>${esc(pr.why)}${pr.manque&&pr.manque.length?`<small class="b31-src">Ligne(s) N° ${esc(pr.manque.slice(0,15).join(", "))}${pr.manque.length>15?" … (+"+(pr.manque.length-15)+")":""}</small>`:""}</span></div>`;
   if(pr&&pr.ok){const stale=pr.soc!==a.soc||pr.sig!==b31PrevSig(id,a,pr.p),prop=pr.rows.filter(r=>r.m!=="existant");
     h+=`<div class="b31-prv" data-b31-prv="1"${stale?' data-b31-stale="1"':""}><p><b>Aperçu ${esc(b31PctTxt(pr.p))}</b> : ${pr.rows.length} ligne(s) ajustée(s) × ${String(Math.round(pr.f*10000)/10000).replace(".",",")}, ${pr.lockN} verrouillée(s) inchangée(s).</p>
-      <p data-b31-cible="1">TTC cible ${b31Dh(pr.cibleC)} · TTC obtenu ${b31Dh(pr.T.ttcC)} · écart d'arrondi ${pr.resteC>0?"+":""}${fmtN(pr.resteC/100)} DH, laissé tel quel (aucune ligne forcée).</p><p class="b31-src">${esc(pr.tva.txt)}.${pr.lockN?" Lignes verrouillées : "+b31Dh(pr.lockC)+" HT conservés.":""}</p><p>${b31Pill(pr.A44.k,pr.A44.t)}</p>`;
+      <p data-b31-cible="1">TTC cible ${b31Dh(pr.cibleC)} · TTC obtenu ${b31Dh(pr.T.ttcC)} · écart d'arrondi ${pr.resteC>0?"+":""}${fmtN(pr.resteC/100)} DH, laissé tel quel (aucune ligne forcée).</p><p class="b31-src">${esc(pr.tva.txt)}.${pr.lockN?" Lignes verrouillées : "+b31Dh(pr.lockC)+" HT conservés.":""}</p><p>${b31Pill(pr.A44.k,pr.A44.t)}</p>${pr.g44&&pr.g44.verifier?`<p class="b31-src" data-b31-verif44="1">${esc(pr.g44.verifier)}</p>`:""}`;
     if(prop.length)h+=`<div class="b31-hyp" data-b31-hyp="1"><b>Proposition IA / hypothèses à vérifier</b> : ${prop.length} PU de base proposé(s) (${[pr.nRef?pr.nRef+" référence(s) interne(s)":"",pr.nCh?pr.nCh+" Chiffreur":"",pr.nIA?pr.nIA+" IA":""].filter(Boolean).join(", ")}), puis ajustés à la cible. Aucune mercuriale ni base de prix de marché n'est branchée ; aucun prix d'une autre société n'est utilisé.</div>
       <details class="b31-just" data-b31-just="1"><summary>Justification de chaque PU proposé (${prop.length})</summary><ul class="b31-ul">${prop.map(r=>`<li data-b31-jk="${esc(r.k)}"><b>N° ${esc(r.n||r.k)}</b> ${esc(String(r.d).slice(0,90))}${String(r.d).length>90?"…":""} (${esc(r.u)}, qté ${esc(fmtQ(r.qq))}) : base ${fmtN(r.base)} → <b>${fmtN(r.apres)} DH</b> · ${esc(r.lab)} · confiance ${esc(r.conf||"non indiquée")}<small class="b31-src">${esc(r.just||"")}</small></li>`).join("")}</ul></details>`;
     h+=stale?`<p class="b31-need" data-b31-perime="1">${b31Ic("warn")}<span>Aperçu périmé : les données, la société, les verrous ou la proposition ont changé depuis. Refaites l'aperçu avant d'appliquer.</span></p><div class="b31-row"><button type="button" class="b31-btn" data-act="${act(()=>{B31.prev[id]=b31Previsu(id,a,pr.p);render();})}">Refaire l'aperçu</button></div></div>`
+      :pr.g44&&pr.g44.bloque?`<div class="b31-need b31-blk" data-b31-bloque44="1" role="alert">${b31Ic("warn")}<span><b>Application bloquée — hors des bornes de l'art. 44 B (décret n° 2-22-431)</b>${pr.g44.raisons.map(t=>`<small class="b31-src">${esc(t)}</small>`).join("")}<small class="b31-src">Aperçu conservé pour simulation seulement : rien n'est écrit. Changez le pourcentage ou les prix pour revenir dans les bornes (bornes incluses).</small></span></div><div class="b31-row"><button type="button" class="b31-btn b31-gold" data-b31-appl="bloque" disabled aria-disabled="true" title="${esc(pr.g44.raisons.join(" "))}">Appliquer (bloqué : art. 44 B)</button><button type="button" class="b31-btn b31-sm" data-act="${act(()=>{delete B31.prev[id];render();})}">Annuler l'aperçu</button></div></div>`
       :`<div class="b31-row"><button type="button" class="b31-btn b31-gold" data-b31-appl="1" data-act="${wact(()=>b31Appliquer(id,a))}">Appliquer aux lignes non verrouillées</button><button type="button" class="b31-btn b31-sm" data-act="${act(()=>{delete B31.prev[id];render();})}">Annuler l'aperçu</button></div><p class="b31-src">Rien n'est validé en appliquant : le chiffrage reste un brouillon (ni validation, ni Go / No-Go, ni signature, ni dépôt).</p></div>`;}
   return h+`</section>`;}
 function b31IaCard(id,a,ET){const C=b31SugChiffreur(id,a),cl=B31.ia[id]||(ET.doc&&ET.doc.ia&&ET.doc.ia.soc===a.soc?ET.doc.ia:null);
@@ -550,7 +566,7 @@ const B31_CSS=`.b31{--b21-card:#FFFFFF;--b21-ivoire:#FBF7EF;--b21-line:#E6DFD2;-
 .b31-prv{margin-top:10px;border:1px solid var(--b21-or);border-radius:10px;padding:8px 10px;font-size:12.5px;background:var(--b21-ivoire)}.b31-prv p{margin:4px 0}
 .b31-ia p{font-size:12.5px;line-height:1.5;margin:6px 0}
 .b31-base{margin-top:10px;border-top:1px solid var(--b21-line2);padding-top:8px;font-size:12.5px}.b31-base p{margin:4px 0}.b31-base .b31-btn{margin-top:4px}
-.b31-prv .b31-hyp{margin:6px 0}.b31-just summary{cursor:pointer;font-weight:600;color:var(--b21-or-p);margin:6px 0}.b31-just li small{display:block}
+.b31-prv .b31-hyp{margin:6px 0}.b31-blk{border:1px solid var(--red,#A63D32)}.b31-blk small{display:block;margin-top:4px}.b31-just summary{cursor:pointer;font-weight:600;color:var(--b21-or-p);margin:6px 0}.b31-just li small{display:block}
 .b31-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:var(--b21-card);border:1px solid var(--b21-line);border-radius:12px;padding:10px 14px;box-shadow:0 -2px 10px rgba(20,16,8,.06)}
 @media (min-width:900px){.b31-bar{position:sticky;bottom:8px;z-index:3}}
 .b31-bs{display:flex;gap:8px;align-items:center;color:var(--b21-or-p);font-size:13px;min-width:0;flex:1 1 260px}.b31-bs span{color:var(--b21-ink);overflow-wrap:anywhere}

@@ -1,25 +1,21 @@
 /* ================= B2.1 · Décision d'Ahmed par société (b21d-1) =================
    Une carte par société candidate : chaque société a son propre dossier (ao/<base>~<société>, FIN-ISO-001) ; la carte ne lit que les
    pièces, l'état et les prix de CE dossier. Pièces : liste construite depuis les pièces du RC (b21Check) et les preuves existantes
-   (coffre, pièces cachetées vérifiées, chiffrage B3.1) ; « Prêt » seulement sur preuve vérifiée. Décision : modèle existant
+   (coffre, pièces cachetées vérifiées) ; « Prêt » seulement sur preuve vérifiée. Ni chiffrage ni pièces après attribution (b21d-6). Décision : modèle existant
    a.decision {verdict, le, qui, motif} ; jamais de Go automatique ni de présélection ; une décision remplacée est conservée
    (a.decisionHist) et tracée au journal ; la société d'un dossier n'est jamais changée ici. L'avis et la recommandation de
    l'Analyste restent dans la note d'analyse. Consultation clôturée : décision affichée en lecture, aucune nouvelle soumission. */
-const B21D={v:"b21d-5",motif:{},conf:null,ajout:null,ui:{id:null,open:null,f:"tout"},cat:{}};
-const B21D_ST={chiffre:["b21d-amb","Chiffré · à valider"],chval:["b21d-ok","Chiffré · validé"],pret:["b21d-ok","Prêt"],verif:["b21d-amb","À vérifier"],joindre:["b21d-ko","À joindre"],compl:["b21d-amb","À compléter"],nonexige:["b21d-neu","Non exigé"],attrib:["b21d-neu","Si attribué"]};
+const B21D={v:"b21d-6",motif:{},conf:null,ajout:null,ui:{id:null,open:null,f:"tout"},cat:{}};
+const B21D_ST={prep:["b21d-neu","À préparer"],aprod:["b21d-amb","À produire si attribué"],pret:["b21d-ok","Prêt"],verif:["b21d-amb","À vérifier"],joindre:["b21d-ko","À joindre"],compl:["b21d-amb","À compléter"],nonexige:["b21d-neu","Non exigé"],attrib:["b21d-neu","Si attribué"]};
 const B21D_COFFRE=["qc","refs","fis","cnss","rc","pouvoirs"],B21D_FIN=["bpu","sdp"];   /* l'acte d'engagement se prépare dans les pièces (B3.2) */
-/* b21d-2 : état du chiffrage de LA société, sans aucun montant (FIN-ISO-001) : couverture des PU et validation seulement */
-function b21dChiffrage(oid,a){if(!S.bp[oid])return null;try{const ET=b31Etat(oid,a),T=ET.T;return{n:T.n,N:T.n+T.miss,complet:!T.miss&&T.n>0,valide:!!ET.valide,tva:ET.tva.ok,statut:ET.statut.k};}catch(e){return null;}}
 function b21dSibs(id,a){let L=[];try{L=b31Sibs(id,a);}catch(e){L=[{id,soc:a.soc,statut:a.statut}];}return L.map(s=>({oid:s.id,sid:s.soc,a:S.ao[s.id]})).filter(x=>x.a&&x.sid);}
 function b21dRcId(oid,a){return[oid,a.base].filter(Boolean).find(x=>S.rc[x]&&Array.isArray(S.rc[x].pieces)&&S.rc[x].pieces.length)||oid;}
 function b21dLim(a){if(!a.lim)return null;const m=String(a.heure||"").match(/(\d{1,2})\s*[hH:]\s*(\d{2})?/),d=new Date(a.lim+"T"+(m?String(m[1]).padStart(2,"0")+":"+(m[2]||"00"):"23:59")+":00");return isNaN(d)?null:d;}
 const b21dClos=a=>{const d=b21dLim(a);return!!d&&d<new Date()&&!["Déposé","Attribué","Non retenu"].includes(a.statut);};
 /* statut d'une pièce : « Prêt » uniquement sur preuve vérifiée */
-function b21dPiece(row,p,oa,sid,CH){const std=p&&p.std,st=row.st,dp=oa.dcePieces||{},F=oa.fichiers||{};
-  if(std==="bpu"&&CH&&CH.n){const cov=CH.n+"/"+CH.N+" PU saisis";
-    if(CH.valide)return{k:"chval",ctrl:"Couverture "+cov+" · chiffrage validé (offre figée) ; signature et cachet du bordereau restent à faire"};
-    if(CH.complet)return{k:"chiffre",ctrl:"Couverture "+cov+" · chiffrage non validé"+(CH.tva?"":" ; TVA non confirmée")+" ; signature et cachet restent à faire"};
-    return{k:"compl",ctrl:"Couverture "+cov+" : "+(CH.N-CH.n)+" PU à saisir"};}
+function b21dPiece(row,p,oa,sid){const std=p&&p.std,st=row.st,dp=oa.dcePieces||{},F=oa.fichiers||{};
+  /* b21d-6 : offre financière (enveloppe 2) = exigence du RC à préparer en Préparation ; aucun état de chiffrage dans la Décision */
+  if(row.g==="Financier")return{k:"prep",ctrl:"Exigence du RC, à préparer en Préparation (pièces du dossier)"};
   if(std==="cpsrc"){const ok=["cps","rc"].every(k=>dp[k]&&dp[k].cachete&&dp[k].cachete.soc===sid&&dp[k].cachete.statut==="VÉRIFIÉ");
     if(ok)return{k:"pret",ctrl:"CPS et RC paraphés et cachetés au nom de "+socCourt(sid)+" : statut VÉRIFIÉ"};}
   if(std==="refs"&&F.refs&&F.refs.soc===sid&&F.refs.statut==="VÉRIFIÉ")return{k:"pret",ctrl:"Attestations de référence jointes au nom de "+socCourt(sid)+" : statut VÉRIFIÉ"};
@@ -28,18 +24,17 @@ function b21dPiece(row,p,oa,sid,CH){const std=p&&p.std,st=row.st,dp=oa.dcePieces
   if(st==="manquant"||st==="bloquant")return{k:"joindre"};if(st==="remplir")return{k:"compl"};return{k:"verif"};}
 function b21dAller(oid,bur,k){if(typeof MPN!=="undefined"&&MPN.dos&&typeof mpnDosAller==="function"){S.aoId=oid;MPN.dos=Object.assign({},MPN.dos,{id:oid});mpnDosAller(bur,k);}else{S.aoId=oid;S.stepOpen={...(S.stepOpen||{}),[oid]:k};}
   render();window.scrollTo(0,0);if(typeof mpdFocus==="function")mpdFocus("#mpn-h");}
-function b21dAction(row,p,K,oid,sid){const std=p&&p.std,lab=K==="pret"||K==="chiffre"||K==="chval"?"Ouvrir":K==="joindre"?"Joindre":K==="compl"?(B21D_FIN.includes(std)||std==="memoire"||std==="moyens"||std==="planning"?"Saisir":"Compléter"):"Vérifier";
+function b21dAction(row,p,K,oid,sid){const std=p&&p.std,lab=K==="pret"?"Ouvrir":K==="joindre"?"Joindre":K==="compl"?(B21D_FIN.includes(std)||std==="memoire"||std==="moyens"||std==="planning"?"Saisir":"Compléter"):"Vérifier";
   if(K==="nonexige"||K==="attrib")return"";
+  if(K==="prep")return`<button type="button" class="b21d-act" data-b21d-go="pieces" data-act="${act(()=>b21dAller(oid,"MP-B3.2","pieces"))}">Préparation<small>pièces B3.2</small></button>`;
   if(B21D_COFFRE.includes(std))return`<button type="button" class="b21d-act" data-b21d-go="coffre" data-act="${act(()=>go(()=>{S.soc=sid;S.dept=null;}))}">${lab}<small>coffre ${esc(socCourt(sid))}</small></button>`;
-  if(B21D_FIN.includes(std))return`<button type="button" class="b21d-act" data-b21d-go="prix" data-act="${act(()=>b21dAller(oid,"MP-B3.1","prix"))}">${lab}<small>chiffrage B3.1</small></button>`;
   return`<button type="button" class="b21d-act" data-b21d-go="pieces" data-act="${act(()=>b21dAller(oid,"MP-B3.2","pieces"))}">${lab}<small>pièces B3.2</small></button>`;}
 function b21dCarteData(oid,oa,sid){const rcId=b21dRcId(oid,oa),r=S.rc[rcId]||{},P=Array.isArray(r.pieces)?r.pieces:[];let rows=[];try{rows=b21Check(rcId,oa,sid);}catch(e){rows=[];}
   const env={"Administratif":["e1","adm"],"Technique":["e1","tec"],"Technique (offre technique)":["e1","tec"],"Financier":["e2","fin"],"Si attribué":["att","att"]};
-  const CH=b21dChiffrage(oid,oa);
-  const L=rows.filter(x=>x.pi!=null||x.st==="nonrens").map(x=>{const p=x.pi!=null?P[x.pi]:null,K=p?b21dPiece(x,p,oa,sid,CH):{k:"verif"},e=env[x.g]||["e1","aut"];
+  const L=rows.filter(x=>x.pi!=null||x.st==="nonrens").map(x=>{const p=x.pi!=null?P[x.pi]:null,K=p?((env[x.g]||[])[0]==='att'?b21dPieceAtt(x):b21dPiece(x,p,oa,sid)):{k:"verif"},e=env[x.g]||["e1","aut"];
     return{piece:x.piece,ctrl:K.ctrl||x.ctrl,k:K.k,src:x.src,std:p&&p.std,env:e[0],sec:e[1],act:p?()=>b21dAction(x,p,K.k,oid,sid):null};});
-  return{rcId,CH,rows:L,reste:L.filter(x=>!["pret","nonexige","attrib"].includes(x.k)),rcOk:P.length>0,F:(()=>{try{return b21Fraicheur(rcId,oa);}catch(e){return null;}})()};}
-function b21dTable(D,sid){const sec=[["e1","adm","Enveloppe 1 · Dossier administratif"],["e1","tec","Enveloppe 1 · Dossier technique"],["e1","aut","Enveloppe 1 · Autres pièces du RC"],["e2","fin","Enveloppe 2 · Offre financière"],["att","att","Après attribution (si le marché est attribué)"]];
+  return{rcId,rows:L,reste:L.filter(x=>x.env==="e1"&&!["pret","nonexige","attrib","prep"].includes(x.k)),rcOk:P.length>0,F:(()=>{try{return b21Fraicheur(rcId,oa);}catch(e){return null;}})()};}
+function b21dTable(D,sid,att){const sec=att?[["att","att","Pièces exigées de l'attributaire (si le marché est attribué)"]]:[["e1","adm","Enveloppe 1 · Dossier administratif"],["e1","tec","Enveloppe 1 · Dossier technique"],["e1","aut","Enveloppe 1 · Autres pièces du RC"],["e2","fin","Enveloppe 2 · Offre financière (à préparer en Préparation)"]];
   let h=`<div class="b21d-tw"><table class="b21d-tab" aria-label="Pièces de ${esc(socCourt(sid||""))} : pièce, statut, action"><caption class="b21d-sr">Pièces du dossier de ${esc(socCourt(sid||""))} selon le RC</caption><thead><tr><th scope="col">Pièce</th><th scope="col">Statut</th><th scope="col">Action</th></tr></thead><tbody>`;
   sec.forEach(([e,s,t])=>{const R=D.rows.filter(x=>x.env===e&&x.sec===s);if(!R.length)return;h+=`<tr class="b21d-sec"><th colspan="3" scope="colgroup">${esc(t)}</th></tr>`;
     R.forEach(x=>{const S2=B21D_ST[x.k]||B21D_ST.verif;h+=`<tr data-b21d-k="${x.k}"><td><b>${esc(x.piece)}</b>${x.ctrl?`<small>${esc(x.ctrl)}</small>`:""}${x.src?`<small class="b21d-src">Source : ${esc(x.src)}</small>`:""}</td><td><span class="b21d-pill ${S2[0]}">${S2[1]}</span></td><td>${(x.act&&x.act())||`<span class="b21d-na">—</span>`}</td></tr>`;});});
@@ -70,14 +65,27 @@ function b21dPanneau(x,clos){const a=x.a,d=a.decision,ed=editable()&&!clos&&!["D
   else h+=`<p class="b21d-src">${clos?"Consultation clôturée : décision en lecture seule, aucune nouvelle soumission.":!editable()?"Lecture seule.":"Dossier "+esc(a.statut)+" : décision figée."}</p>`;
   if(H.length)h+=`<details class="b21d-hist"><summary>Historique des décisions (${H.length})</summary><ul>${H.map(z=>`<li>${esc(b21dDecTxt(z))}<small>remplacée le ${esc(fmtDT(z.remplaceLe))} par ${esc(b21dQui(z.remplacePar))}</small></li>`).join("")}</ul></details>`;
   return h+`</aside>`;}
-function b21dDetDossier(e,clos){const x=e.x,D=e.D,a=x.a,CH=D.CH;
-  /* aucun montant (HT, TVA, TTC) dans cette vue multi-sociétés : couverture et validation seulement (FIN-ISO-001) */
-  const fin=CH?`<p class="b21d-fin" data-b21d-fin="1"><b>Chiffrage de ${esc(socCourt(x.sid))}</b> : ${esc(CH.n+"/"+CH.N)} PU saisis · ${CH.valide?"validé (offre figée)":CH.statut==="reprendre"?"à reprendre":"non validé"}${CH.tva?"":" · TVA non confirmée"} <button type="button" class="b21d-lnk" data-act="${act(()=>b21dAller(x.oid,"MP-B3.1","prix"))}">Ouvrir le chiffrage</button></p>`:`<p class="b21d-fin" data-b21d-fin="0">Bordereau non extrait pour ce dossier.</p>`;
+function b21dDetDossier(e,clos){const x=e.x,D=e.D,a=x.a;
+  /* b21d-6 : périmètre avant dépôt seulement ; ni chiffrage (B3.1 / Préparation) ni pièces après attribution (Résultat B4.2) */
   const FR=D.F?{ajour:["b21d-ok","Lecture à jour"],perimee:["b21d-ko","Note à actualiser"],inconnue:["b21d-amb","Fraîcheur non vérifiée"],absente:["b21d-amb","Aucune lecture"]}[D.F.k]:null;
   let h=`<header class="b21d-ch"><p class="b21d-src">Dossier séparé · ${esc(a.statut||"")} · ${esc(a.ref||x.oid)}</p>${FR?`<span class="b21d-pill ${FR[0]}" title="${esc(D.F.txt)}">${FR[1]}</span>`:""}</header><div class="b21d-body"><div class="b21d-main">`;
   h+=D.rcOk?b21dTable(D,x.sid):`<p class="b21d-warn">Pièces du RC non relevées pour ce dossier : liste indisponible (aucune pièce supposée). <button type="button" class="b21d-lnk" data-act="${act(()=>b21dAller(x.oid,"MP-B2.2","note"))}">Ouvrir la lecture RC / CPS</button></p>`;
-  h+=fin+b21dCompatDet(e.c,x.oid)+`<p class="b21d-src">Sources : pièces du RC lues (${esc(D.rcId)}), coffre et pièces de ${esc(socCourt(x.sid))}, chiffrage B3.1 de ce dossier. ${D.F?esc(D.F.txt):""}</p></div>${b21dPanneau(x,clos)}</div>`;
+  const nAtt=D.rows.filter(z=>z.env==="att").length;
+  h+=`<p class="b21d-src" data-b21d-perim="1">Points restants : pièces de l'enveloppe 1 à réunir avant le dépôt. L'offre financière se prépare et se chiffre en Préparation${nAtt?` ; les ${nAtt} pièce${nAtt>1?"s":""} exigée${nAtt>1?"s":""} de l'attributaire sont dans la vue <button type="button" class="b21d-lnk" data-b21d-vres="1" data-act="${act(()=>b21dAller(x.oid,"MP-B4.2","res"))}">Résultat (B4.2)</button>`:""}.</p>`;
+  h+=b21dCompatDet(e.c,x.oid)+`<p class="b21d-src">Sources : pièces du RC lues (${esc(D.rcId)}), coffre et pièces de ${esc(socCourt(x.sid))}. ${D.F?esc(D.F.txt):""}</p></div>${b21dPanneau(x,clos)}</div>`;
   return h;}
+/* b21d-6 : pièces exigées de l'attributaire → vue Résultat (B4.2) du même dossier et de sa société ; section conditionnelle :
+   rien n'est supposé attribué, aucun résultat n'est modifié, rien n'est lancé ni écrit */
+function b21dPieceAtt(row){return row.st==="dispo"?{k:"pret",ctrl:row.ctrl}:{k:"aprod",ctrl:row.ctrl};}
+function vApresAttribB21(id,a){b21dCss();const sid=a.soc;if(!sid)return"";const D=b21dCarteData(id,a,sid),A=D.rows.filter(x=>x.env==="att"),nm=socCourt(sid);
+  const k=a.statut==="Attribué"?"attribue":a.statut==="Non retenu"?"nonretenu":"conditionnel";
+  let h=`<section class="b21d b21d-res" data-b21d-apres="${k}" data-b21d-res-soc="${esc(sid)}" aria-labelledby="b21d-apt-${esc(id)}"><h3 id="b21d-apt-${esc(id)}">Après attribution · pièces exigées de l'attributaire (${esc(nm)})</h3>`;
+  h+=`<p class="b21d-intro" data-b21d-cond="1">${k==="attribue"?`Marché attribué à ${esc(nm)} : pièces à produire au titre de l'attribution, selon le RC.`:k==="nonretenu"?`Sans objet : l'offre de ${esc(nm)} n'a pas été retenue. Liste conservée pour mémoire.`:`Conditionnel : à produire seulement si le marché est attribué à ${esc(nm)}. Aucun résultat n'est supposé et aucun travail n'est lancé.`}</p>`;
+  if(!D.rcOk)h+=`<p class="b21d-warn">Pièces du RC non relevées pour ce dossier : liste indisponible (aucune pièce supposée).</p>`;
+  else if(!A.length)h+=`<p class="b21d-src">Le RC lu ne mentionne aucune pièce exigée de l'attributaire.</p>`;
+  else h+=(k==="nonretenu"?`<details class="b21d-note"><summary>Pièces exigées de l'attributaire (${A.length})</summary>${b21dTable(D,sid,true)}</details>`:b21dTable(D,sid,true));
+  h+=`<p class="b21d-src">Sources : pièces du RC lues (${esc(D.rcId)}) et coffre de ${esc(nm)} (attestations fiscale et CNSS, RC / modèle 9 propres à la société). Ce dossier seulement ; affichage sans écriture.</p>`;
+  return h+`</section>`;}
 /* b21d-4 : toutes les sociétés actuelles du groupe (SOC, liste dynamique). Sans dossier pour cet AO : carte compacte avec la compatibilité
    informative du moteur B2.3 (compatEval, jamais supposée compatible) et l'ajout par la création existante du dossier séparé
    (creerSib, option sansGo : contrôles parCompat art. 27 / déjà membre / écartée, sibData FIN-ISO-001, aucune décision, aucun Go). */
@@ -115,7 +123,7 @@ function b21dCarteR(id,e,clos,open){const sid=e.sid,C=B21D_CMP[e.c.v]||B21D_CMP[
   let h=`<article class="b21d-card${e.x?"":" b21d-mini"}" ${at} data-b21d-carte="${esc(sid)}" data-b21d-compat="${esc(e.c.v)}" data-b21d-ouvert="${open?1:0}"><div class="b21d-sum">
     <h3 id="b21d-nm-${esc(sid)}">${esc(nm)}</h3><button type="button" class="b21d-btn b21d-tog" aria-expanded="${open}" aria-controls="${did}" data-b21d-tog="${esc(sid)}" data-act="${act(()=>b21dToggle(sid))}">${open?"Masquer les détails":"Afficher les détails"}<span class="b21d-sr"> de ${esc(nm)}</span></button>
     <div class="b21d-chips"><span class="b21d-pill ${e.x?"b21d-ok":"b21d-neu"}" data-b21d-aj="${e.x?1:0}">${e.x?"Ajoutée à cet AO":"Pas encore ajoutée à cet AO"}</span><span class="b21d-pill ${C[1]}" data-b21d-cv="1">Compatibilité RC : ${C[2]}</span>`
-    +(e.x?`<span class="b21d-pill ${r?"b21d-amb":"b21d-ok"}" data-b21d-reste="${r}">${r?r+" point"+(r>1?"s":"")+" restant"+(r>1?"s":""):"Aucun point restant relevé"}</span>`:`<span class="b21d-pill b21d-neu" data-b21d-reste="">Aucun dossier</span>`)
+    +(e.x?`<span class="b21d-pill ${r?"b21d-amb":"b21d-ok"}" data-b21d-reste="${r}">${r?r+" point"+(r>1?"s":"")+" restant"+(r>1?"s":"")+" avant dépôt":"Aucun point restant avant dépôt"}</span>`:`<span class="b21d-pill b21d-neu" data-b21d-reste="">Aucun dossier</span>`)
     +`<span class="b21d-pill ${dcls}" data-b21d-sdec="${esc(d?d.verdict:"aucune")}">${d?"Décision : "+esc(d.verdict)+(d.le?" · "+esc(fmtIso(d.le)):""):"Non décidée"}</span></div></div>`;
   h+=`<div class="b21d-det" id="${did}" role="region" aria-labelledby="b21d-nm-${esc(sid)}"${open?"":" hidden"}>${open?(e.x?b21dDetDossier(e,clos):b21dDetHors(id,e)):""}</div></article>`;
   return h;}
@@ -155,7 +163,8 @@ function vDecisionB21(id,a){b21dCss();const X=b21dSibs(id,a),clos=b21dClos(a),li
 function b21dPlein(id){return typeof MPN!=="undefined"&&!!MPN.dos&&MPN.dos.id===id&&MPN.dos.bur==="MP-B2.1"&&MPN.dos.k==="dec"&&!MPN.dos.global&&S.aoId===id;}
 {const _mpnDossierB21D=mpnDossier;mpnDossier=function(d){const h=_mpnDossierB21D(d);try{const id=S.aoId;if(!id||!b21dPlein(id)||h.indexOf("b31-full")>=0)return h;b31Css();
   const t=h.replace('<div class="mpn" data-mpn-dossier-vue=','<div class="mpn b31-full b21d-full" data-mpn-dossier-vue=');return t.indexOf("b21d-full")<0?h:t;}catch(e){return h;}};}
-{const _aoStepsB21D=aoSteps;aoSteps=function(id,a){const L=_aoStepsB21D(id,a),n=L.find(s=>s.k==="dec");if(n)n.body=()=>vDecisionB21(id,a);return L;};}
+{const _aoStepsB21D=aoSteps;aoSteps=function(id,a){const L=_aoStepsB21D(id,a),n=L.find(s=>s.k==="dec");if(n)n.body=()=>vDecisionB21(id,a);
+  const r=L.find(s=>s.k==="res");if(r&&r.body){const b0=r.body;r.body=()=>{let x="";try{x=vApresAttribB21(id,a);}catch(e){x="";}return b0()+x;};}return L;};}
 document.getElementById("view").addEventListener("input",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.b21dMotif!=null)B21D.motif[t.dataset.b21dMotif]=t.value;});
 const B21D_TOK=`--d-bg:#151B23;--d-card:#1B232E;--d-line:#2E3946;--d-ink:#EEE9DF;--d-mut:#A7ADB6;--d-okb:rgba(31,122,77,.22);--d-ok:#7FD1A6;--d-ambb:rgba(195,160,106,.2);--d-amb:#E3C48F;--d-kob:rgba(166,61,50,.25);--d-ko:#F0A49A;--d-neub:rgba(255,255,255,.08);--d-sec:rgba(195,160,106,.1)`;
 const B21D_CSS=`.b21d{--d-bg:#FBF8F2;--d-card:#FFFFFF;--d-line:#E6DFD2;--d-ink:#16171A;--d-mut:#6B6E75;--d-okb:#E9F4EE;--d-ok:#1F7A4D;--d-ambb:#FBF1DE;--d-amb:#8A551C;--d-kob:#FBEAE7;--d-ko:#A63D32;--d-neub:#F1F0EC;--d-sec:#F6EFE2;
@@ -190,6 +199,7 @@ const B21D_CSS=`.b21d{--d-bg:#FBF8F2;--d-card:#FFFFFF;--d-line:#E6DFD2;--d-ink:#
 .b21d-card.b21d-mini{border-style:dashed}.b21d-det{margin-top:12px;padding-top:12px;border-top:1px solid var(--d-line);display:flex;flex-direction:column;gap:10px}.b21d-det[hidden]{display:none}.b21d-det>.b21d-ch{margin:0}.b21d-cd{display:flex;flex-direction:column;gap:6px;margin-top:10px}
 .b21d-vide{margin:0;padding:12px;border:1px dashed var(--d-line);border-radius:10px;color:var(--d-mut)}
 @container b21d (max-width:420px){.b21d-sum{grid-template-columns:minmax(0,1fr);grid-template-areas:"nm" "ch" "tog"}.b21d-tog{width:100%}.b21d-chips .b21d-pill{white-space:normal}}
+.b21d-res{margin-top:16px}.b21d-res h3{font-size:15px}
 .b21d-noteb{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.b21d-noteb .b21d-src{margin:0;flex:1 1 260px}
 .b21d-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @container b21d (max-width:560px){.b21d-tab th,.b21d-tab td{padding:6px 4px}.b21d-tab td:nth-child(2){width:84px}.b21d-tab td:nth-child(3){width:86px}.b21d-tab .b21d-pill{white-space:normal;font-size:11px;padding:2px 7px}.b21d-tab .b21d-act{padding:4px 6px;max-width:100%}.b21d-tab .b21d-act small{display:none}.b21d-tab{table-layout:fixed}.b21d-tab th:nth-child(2),.b21d-tab td:nth-child(2){width:84px}.b21d-tab th:nth-child(3),.b21d-tab td:nth-child(3){width:78px}.b21d-tab td{overflow-wrap:anywhere}}`;

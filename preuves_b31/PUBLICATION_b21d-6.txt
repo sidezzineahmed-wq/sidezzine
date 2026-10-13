@@ -1,0 +1,19 @@
+b21d-6 · Périmètre des bureaux : Décision (avant dépôt) / Préparation (chiffrage) / Résultat (après attribution)
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Base live vérifiée avant modification et juste avant publication : 1791932650-9065 (b21d-5), aucun changement concurrent.
+Version publiée : 300 · id 1791934139-92e7 · index 1 594 503 octets, sha256 a5eccbe84a43c6b6aff093cdd529a2478537c5e9620bf87aa32244a326c0d395
+Corps sha256 bc0746514021e32fe7d9052491593ab5c7f1d852c4650b20059934ab3c2bf9f6 ; index = squelette + corps (diff 0) ; 16 fichiers ; capacités et partage inchangés ; sans force.
+
+Changements (module B2.1 seulement ; build.py inchangé) :
+- Décision : section « Après attribution » retirée ; bloc « Chiffrage de … » (PU, couverture, TVA, validation) et lien
+  « Ouvrir le chiffrage » retirés ; b21dChiffrage supprimé (b31Etat n'est plus appelé par la Décision).
+  Enveloppe 2 (AE, bordereau…) : exigences du RC « À préparer », lien générique Préparation (pièces B3.2), sans chiffre.
+  Points restants = pièces de l'enveloppe 1 non prêtes (« avant dépôt »), hors offre financière et hors après attribution ;
+  phrase de périmètre + lien vers Résultat (B4.2). Sources : « chiffrage B3.1 » retiré. Compatibilité B2.3 conservée.
+- Résultat (B4.2) du même dossier : section « Après attribution · pièces exigées de l'attributaire (société) » ajoutée
+  à la suite du contenu existant (vResultat + aoSuivi inchangés). Conditionnelle : « Conditionnel » tant que rien n'est
+  attribué, « Marché attribué à … » si statut Attribué, « Sans objet » (liste repliée) si Non retenu. Lignes RC (fiscal,
+  CNSS, RC / modèle 9) avec l'état du coffre de la société du dossier et actions coffre. Affichage seulement, aucune écriture.
+
+Recettes (fixtures uniquement, aucune donnée réelle modifiée) :
+qa_b21dec 95/95 · qa_b31 64/64 · qa_qual 21/21 · qa_hist 17/17 · qa_pdf 9/9 · qa_b31_v6e 14/14 · qa_ergo 344/344

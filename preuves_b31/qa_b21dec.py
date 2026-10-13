@@ -13,8 +13,11 @@ M["ao"]["fx-dec~siditrav"]=ao("FX-DEC","siditrav","2026-12-15",base="fx-dec",sta
     dcePieces={"cps":{"cachete":{"id":"c1","soc":"siditrav","statut":"VÉRIFIÉ"}},"rc":{"cachete":{"id":"c2","soc":"siditrav","statut":"VÉRIFIÉ"}}})
 M["ao"]["fx-dec~alwaad-ataib"]=ao("FX-DEC","alwaad-ataib","2026-12-15",base="fx-dec",statut="Abandonné",decision={"verdict":"No-Go","le":"2026-10-02","qui":"autre_compte","motif":"plan de charge"},
     fichiers={"refs":{"id":"y","nom":"refs.pdf","soc":"sakdat","statut":"VÉRIFIÉ"}})   # preuve d'une AUTRE société : jamais « Prêt »
+M["ao"]["fx-deca"]=ao("FX-DECA","sakdat","2026-09-01",statut="Attribué",decision={"verdict":"Go","le":"2026-08-10","qui":"autre_compte"})
+M["ao"]["fx-decn"]=ao("FX-DECN","up-modulor","2026-09-01",statut="Non retenu",decision={"verdict":"Go","le":"2026-08-11","qui":"autre_compte"})
 M["ao"]["fx-decc"]=ao("FX-DECC","sakdat","2026-09-01",statut="En préparation",decision={"verdict":"Go","le":"2026-08-20","qui":"autre_compte"})
-for k in ("fx-dec","fx-decc"):M["rc"][k]=json.loads(json.dumps(RC))
+for k in ("fx-dec","fx-decc","fx-deca","fx-decn"):M["rc"][k]=json.loads(json.dumps(RC))
+NATT=sum(1 for x in RC["pieces"] if x.get("env")=="attributaire")
 L3=[{"n":"1","d":"Ligne fictive A","u":"U","q":3,"s":"A. Section"},{"n":"2","d":"Ligne fictive B","u":"m²","q":10,"s":"A. Section"}]
 for k in ("fx-dec","fx-dec~siditrav"):M["bp"][k]={"lots":[{"lignes":L3}],"cadre":False,"alertes":[]}
 M["bpx"]["fx-dec"]={"p":{"0-0":1111.11,"0-1":22.22},"q":{},"soc":"sakdat","tva":{"taux":20,"etat":"confirme","src":{"doc":"CPS FICTIF","page":"1"},"mixte":False,"lignes":{}}}
@@ -41,27 +44,46 @@ with sync_playwright() as p:
     dec(pg,"fx-dec");w0=len(W())
     PC="""s=>{const c=document.querySelector('[data-b21d-soc="'+s+'"]'),rows=[...c.querySelectorAll('tbody tr')].filter(r=>!r.classList.contains('b21d-sec')),t=c.querySelector('table.b21d-tab'),th=[...t.querySelectorAll('thead th')];
       const row=p=>rows.find(r=>r.innerText.includes(p));return{soc:s,n:rows.length,v:c.querySelector('[data-b21d-verdict]').dataset.b21dVerdict,pre:!!c.querySelector('[data-b21d-dec][aria-pressed="true"]'),
-      st:Object.fromEntries(['CPS et RC','attestations de référence','Bordereau des prix'].map(p=>[p,row(p)?row(p).dataset.b21dK:null])),ks:rows.map(r=>r.dataset.b21dK),fin:(c.querySelector('[data-b21d-fin]')||{}).innerText||'',txt:c.innerText,
+      st:Object.fromEntries(['CPS et RC','attestations de référence','Bordereau des prix'].map(p=>[p,row(p)?row(p).dataset.b21dK:null])),ks:rows.map(r=>r.dataset.b21dK),fin:!!c.querySelector('[data-b21d-fin]'),txt:c.innerText,
       bp:(r=>r?{t:r.innerText,go:(r.querySelector('[data-b21d-go]')||{dataset:{}}).dataset.b21dGo}:null)(row('Bordereau des prix')),ae:(r=>r?(r.querySelector('[data-b21d-go]')||{dataset:{}}).dataset.b21dGo:null)(row("Acte d'engagement")),
       hd:{txt:th.map(x=>x.innerText.trim()),vis:getComputedStyle(t.tHead).display!=='none'&&th.every(x=>x.getBoundingClientRect().height>0),scope:th.every(x=>x.getAttribute('scope')==='col'),cap:!!t.caption,lab:t.getAttribute('aria-label')}}}"""
     C=[]
     for sid in ev("()=>[...document.querySelectorAll('[data-b21d-oid]')].map(c=>c.dataset.b21dSoc)"):ouvre(pg,sid);C.append(ev(PC,sid))
     CB={x["soc"]:x for x in C}
-    chk(sorted(CB)==["alwaad-ataib","sakdat","siditrav"] and all(x["n"]==NP for x in C),f"une carte par société candidate (3), {NP} pièces chacune (détails ouverts une carte à la fois), construites depuis les pièces du RC")
+    chk(sorted(CB)==["alwaad-ataib","sakdat","siditrav"] and all(x["n"]==NP-NATT for x in C),f"une carte par société candidate (3), {NP-NATT} pièces avant dépôt chacune (les {NATT} pièces de l'attributaire sont hors Décision) (détails ouverts une carte à la fois), construites depuis les pièces du RC")
     T="\n".join(x["txt"] for x in C)
     chk("Enveloppe 1 · Dossier administratif" in T and "Enveloppe 1 · Dossier technique" in T and "Enveloppe 2 · Offre financière" in T and T.find("Enveloppe 1 · Dossier administratif")<T.find("Enveloppe 2 · Offre financière"),"sections Enveloppe 1 (administratif puis technique) puis Enveloppe 2 (financier)")
     chk(not re.search(r"(?i)recommand|conclusion automatique|la plus avancée",T+pg.inner_text("[data-b21d]")) and CB["sakdat"]["v"]=="aucune" and not CB["sakdat"]["pre"],"aucune recommandation, conclusion automatique ni présélection ; SAKDAT sans décision affiché « Aucune décision »")
     st=lambda s_,p_:CB[s_]["st"].get(p_)
     chk(st("siditrav","CPS et RC")=="pret" and st("sakdat","CPS et RC")!="pret" and st("alwaad-ataib","CPS et RC")!="pret","« CPS et RC signés » Prêt seulement pour SIDITRAV (CPS et RC cachetés VÉRIFIÉ à son nom)")
     chk(st("sakdat","attestations de référence")=="pret" and st("alwaad-ataib","attestations de référence")!="pret","références Prêt pour SAKDAT (fichier VÉRIFIÉ à son nom) ; jamais pour ALWAAD avec un fichier au nom d'une autre société")
-    ks=[k for x in C for k in x["ks"]];chk(set(ks)<= {"pret","verif","joindre","compl","nonexige","attrib","chiffre","chval"} and "joindre" in ks and "compl" in ks and "verif" in ks,f"statuts limités à Prêt / À vérifier / À joindre / À compléter (+ non exigé, si attribué, chiffré) : {sorted(set(ks))}")
+    ks=[k for x in C for k in x["ks"]];chk(set(ks)<= {"pret","verif","joindre","compl","nonexige","prep"} and "joindre" in ks and "compl" in ks and "verif" in ks and "prep" in ks,f"statuts limités à Prêt / À vérifier / À joindre / À compléter / À préparer (+ non exigé), aucun état de chiffrage ni « si attribué » : {sorted(set(ks))}")
     TT=T.replace(" "," ").replace("\xa0"," ")
-    chk("2/2 PU saisis" in CB["sakdat"]["fin"] and "1/2 PU saisis" in CB["siditrav"]["fin"] and not re.search(r"TTC|\bHT\b",TT) and not re.search(r"1 111,11|999,99|22,22",TT),"aucun montant HT / TVA / TTC ni PU dans la vue multi-sociétés : couverture (2/2, 1/2 PU) et validation seulement")
-    chk(st("sakdat","Bordereau des prix")=="chiffre" and st("siditrav","Bordereau des prix")=="compl","bordereau : « Chiffré · à valider » quand tous les PU de la société sont saisis (non validé), « À compléter » si partiel")
-    bp=CB["sakdat"]["bp"];chk("Chiffré · à valider" in bp["t"] and "Couverture 2/2 PU saisis" in bp["t"] and "signature et cachet restent à faire" in bp["t"] and "Ouvrir" in bp["t"] and bp["go"]=="prix","bordereau rempli : couverture réelle, signature non prétendue, action « Ouvrir » le chiffrage B3.1")
-    chk(CB["sakdat"]["ae"]=="pieces","acte d'engagement : action vers sa préparation (pièces B3.2), pas le chiffrage")
+    chk(not re.search(r"Chiffrage de|PU saisis|Ouvrir le chiffrage|chiffrage B3\.1|Couverture|TVA|Chiffré|Après attribution|Si attribué|attributaire \(si",T) and not re.search(r"TTC|\bHT\b",TT) and not re.search(r"1 111,11|999,99|22,22",TT) and all(not x["fin"] for x in C),"Décision : ni bloc « Chiffrage de … », ni PU / couverture / TVA / validation, ni lien « Ouvrir le chiffrage », ni section après attribution")
+    chk(st("sakdat","Bordereau des prix")=="prep" and st("siditrav","Bordereau des prix")=="prep" and CB["sakdat"]["bp"]["go"]=="pieces" and "Préparation" in CB["sakdat"]["bp"]["t"] and CB["sakdat"]["ae"]=="pieces" and ev("()=>document.querySelectorAll('[data-b21d] [data-b21d-go=\"prix\"]').length")==0,"enveloppe 2 (AE, bordereau) : exigences du RC « À préparer », lien générique Préparation (B3.2), aucun lien vers le chiffrage B3.1")
+    RS=ev("()=>{const a=S.ao['fx-dec'];return b21dSibs('fx-dec',a).map(x=>{const D=b21dCarteData(x.oid,x.a,x.sid);return[x.sid,D.reste.length,D.reste.filter(r=>r.env!=='e1').length,D.rows.filter(r=>r.env==='e1'&&!['pret','nonexige','attrib','prep'].includes(r.k)).length]})}")
+    chk(all(r[1]==r[3] and r[2]==0 for r in RS) and all(CB[r[0]]["txt"].count("avant dépôt")>=1 for r in RS),f"points restants = pièces de l'enveloppe 1 non prêtes, hors offre financière et hors après attribution ({[(r[0],r[1]) for r in RS]})")
     chk(all(x["hd"]["txt"]==["Pièce","Statut","Action"] and x["hd"]["vis"] and x["hd"]["scope"] and x["hd"]["cap"] and "pièce, statut, action" in x["hd"]["lab"] for x in C),"en-têtes Pièce / Statut / Action visibles (scope=col), légende et libellé accessibles sur chaque tableau")
     chk(len(W())==w0,"affichage : aucune écriture")
+    # ===== b21d-6 : pièces de l'attributaire dans la vue Résultat (B4.2) du même dossier ; rien d'écrit ; B3.1 intact =====
+    ev("()=>{window.__b31n=0;const o=b31Etat;b31Etat=function(){window.__b31n++;return o.apply(this,arguments);};}")
+    dec(pg,"fx-dec");ouvre(pg,"sakdat");ouvre(pg,"siditrav");chk(ev("()=>window.__b31n")==0,"Décision (résumés et détails) : le chiffrage B3.1 n'est ni recalculé ni lu (b31Etat appelé 0 fois)")
+    w6=len(W());a6=ev("()=>JSON.stringify(['fx-dec','fx-dec~siditrav','fx-deca','fx-decn'].map(i=>[S.ao[i].statut,S.ao[i].decision||null,S.ao[i].soc]))")
+    ouvre(pg,"sakdat");pg.click('[data-b21d-carte="sakdat"] [data-b21d-vres]');pg.wait_for_timeout(500)
+    RES="""()=>{const s=document.querySelector('[data-b21d-apres]');if(!s)return null;return{vue:document.querySelector('[data-mpn-dossier-vue]').dataset.mpnDossierVue,id:S.aoId,k:s.dataset.b21dApres,soc:s.dataset.b21dResSoc,txt:s.innerText,rows:[...s.querySelectorAll('tbody tr[data-b21d-k]')].map(r=>[r.dataset.b21dK,(r.querySelector('[data-b21d-go]')||{dataset:{}}).dataset.b21dGo||null]),det:!!s.querySelector('details'),n:document.querySelectorAll('[data-b21d-apres]').length}}"""
+    r6=ev(RES)
+    chk(r6 and r6["vue"]=="MP-B4.2|res" and r6["id"]=="fx-dec" and r6["soc"]=="sakdat" and r6["k"]=="conditionnel" and r6["n"]==1 and len(r6["rows"])==NATT and all(k in ("aprod","pret") for k,_ in r6["rows"]) and all(g=="coffre" for k,g in r6["rows"] if k=="aprod"),f"lien « Résultat (B4.2) » de la carte SAKDAT : vue Résultat du même dossier, {NATT} pièces de l'attributaire de SAKDAT avec actions coffre ({r6 and r6['rows']})")
+    chk("Conditionnel : à produire seulement si le marché est attribué à SAKDAT" in r6["txt"] and "Aucun résultat n'est supposé" in r6["txt"] and "Source" in r6["txt"] and "coffre de SAKDAT" in r6["txt"],"Résultat : section clairement conditionnelle (rien supposé attribué, rien lancé), sources RC et coffre de la société")
+    pg.click('[data-b21d-apres] [data-b21d-go="coffre"]');pg.wait_for_timeout(300);chk(ev("()=>S.soc")=="sakdat","action coffre depuis Résultat : ouvre le coffre de SAKDAT (société propriétaire du dossier)")
+    dec(pg,"fx-dec");ouvre(pg,"siditrav");pg.click('[data-b21d-carte="siditrav"] [data-b21d-vres]');pg.wait_for_timeout(500);r7=ev(RES)
+    chk(r7 and r7["id"]=="fx-dec~siditrav" and r7["soc"]=="siditrav" and "SIDITRAV" in r7["txt"] and "SAKDAT" not in r7["txt"],"depuis la carte SIDITRAV : Résultat du dossier SIDITRAV, pièces au nom de SIDITRAV seulement")
+    ev("id=>{S.dept='ao';S.soc=null;S.aoId=id;render();}","fx-deca");pg.click('[data-mpn-dosbur="MP-B4.2|res"]');pg.wait_for_timeout(500);r8=ev(RES)
+    chk(r8 and r8["k"]=="attribue" and "Marché attribué à SAKDAT" in r8["txt"] and len(r8["rows"])==NATT,"dossier fictif « Attribué » : pièces à produire au titre de l'attribution")
+    ev("id=>{S.dept='ao';S.soc=null;S.aoId=id;render();}","fx-decn");pg.click('[data-mpn-dosbur="MP-B4.2|res"]');pg.wait_for_timeout(500);r9=ev(RES)
+    chk(r9 and r9["k"]=="nonretenu" and "Sans objet" in r9["txt"] and r9["det"] and r9["soc"]=="up-modulor","dossier fictif « Non retenu » : « Sans objet », liste repliée pour mémoire")
+    chk(len(W())==w6 and ev("()=>JSON.stringify(['fx-dec','fx-dec~siditrav','fx-deca','fx-decn'].map(i=>[S.ao[i].statut,S.ao[i].decision||null,S.ao[i].soc]))")==a6,"Résultat : aucune écriture, aucune attribution ni résultat créé, statuts / décisions / sociétés inchangés")
+    ouvrir(pg,"fx-dec");b6=ev("()=>{const E=b31Etat('fx-dec',S.ao['fx-dec']);return{n:E.T.n,miss:E.T.miss,p:S.bpx['fx-dec'].p,v:!!document.querySelector('[data-b31]')}}")
+    chk(b6["v"] and b6["n"]==2 and b6["miss"]==0 and b6["p"]=={"0-0":1111.11,"0-1":22.22} and len(W())==w6,"B3.1 intact : vue chiffrage du dossier, 2/2 PU et prix fictifs inchangés, aucune écriture")
     # ===== b21d-5 : cartes repliées, une seule ouverte, filtres, Modifier, Actualiser, changement d'AO =====
     dec(pg,"fx-dec");pg.evaluate("()=>{B21D.ui={id:null,open:null,f:'tout'};render();}");pg.wait_for_timeout(200);w0=len(W());dec0=ev("()=>JSON.stringify(['fx-dec','fx-dec~siditrav','fx-dec~alwaad-ataib'].map(i=>[S.ao[i].decision||null,S.ao[i].statut]))")
     SUM="""()=>[...document.querySelectorAll('[data-b21d-carte]')].map(c=>{const t=c.querySelector('[data-b21d-tog]'),d=c.querySelector('.b21d-det');return{sid:c.dataset.b21dCarte,ouv:c.dataset.b21dOuvert,aj:c.querySelector('[data-b21d-aj]').dataset.b21dAj,cv:c.querySelector('[data-b21d-cv]').innerText,reste:c.querySelector('[data-b21d-reste]').dataset.b21dReste,sdec:c.querySelector('[data-b21d-sdec]').innerText,
@@ -217,6 +239,9 @@ with sync_playwright() as p:
         chk(nv["note"]==0 and nv["b"] and q.evaluate("()=>document.querySelectorAll('[data-b21]').length")==0,f"{tag} : vue Décision sans note ; aller-retour vers la note et retour à la Décision")
         chk(hv and max(tw)<=1,f"{tag} : en-têtes Pièce / Statut / Action visibles, colonne Action entière (aucun défilement interne : {max(tw)} px)")
         chk(L["ov"]<=1 and (L["dessous"] if w<600 else L["droite"]) and not e,f"{tag} : {'décision sous le tableau' if w<600 else 'décision à droite'}, aucun débordement ({L})")
-        q.locator('[data-b21d-soc="siditrav"]').screenshot(path=f"{OUT}/fx_dec_{tag}.png");c.close()
+        q.locator('[data-b21d-soc="siditrav"]').screenshot(path=f"{OUT}/fx_dec_{tag}.png")
+        q.evaluate("id=>{S.dept='ao';S.soc=null;S.aoId=id;render();}","fx-dec");q.click('[data-mpn-dosbur="MP-B4.2|res"]');q.wait_for_timeout(500)
+        rm=q.evaluate("()=>{const s=document.querySelector('[data-b21d-apres]');const t=s.querySelector('.b21d-tw');return{ov:document.documentElement.scrollWidth-document.documentElement.clientWidth,tw:t?t.scrollWidth-t.clientWidth:0,w:s.scrollWidth-s.clientWidth}}")
+        chk(rm["ov"]<=1 and rm["tw"]<=1 and rm["w"]<=1 and not e,f"{tag} : section après attribution (Résultat) lisible, sans débordement ({rm})");q.locator('[data-b21d-apres]').screenshot(path=f"{OUT}/resultat_{tag}.png");c.close()
 print(sum(x.startswith("OK") for x in R),"/",len(R))
 json.dump(R,open(os.path.join(OUT,"resultats.json"),"w",encoding="utf-8"),ensure_ascii=False,indent=1)

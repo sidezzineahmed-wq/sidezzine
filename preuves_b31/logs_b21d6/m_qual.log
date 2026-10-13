@@ -1,0 +1,22 @@
+OK BG : étape Note « Fait » (historique) affichée « En cours » — Analyse à compléter : consistance non rédigée · avis enregistré du 24/09/2026
+OK liste du bureau B2.1 : 05/2026/BGGOUVERNEUR DE LA PROVINCE D'ES-SMARA, date limite 25/09/2026 · En préparationAnalyse à compléter : consistance non rédigée · avis 
+OK BG : en-tête « Étape : En cours », navigation « B2.1 · Note d'analyse En cours », PDF « En cours » cohérents
+OK BG : état du travail ['docs:Documents lus', 'analyse:Analyse à compléter', 'revue:Revue humaine non enregistrée']
+OK BG : l'avis de l'Analyste (numérique) n'est pas compté comme revue humaine
+OK BG : 18 faits disponibles mais analyse « a_completer » (une synthèse dérivée ne suffit jamais)
+OK consistance sourcée + essentiels → « À vous » : Analyse complète · revue humaine non enregistrée
+OK revue nominative enregistrée → « Fait » : Analyse complète, revue par Ahmed
+OK consistance rédigée sans source → reste à compléter : Analyse à compléter : consistance rédigée, sources à indiquer · avis enregistré du 24/09/2026
+OK peu renseigné : étape d'origine conservée (attente), analyse non commencée, 8 inconnus explicités, actions ['Récupérer le DCE du dossier', 'Préparer ou vérifier 1 pièce(s) pour ALWAAD ATAIB']
+OK SAP : écart des références en obstacle (non résolu) et action « Clarifier »
+OK contradictions IR-3 : {'id': 'pmmp-1036306', 'n': 1, 'O': 1}
+OK BG : décision d'Ahmed « Go » rattachée à SAKDAT seule ; autres sociétés « ne concerne pas »
+OK aucun nom d'autre société dans le statut d'une société
+OK avis enregistré repris pour les seules sociétés que l'Analyste a évaluées
+OK raisons défavorables : seulement des justificatifs datés échus (une donnée manquante n'est jamais une incapacité)
+OK isolement : vider le coffre d'ALWAAD ATAIB ne change rien au statut de SAKDAT
+OK onglets sociétés : aucun nom d'une autre société affiché []
+OK aucune décision modifiée (toutes les décisions identiques avant/après)
+OK aucune écriture en base
+OK aucune erreur JavaScript []
+21 / 21

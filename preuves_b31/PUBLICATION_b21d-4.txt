@@ -1,0 +1,19 @@
+b21d-4 · B2.1 Décision : toutes les sociétés actuelles du groupe
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Base live vérifiée avant modification et juste avant publication : 1791930922-fdd7 (b21d-3), aucun changement concurrent.
+Version publiée : 298 · id 1791931887-4159 · index 1 587 212 octets, sha256 0832d0df6635c878a56f34aa573e60f01248e38f1a7ee66a6f19c7a0b7ba54a0
+Corps sha256 9a728745f267c2e702d9b57d0f58aa6d75fc02cc505d9618aff7317da563ccc1 ; index = squelette + corps (diff 0) ; 16 fichiers ; capacités et partage inchangés ; sans force.
+
+Changements :
+- Vue Décision : toutes les sociétés de SOC (liste dynamique). Sociétés avec dossier : cartes complètes inchangées.
+  Sans dossier : carte compacte (nom, « Pas encore ajoutée à cet AO », compatibilité RC du vrai moteur B2.3 compatEval :
+  verdict, n justifiés / incompatibles / à vérifier, 3 premiers motifs + reste, lien B2.3). Verdict non déterminé : « À vérifier ».
+- Ordre : ajoutées, compatibles, à vérifier, incompatibles ; compteur « n / total sociétés ajoutées à cet AO ».
+- « Ajouter à cet AO » : double confirmation, puis creerSib (création existante du dossier séparé base~société) avec la nouvelle option
+  sansGo : mêmes contrôles parCompat (art. 27, déjà membre, écartée), mêmes données publiques (sibData, FIN-ISO-001) ;
+  statut « À examiner », aucune décision ni Go, préparation non lancée, dossier ouvert inchangé. Sans option : creerSib inchangé.
+- Ajout bloqué (bouton désactivé + raison) : incompatible, art. 27, date limite passée, lecture seule, dossier déposé/attribué/non retenu.
+- L'ancien bloc « Ajouter une société … la création vaut Go » est supprimé.
+
+Recettes (fixtures uniquement, aucun ajout ni décision réelle) :
+qa_b21dec 65/65 · qa_b31 64/64 · qa_qual 21/21 · qa_hist 17/17 · qa_pdf 9/9 · qa_b31_v6e 14/14 · qa_ergo 344/344

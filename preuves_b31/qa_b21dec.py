@@ -89,14 +89,54 @@ with sync_playwright() as p:
     chk(ev("()=>[...document.querySelectorAll('[data-b21d-ret]')].length")==0,"retirée de la liste des entreprises retenues")
     pg.click(f'{CARD("siditrav")} [data-b21d-dec="Go"]');pg.wait_for_timeout(200);pg.click(f'{CARD("siditrav")} [data-b21d-dec="Go"]');pg.wait_for_timeout(400)
     chk(ev("()=>[S.ao['fx-dec~siditrav'].decision.verdict,S.ao['fx-dec~siditrav'].statut,S.ao['fx-dec~siditrav'].decisionHist.length]")==["Go","En préparation",2],"réversible : nouveau Go, historique complet (2 décisions remplacées)")
-    # ajouter une société via le modèle existant (creerSib)
-    ab=ev("()=>[...document.querySelectorAll('[data-b21d-ajout]')].map(x=>x.dataset.b21dAjout)");chk("riyada-build" in ab and "sakdat" not in ab and "siditrav" not in ab,f"« Ajouter » propose seulement des sociétés sans dossier, contrôlées par parCompat ({ab})")
-    w0=len(W());pg.click('[data-b21d-ajout="riyada-build"]');pg.wait_for_timeout(200);chk(len(W())==w0,"Ajouter : confirmation demandée, rien n'est créé au premier appui")
-    pg.click('[data-b21d-ajout="riyada-build"]');pg.wait_for_timeout(800);n=ev("()=>S.ao['fx-dec~riyada-build']")
-    chk(n and n["soc"]=="riyada-build" and n["decision"]["verdict"]=="Go" and n["decision"].get("parallele") and not n.get("decisionHist") and ["set","ao/fx-dec~riyada-build"] in W()[w0:],"Ajouter confirmé : dossier séparé créé par le modèle existant (creerSib), aucun prix ni pièce recopié")
+    # ===== b21d-4 : toutes les sociétés actuelles du groupe ; cartes compactes ; ajout sans Go =====
+    HORS="()=>[...document.querySelectorAll('[data-b21d-hors]')].map(c=>({sid:c.dataset.b21dHors,v:c.dataset.b21dCompat,pill:c.querySelector('[data-b21d-cv]').innerText,n:(c.querySelector('[data-b21d-n]')||{dataset:{}}).dataset.b21dN||null,mot:c.querySelectorAll('.b21d-mot li').length,txt:c.innerText,dis:c.querySelector('[data-b21d-ajout]').disabled,bl:(c.querySelector('[data-b21d-bloque]')||{}).innerText||''}))"
+    dec(pg,"fx-dec");G=ev("()=>({soc:SOC.map(z=>z.sid),full:[...document.querySelectorAll('[data-b21d-oid]')].map(c=>c.dataset.b21dSoc),cpt:document.querySelector('[data-b21d-compte]').dataset.b21dCompte,cptT:document.querySelector('[data-b21d-compte]').innerText})");H=ev(HORS)
+    tous=G["full"]+[h["sid"] for h in H]
+    chk(sorted(tous)==sorted(G["soc"]) and len(tous)==len(set(tous)) and len(G["soc"])==9 and G["cpt"]==f"{len(set(G['full']))}/9" and "ajoutée" in G["cptT"],f"liste dynamique (SOC = {len(G['soc'])} sociétés) : chaque société une seule fois, {len(G['full'])} cartes dossier + {len(H)} cartes compactes ; compteur « {G['cptT']} »")
+    real=ev("()=>Object.fromEntries(SOC.map(z=>{const v=compatEval('fx-dec',S.ao['fx-dec'],z.sid);return[z.sid,[v.v,v.n.ok+'/'+v.n.ko+'/'+v.n.inc,v.contre.length]]}))")
+    chk(all(h["v"]==real[h["sid"]][0] and h["n"]==real[h["sid"]][1] and h["mot"]==min(3,real[h["sid"]][2])+(1 if real[h["sid"]][2]>3 else 0) for h in H) and all("Pas encore ajoutée à cet AO" in h["txt"] for h in H),"cartes compactes : nom, « Pas encore ajoutée à cet AO », verdict, compteurs et motifs repris du vrai moteur B2.3 (compatEval)")
+    chk(all(h["pill"]=="Compatibilité RC : À vérifier" for h in H) and not any("Compatible" in h["pill"] for h in H),"moteur réel (exigences du marché inconnues) : toutes « À vérifier », aucune compatibilité inventée")
+    chk(all(not h["dis"] for h in H if h["sid"]!="siditrav"),"ajout proposé aux sociétés non bloquées par les règles existantes (parCompat)")
+    # ordre et cas : compatible / inconnue (moteur indisponible) / incompatible / art. 27 (substitution limitée à cette page de test)
+    ev("""()=>{window.__ce=compatEval;window.__pc=parCompat;compatEval=function(id,a,sid){const v=window.__ce(id,a,sid);
+      if(sid==='up-modulor')return Object.assign({},v,{v:'Possible',contre:[],n:{ok:8,ko:0,inc:0}});
+      if(sid==='build-chantier')return Object.assign({},v,{v:'Inconnue',n:null,contre:[]});
+      if(sid==='signalsud-sahara')return Object.assign({},v,{v:'Écartée',contre:['Attestation fiscale : incompatible en l\\'état, justificatif daté échu (test)'].concat(v.contre),n:{ok:0,ko:1,inc:7}});return v;};
+      parCompat=function(id,a,sid){if(sid==='sahara-iaamar')return{st:'non',why:'Même signataire que SAKDAT (test) : interdit par l\\'article 27 du décret 2-22-431'};return window.__pc(id,a,sid);};render();}""")
+    H=ev(HORS);o=[h["sid"] for h in H];V={h["sid"]:h for h in H}
+    chk(o==["up-modulor","structure-chantier","build-chantier","riyada-build","sahara-iaamar","signalsud-sahara"],f"ordre : ajoutées (cartes dossier), puis compatibles, à vérifier, incompatibles ({o})")
+    chk(V["up-modulor"]["pill"]=="Compatibilité RC : Compatible" and V["build-chantier"]["pill"]=="Compatibilité RC : À vérifier" and "non calculable" in V["build-chantier"]["txt"] and not V["build-chantier"]["dis"],"compatibilité inconnue (verdict B2.3 non déterminé) : « À vérifier », jamais compatible")
+    chk(V["signalsud-sahara"]["pill"]=="Compatibilité RC : Incompatible en l'état" and V["signalsud-sahara"]["dis"] and "Écartée pour ce marché" in V["signalsud-sahara"]["bl"] and "justificatif daté échu" in V["signalsud-sahara"]["txt"],f"incompatible : visible avec ses raisons, ajout bloqué par parCompat ({V['signalsud-sahara']['bl']})")
+    chk(V["sahara-iaamar"]["dis"] and "article 27" in V["sahara-iaamar"]["bl"] and V["sahara-iaamar"]["pill"]=="Compatibilité RC : À vérifier",f"art. 27 : ajout bloqué avec la raison ({V['sahara-iaamar']['bl']}), compatibilité affichée à part")
+    w0=len(W());ev("()=>b21dAjouter('fx-dec','signalsud-sahara')");pg.wait_for_timeout(200);chk(len(W())==w0 and "Écartée" in ev("()=>window.__toastLog.slice(-1)[0]"),"appel direct de l'ajout d'une société incompatible : refusé, rien n'est écrit")
+    pg.locator(".b21d-hs").screenshot(path=f"{OUT}/hors_ao_1440.png")
+    ev("()=>{compatEval=window.__ce;parCompat=window.__pc;render();}")
+    # ajout réel de la fixture : riyada-build
+    ev("()=>{window.__prep=0;const o=prepDemarrer;prepDemarrer=function(){window.__prep++;return o.apply(this,arguments);};}")
+    av=ev("()=>JSON.stringify({d:S.ao['fx-dec'].decision||null,s:S.ao['fx-dec'].soc,st:S.ao['fx-dec'].statut,sid:S.ao['fx-dec~siditrav'].decision,o:Object.keys(S.offres).length,x:['fx-dec','fx-dec~siditrav'].map(i=>S.bpx[i]&&S.bpx[i].p)})")
+    w0=len(W());pg.click('[data-b21d-ajout="riyada-build"]');pg.wait_for_timeout(250)
+    chk(len(W())==w0 and ev("()=>S.ao['fx-dec~riyada-build']") is None and "Confirmer l'ajout" in pg.inner_text('[data-b21d-ajout="riyada-build"]') and "sans décision (aucun Go)" in ev("()=>window.__toastLog.slice(-1)[0]"),"Ajouter : premier appui = confirmation (« sans décision, aucun Go »), rien n'est créé")
+    pg.click('[data-b21d-ajout="riyada-build"]');pg.wait_for_timeout(900);n=ev("()=>S.ao['fx-dec~riyada-build']");ww=W()[w0:]
+    chk(n and n["soc"]=="riyada-build" and n["base"]=="fx-dec" and n["statut"]=="À examiner" and "decision" not in n and n["ajout"]["le"] and n["ajout"]["qui"] and ww==[["set","ao/fx-dec~riyada-build"]] and ev("()=>window.__prep")==0,f"ajout confirmé : dossier séparé fx-dec~riyada-build créé par creerSib (sansGo), statut « À examiner », aucune décision ni Go, préparation non lancée ; une seule écriture ({ww})")
+    iso=ev("""()=>{const n=S.ao['fx-dec~riyada-build'];const X=S.bpx['fx-dec~riyada-build'];return{bpx:!!X&&(Object.keys(X.p||{}).length>0||Object.keys(X.q||{}).length>0||!!X.tva),wb:window.__writes.some(w=>/^(bpx|offres|chiffrage)\//.test(w[1])&&w[1].includes('riyada')),off:Object.values(S.offres).some(o=>o.ao_id==='fx-dec~riyada-build'),k:Object.keys(n).sort(),cach:Object.values(n.dcePieces||{}).some(x=>x&&(x.cachete||x.sig||x.sigPages)),fich:Object.keys(n.fichiers||{})}}""")
+    chk(not iso["bpx"] and not iso["wb"] and not iso["off"] and not iso["cach"] and iso["fich"] in ([],["dce"]) and not any(k in iso["k"] for k in ("prixValide","decisionPrix","bpx","offre","checks_x")),f"dossier isolé : aucun prix, aucune offre, aucune pièce cachetée ou signée recopiée (FIN-ISO-001) ; fichiers {iso['fich']}")
+    ap=ev("()=>JSON.stringify({d:S.ao['fx-dec'].decision||null,s:S.ao['fx-dec'].soc,st:S.ao['fx-dec'].statut,sid:S.ao['fx-dec~siditrav'].decision,o:Object.keys(S.offres).length,x:['fx-dec','fx-dec~siditrav'].map(i=>S.bpx[i]&&S.bpx[i].p)})")
+    st2=ev("()=>({id:S.aoId,vue:document.querySelector('[data-mpn-dossier-vue]').dataset.mpnDossierVue,full:[...document.querySelectorAll('[data-b21d-oid]')].map(c=>c.dataset.b21dSoc),hors:[...document.querySelectorAll('[data-b21d-hors]')].map(c=>c.dataset.b21dHors),cpt:document.querySelector('[data-b21d-compte]').dataset.b21dCompte,ret:[...document.querySelectorAll('[data-b21d-ret]')].map(x=>x.dataset.b21dRet),v:document.querySelector('[data-b21d-soc=\"riyada-build\"] [data-b21d-verdict]').dataset.b21dVerdict})")
+    chk(av==ap and st2["id"]=="fx-dec" and st2["vue"]=="MP-B2.1|dec","dossier ouvert, sa société, ses décisions et les prix des autres dossiers inchangés ; on reste sur la vue Décision")
+    chk(st2["full"].count("riyada-build")==1 and "riyada-build" not in st2["hors"] and st2["cpt"]=="4/9" and st2["v"]=="aucune" and st2["ret"]==["siditrav"],f"la carte compacte devient carte dossier (sans doublon), compteur 4/9, « Aucune décision », retenues = Go réels seulement ({st2['ret']})")
+    w0=len(W());ev("()=>b21dAjouter('fx-dec','riyada-build')");pg.wait_for_timeout(200);chk(len(W())==w0,"second ajout de la même société : refusé, rien n'est créé")
+    # actualisation : rechargement complet depuis la base simulée
+    ev("()=>window.__persist()");pg.reload();pg.wait_for_function("()=>typeof S!=='undefined'&&S.aoState==='ok'&&Object.keys(S.ao).length>50",timeout=20000);pg.wait_for_timeout(800)
+    ev("()=>{window.__toastLog=[];const o=window.toast;window.toast=m=>{window.__toastLog.push(String(m));return o(m);};}");dec(pg,"fx-dec")
+    st3=ev("()=>({full:[...document.querySelectorAll('[data-b21d-oid]')].map(c=>c.dataset.b21dSoc),hors:[...document.querySelectorAll('[data-b21d-hors]')].map(c=>c.dataset.b21dHors),cpt:document.querySelector('[data-b21d-compte]').dataset.b21dCompte,dec:S.ao['fx-dec~riyada-build'].decision||null,ret:[...document.querySelectorAll('[data-b21d-ret]')].map(x=>x.dataset.b21dRet)})")
+    chk(st3["full"].count("riyada-build")==1 and "riyada-build" not in st3["hors"] and st3["cpt"]=="4/9" and st3["dec"] is None and st3["ret"]==["siditrav"] and len(st3["full"])+len(st3["hors"])==9,f"après rechargement : état stable (carte dossier unique, 4/9, aucune décision créée) {st3['cpt']}")
+    W=lambda:ev("()=>window.__writes.slice()")
     # consultation clôturée : lecture seule
     dec(pg,"fx-decc");w0=len(W());T=pg.inner_text("[data-b21d]")
-    chk("Consultation clôturée le" in T and pg.locator("[data-b21d-dec]").count()==0 and pg.locator("[data-b21d-ajout]").count()==0 and "décision en lecture seule" in T,"consultation clôturée : décision en lecture, ni Go / No-Go, ni ajout, aucune soumission")
+    HC=ev(HORS);chk("Consultation clôturée le" in T and pg.locator("[data-b21d-dec]").count()==0 and pg.locator("[data-b21d-ajout]:not([disabled])").count()==0 and "décision en lecture seule" in T,"consultation clôturée : décision en lecture, ni Go / No-Go, aucun ajout actif, aucune soumission")
+    chk(len(HC)+pg.locator("[data-b21d-oid]").count()==9 and all(h["dis"] and "date limite passée" in h["bl"] for h in HC),f"consultation clôturée : les 9 sociétés restent visibles ; « Ajouter » désactivé avec la raison « {HC[0]['bl'] if HC else ''} »")
+    ev("()=>b21dAjouter('fx-decc','riyada-build')");pg.wait_for_timeout(200);chk(len(W())==w0 and "date limite passée" in ev("()=>window.__toastLog.slice(-1)[0]"),"clôturée : appel direct de l'ajout refusé, rien n'est écrit")
     chk(ev("()=>S.ao['fx-decc'].decision.verdict")=="Go","décision existante conservée (clôturée)")
     pg.click('[data-b21d-maj]');pg.wait_for_timeout(300);chk(len(W())==w0,"Actualiser : relecture sans écriture ni changement de décision")
     # dossier réel lu seulement
@@ -112,6 +152,9 @@ with sync_playwright() as p:
         hv=q.evaluate("""()=>{const t=document.querySelector('[data-b21d-soc="siditrav"] table.b21d-tab');return getComputedStyle(t.tHead).display!=='none'&&[...t.tHead.querySelectorAll('th')].map(x=>x.innerText.trim()).join('|')==='Pièce|Statut|Action'}""")
         tw=q.evaluate("""()=>[...document.querySelectorAll('.b21d-tw')].map(t=>t.scrollWidth-t.clientWidth)""")
         nv=q.evaluate("()=>({note:document.querySelectorAll('[data-b21],[data-b21-pdf]').length,b:!!document.querySelector('[data-b21d-voirnote]')})")
+        hm=q.evaluate("()=>{const s=document.querySelector('.b21d-hs');if(!s)return null;const R=s.getBoundingClientRect(),C=[...s.querySelectorAll('.b21d-mini')].map(c=>{const r=c.getBoundingClientRect();return r.left>=R.left-1&&r.right<=R.right+1&&c.scrollWidth<=c.clientWidth+1});return{n:C.length,ok:C.every(Boolean)}}")
+        chk(hm and hm["n"]==6 and hm["ok"],f"{tag} : 6 cartes compactes lisibles, sans débordement ({hm})")
+        q.locator(".b21d-hs").screenshot(path=f"{OUT}/hors_ao_{tag}.png")
         q.click("[data-b21d-voirnote]");q.wait_for_selector("[data-b21]",timeout=15000);q.wait_for_timeout(300);q.click("[data-b21-dec]");q.wait_for_selector("[data-b21d]",timeout=15000);q.wait_for_timeout(300)
         chk(nv["note"]==0 and nv["b"] and q.evaluate("()=>document.querySelectorAll('[data-b21]').length")==0,f"{tag} : vue Décision sans note ; aller-retour vers la note et retour à la Décision")
         chk(hv and max(tw)<=1,f"{tag} : en-têtes Pièce / Statut / Action visibles, colonne Action entière (aucun défilement interne : {max(tw)} px)")

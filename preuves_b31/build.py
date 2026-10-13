@@ -30,5 +30,19 @@ out=out.replace(LW,'w=D.k==="dec"?hum():(st("note").body?st("note").body():"")+r
 LT=':D.bur==="MP-B2.1"&&D.k==="dec"?"Décision d\'Ahmed et note d\'analyse":'
 assert out.count(LT)==1
 out=out.replace(LT,':D.bur==="MP-B2.1"&&D.k==="dec"?"Décision d\'Ahmed":')
+# b21d-4 : création existante d'un dossier séparé (creerSib) avec option sansGo : mêmes contrôles (parCompat : art. 27, déjà membre,
+# écartée), même identifiant base~société, mêmes données publiques (sibData, FIN-ISO-001) ; mais aucune décision, statut « À examiner »,
+# pas de lancement de préparation, pas de changement du dossier ouvert. Sans option : comportement inchangé (Go d'offre séparée).
+for A,B in [
+ ('async function creerSib(id,sid){const a=S.ao[id]','async function creerSib(id,sid,o){o=o||{};const a=S.ao[id]'),
+ ('if(g&&g.exists){S.aoId=nid;render();return toast("Ce dossier existe déjà : ouvert tel quel.");}',
+  'if(g&&g.exists){if(o.sansGo){render();return toast("Le dossier de "+socCourt(sid)+" existe déjà pour cet AO : rien n\'est créé.");}S.aoId=nid;render();return toast("Ce dossier existe déjà : ouvert tel quel.");}'),
+ ('statut:"En préparation",cree:isoToday(),decision:{verdict:"Go",le:isoToday(),qui:S.role.me||null,parallele:true}});',
+  'cree:isoToday()},o.sansGo?{statut:"À examiner",ajout:{le:isoToday(),qui:S.role.me||null,source:o.source||"B2.1"}}:{statut:"En préparation",decision:{verdict:"Go",le:isoToday(),qui:S.role.me||null,parallele:true}});'),
+ ('  S.db.doc("ao/"+nid).set(d).then(()=>{S.ao[nid]=d;logJ(a.ref+" : offre séparée ouverte pour "+socCourt(sid));',
+  '  return S.db.doc("ao/"+nid).set(d).then(()=>{S.ao[nid]=d;if(o.sansGo){logJ(a.ref+" : dossier séparé ajouté pour "+socCourt(sid)+" (aucune décision enregistrée)");render();return toast("Dossier séparé créé pour "+socCourt(sid)+" : aucune décision enregistrée ; ses pièces, ses prix et sa signature restent séparés.");}logJ(a.ref+" : offre séparée ouverte pour "+socCourt(sid));'),
+]:
+  assert out.count(A)==1,A[:60]
+  out=out.replace(A,B)
 open("page_b21.html","w",encoding="utf-8").write(out)
 print(hashlib.sha256(out.encode()).hexdigest(),len(out))

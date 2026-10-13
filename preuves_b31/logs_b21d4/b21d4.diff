@@ -1,0 +1,66 @@
+4582,4583c4582,4583
+< async function creerSib(id,sid){const a=S.ao[id],nid=(a.base||id)+"~"+sid;{const pc=parCompat(id,a,sid);if(pc.st==="deja"||pc.st==="non")return toast(pc.why||"Offre impossible pour cette société sur ce marché.");}
+<   try{const g=await S.db.doc("ao/"+nid).get();if(g&&g.exists){S.aoId=nid;render();return toast("Ce dossier existe déjà : ouvert tel quel.");}}catch(e){return toast("Vérification impossible, rien n'a été créé.");}
+---
+> async function creerSib(id,sid,o){o=o||{};const a=S.ao[id],nid=(a.base||id)+"~"+sid;{const pc=parCompat(id,a,sid);if(pc.st==="deja"||pc.st==="non")return toast(pc.why||"Offre impossible pour cette société sur ce marché.");}
+>   try{const g=await S.db.doc("ao/"+nid).get();if(g&&g.exists){if(o.sansGo){render();return toast("Le dossier de "+socCourt(sid)+" existe déjà pour cet AO : rien n'est créé.");}S.aoId=nid;render();return toast("Ce dossier existe déjà : ouvert tel quel.");}}catch(e){return toast("Vérification impossible, rien n'a été créé.");}
+4585,4586c4585,4586
+<   Object.assign(d,{soc:sid,mode:"seule",mem:[],base:a.base||id,checks:{},fichiers:(a.fichiers||{}).dce?{dce:a.fichiers.dce}:{},statut:"En préparation",cree:isoToday(),decision:{verdict:"Go",le:isoToday(),qui:S.role.me||null,parallele:true}});
+<   S.db.doc("ao/"+nid).set(d).then(()=>{S.ao[nid]=d;logJ(a.ref+" : offre séparée ouverte pour "+socCourt(sid));prepDemarrer(nid,"Go (offre séparée)");S.aoId=nid;S.stepOpen={...(S.stepOpen||{}),[nid]:"pieces"};render();window.scrollTo(0,0);toast("Dossier ouvert pour "+socCourt(sid)+" : ses pièces, ses prix et sa signature sont séparés.");}).catch(e=>toast("Création refusée : "+(e&&e.code||"erreur")));}
+---
+>   Object.assign(d,{soc:sid,mode:"seule",mem:[],base:a.base||id,checks:{},fichiers:(a.fichiers||{}).dce?{dce:a.fichiers.dce}:{},cree:isoToday()},o.sansGo?{statut:"À examiner",ajout:{le:isoToday(),qui:S.role.me||null,source:o.source||"B2.1"}}:{statut:"En préparation",decision:{verdict:"Go",le:isoToday(),qui:S.role.me||null,parallele:true}});
+>   return S.db.doc("ao/"+nid).set(d).then(()=>{S.ao[nid]=d;if(o.sansGo){logJ(a.ref+" : dossier séparé ajouté pour "+socCourt(sid)+" (aucune décision enregistrée)");render();return toast("Dossier séparé créé pour "+socCourt(sid)+" : aucune décision enregistrée ; ses pièces, ses prix et sa signature restent séparés.");}logJ(a.ref+" : offre séparée ouverte pour "+socCourt(sid));prepDemarrer(nid,"Go (offre séparée)");S.aoId=nid;S.stepOpen={...(S.stepOpen||{}),[nid]:"pieces"};render();window.scrollTo(0,0);toast("Dossier ouvert pour "+socCourt(sid)+" : ses pièces, ses prix et sa signature sont séparés.");}).catch(e=>toast("Création refusée : "+(e&&e.code||"erreur")));}
+9753c9753
+< const B21D={v:"b21d-3",motif:{},conf:null};
+---
+> const B21D={v:"b21d-4",motif:{},conf:null,ajout:null};
+9828c9828,9856
+< function vDecisionB21(id,a){b21dCss();const X=b21dSibs(id,a),clos=b21dClos(a),lim=b21dLim(a),ed=editable();
+---
+> /* b21d-4 : toutes les sociétés actuelles du groupe (SOC, liste dynamique). Sans dossier pour cet AO : carte compacte avec la compatibilité
+>    informative du moteur B2.3 (compatEval, jamais supposée compatible) et l'ajout par la création existante du dossier séparé
+>    (creerSib, option sansGo : contrôles parCompat art. 27 / déjà membre / écartée, sibData FIN-ISO-001, aucune décision, aucun Go). */
+> const B21D_CMP={"Possible":[1,"b21d-ok","Compatible"],"À vérifier":[2,"b21d-amb","À vérifier"],"Écartée":[3,"b21d-ko","Incompatible en l'état"]};
+> function b21dCompat(id,a,sid){try{const v=compatEval(id,a,sid);if(!v||!B21D_CMP[v.v])throw 0;return v;}catch(e){return{sid,v:"À vérifier",n:null,contre:["Compatibilité B2.3 non calculable pour cette société : rien n'est supposé"],err:1};}}
+> function b21dPasse(a){const d=b21dLim(a);return!!d&&d<new Date();}
+> function b21dHorsAO(id,a,X){const have=new Set(X.map(x=>x.sid)),ed=editable(),passe=b21dPasse(a),fig=["Déposé","Attribué","Non retenu"].includes(a.statut);
+>   return SOC.filter(z=>z&&z.sid&&!have.has(z.sid)).map((z,i)=>{const c=b21dCompat(id,a,z.sid);let pc;try{pc=parCompat(id,a,z.sid);}catch(e){pc={st:"non",why:"contrôle art. 27 / FIN-ISO-001 indisponible"};}
+>     const bloc=passe?"consultation clôturée le "+fmtIso(a.lim)+(a.heure?" "+a.heure:"")+", date limite passée.":!ed?"lecture seule.":fig?"dossier "+a.statut.toLowerCase()+".":(pc.st==="non"||pc.st==="deja")?(pc.why||"règles du marché."):null;
+>     return{sid:z.sid,c,pc,bloc,o:(B21D_CMP[c.v]||B21D_CMP["À vérifier"])[0],i};}).sort((x,y)=>x.o-y.o||x.i-y.i);}
+> function b21dCompacte(id,y){const C=B21D_CMP[y.c.v]||B21D_CMP["À vérifier"],n=y.c.n,M=y.c.contre||[],arm=!!(B21D.conf&&B21D.conf.k==="add|"+y.sid&&Date.now()-B21D.conf.t<=6000);
+>   let h=`<article class="b21d-mini" data-b21d-hors="${esc(y.sid)}" data-b21d-compat="${esc(y.c.v)}"><div class="b21d-mh"><h3>${esc(socCourt(y.sid))}</h3><span class="b21d-pill b21d-neu">Pas encore ajoutée à cet AO</span></div>`;
+>   h+=`<p class="b21d-mc"><span class="b21d-pill ${C[1]}" data-b21d-cv="1">Compatibilité RC : ${C[2]}</span>${n?`<span class="b21d-src" data-b21d-n="${n.ok}/${n.ko}/${n.inc}">${n.ok} justifié${n.ok>1?"s":""} · ${n.ko} incompatible${n.ko>1?"s":""} · ${n.inc} à vérifier</span>`:""}</p>`;
+>   if(M.length)h+=`<ul class="b21d-mot" data-b21d-motifs="${M.length}">${M.slice(0,3).map(t=>`<li>${esc(t)}</li>`).join("")}${M.length>3?`<li class="b21d-src">… et ${M.length-3} autre${M.length-3>1?"s":""} motif${M.length-3>1?"s":""} (détail dans B2.3)</li>`:""}</ul>`;
+>   if(y.pc.st==="attention"&&!y.bloc)h+=`<p class="b21d-warn" data-b21d-attn="1">${esc(y.pc.why)}</p>`;
+>   h+=`<div class="b21d-ma">`+(y.bloc?`<button type="button" class="b21d-btn" disabled aria-describedby="b21d-bl-${esc(y.sid)}" data-b21d-ajout="${esc(y.sid)}">Ajouter à cet AO</button><span class="b21d-src" id="b21d-bl-${esc(y.sid)}" data-b21d-bloque="1">Ajout bloqué : ${esc(y.bloc)}</span>`
+>     :`<button type="button" class="b21d-btn${arm?" b21d-arm":""}" data-b21d-ajout="${esc(y.sid)}" data-act="${act(()=>b21dAjouter(id,y.sid))}">${arm?"Confirmer l'ajout de "+esc(socCourt(y.sid)):"Ajouter à cet AO"}</button>`)
+>     +`<button type="button" class="b21d-lnk" data-act="${act(()=>b21dAller(id,"MP-B2.3","note"))}">Compatibilité détaillée (B2.3)</button></div></article>`;
+>   return h;}
+> async function b21dAjouter(id,sid){const a=S.ao[id];if(!a)return;if(!editable())return toast(RO_MSG);
+>   if(b21dPasse(a))return toast("Consultation clôturée : date limite passée, aucun ajout.");
+>   if(["Déposé","Attribué","Non retenu"].includes(a.statut))return toast("Dossier "+a.statut.toLowerCase()+" : aucun ajout.");
+>   if(b21dSibs(id,a).some(x=>x.sid===sid))return toast(socCourt(sid)+" a déjà son dossier pour cet AO : rien n'est créé.");
+>   let pc;try{pc=parCompat(id,a,sid);}catch(e){return toast("Contrôle art. 27 / FIN-ISO-001 impossible : rien n'est créé.");}
+>   if(pc.st==="non"||pc.st==="deja")return toast(pc.why||"Ajout bloqué par les règles du marché.");
+>   const k="add|"+sid;if(!B21D.conf||B21D.conf.k!==k||Date.now()-B21D.conf.t>6000){B21D.conf={k,t:Date.now()};render();return toast("Ajouter "+socCourt(sid)+" à cet AO : son dossier séparé sera créé sans décision (aucun Go)"+(pc.st==="attention"?" ; "+pc.why:"")+". Appuyez encore une fois pour confirmer.");}
+>   B21D.conf=null;if(B21D.ajout)return toast("Ajout en cours, patientez.");B21D.ajout=sid;
+>   try{await creerSib(id,sid,{sansGo:true,source:"B2.1 Décision · ajout de société"});}finally{B21D.ajout=null;}}
+> function vDecisionB21(id,a){b21dCss();const X=b21dSibs(id,a),clos=b21dClos(a),lim=b21dLim(a),ed=editable(),Y=b21dHorsAO(id,a,X),nA=new Set(X.map(x=>x.sid)).size,nT=nA+Y.length;
+9830,9831c9858,9859
+<     <div class="b21d-cm">${lim?`<span class="b21d-pill ${clos?"b21d-ko":"b21d-neu"}" data-b21d-clos="${clos}">${clos?"Consultation clôturée le ":"Date limite : "}${esc(fmtIso(a.lim))}${a.heure?" "+esc(a.heure):""}</span>`:`<span class="b21d-pill b21d-amb">Date limite non renseignée</span>`}<button type="button" class="b21d-btn" data-b21d-maj="1" data-act="${act(()=>{try{delete B21.cache;}catch(e){}render();toast("État et documents relus ; aucune décision modifiée.");})}">Actualiser</button></div></header>`;
+<   h+=`<p class="b21d-intro">Une carte par société candidate : chaque société a son propre dossier, ses pièces et ses prix (FIN-ISO-001). L'état des pièces (administratif) est distinct de votre décision commerciale Go / No-Go.</p>`;
+---
+>     <div class="b21d-cm">${lim?`<span class="b21d-pill ${clos?"b21d-ko":"b21d-neu"}" data-b21d-clos="${clos}">${clos?"Consultation clôturée le ":"Date limite : "}${esc(fmtIso(a.lim))}${a.heure?" "+esc(a.heure):""}</span>`:`<span class="b21d-pill b21d-amb">Date limite non renseignée</span>`}<span class="b21d-pill b21d-neu" data-b21d-compte="${nA}/${nT}">${nA} / ${nT} société${nT>1?"s":""} ajoutée${nA>1?"s":""} à cet AO</span><button type="button" class="b21d-btn" data-b21d-maj="1" data-act="${act(()=>{try{delete B21.cache;}catch(e){}render();toast("État et documents relus ; aucune décision modifiée.");})}">Actualiser</button></div></header>`;
+>   h+=`<p class="b21d-intro">Toutes les sociétés actuelles du groupe. Chaque société ajoutée a son propre dossier, ses pièces et ses prix (FIN-ISO-001). L'état des pièces (administratif) et la compatibilité (informative, B2.3) sont distincts de votre décision commerciale Go / No-Go.</p>`;
+9834a9863
+>   if(Y.length)h+=`<section class="b21d-hs" aria-labelledby="b21d-ht" data-b21d-horsao="${Y.length}"><h3 id="b21d-ht">Sociétés du groupe pas encore ajoutées à cet AO (${Y.length})</h3><p class="b21d-src">Compatibilité informative calculée par B2.3 (RC lu et coffre de chaque société) : elle ne vaut pas décision. Ajouter crée seulement le dossier séparé de la société, sans décision ni Go, sans reprendre aucune donnée financière d'un autre dossier.</p><div class="b21d-hg">${Y.map(y=>b21dCompacte(id,y)).join("")}</div></section>`;
+9838,9842d9866
+<   if(ed&&!clos){const have=new Set(X.map(x=>x.sid)),C=SOC.filter(z=>!have.has(z.sid)).map(z=>({sid:z.sid,pc:(()=>{try{return parCompat(id,a,z.sid);}catch(e){return{st:"non",why:"contrôle indisponible"};}})()}));
+<     const ok=C.filter(c=>c.pc.st==="ok"||c.pc.st==="attention"),no=C.filter(c=>!(c.pc.st==="ok"||c.pc.st==="attention"));
+<     if(ok.length)h+=`<div class="b21d-add"><p><b>Ajouter une société</b> — crée son dossier séparé selon le modèle existant (contrôles art. 27 et FIN-ISO-001) ; la création vaut Go de cette société, sur votre confirmation.</p>${ok.map(c=>`<button type="button" class="b21d-btn" data-b21d-ajout="${esc(c.sid)}" data-act="${act(()=>{const k="add|"+c.sid;if(!B21D.conf||B21D.conf.k!==k||Date.now()-B21D.conf.t>6000){B21D.conf={k,t:Date.now()};return toast("Ajouter "+socCourt(c.sid)+" : son dossier séparé sera créé avec un Go. Appuyez encore une fois pour confirmer.");}B21D.conf=null;creerSib(id,c.sid);})}">Ajouter ${esc(socCourt(c.sid))}${c.pc.st==="attention"?" (à vérifier : "+esc(c.pc.why)+")":""}</button>`).join(" ")}</div>`;
+<     if(no.length)h+=`<p class="b21d-src">Non ajoutables : ${esc(no.map(c=>socCourt(c.sid)+" — "+(c.pc.why||"incompatible")).join(" ; "))}.</p>`;}
+<   else if(clos)h+=`<p class="b21d-src">Consultation clôturée : aucun ajout ni retrait, aucune nouvelle soumission automatique.</p>`;
+9876a9901,9903
+> .b21d-hs{display:flex;flex-direction:column;gap:8px}.b21d-hs h3{font-size:15px}.b21d-hs>.b21d-src{margin:0}.b21d-hg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+> .b21d-mini{background:var(--d-card);border:1px dashed var(--d-line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}.b21d-mh{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;align-items:center}.b21d-mh h3{font-size:15px}.b21d-mc{margin:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.b21d-mc .b21d-src{margin:0}
+> .b21d-mot{margin:0;padding-left:16px;font-size:12px;color:var(--d-ink)}.b21d-mot li{margin:2px 0;overflow-wrap:anywhere}.b21d-ma{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:auto}.b21d-ma .b21d-src{margin:0;flex:1 1 100%}.b21d-btn[disabled]{opacity:.55;cursor:not-allowed}

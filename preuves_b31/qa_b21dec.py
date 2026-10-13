@@ -25,31 +25,87 @@ exec(src.split("\nwith sync_playwright() as p:")[0])
 def dec(pg,id):
     pg.evaluate("id=>{S.dept='ao';S.soc=null;S.aoId=id;render();}",id);pg.click('[data-mpn-dosbur="MP-B2.1|dec"]');pg.wait_for_selector("[data-b21d]",timeout=15000);pg.wait_for_timeout(400)
 CARD=lambda s:f'[data-b21d-soc="{s}"]'
+def ouvre(pg,sid):
+    if pg.evaluate("s=>(document.querySelector('[data-b21d-carte=\"'+s+'\"]')||{dataset:{}}).dataset.b21dOuvert",sid)!="1":
+        pg.click(f'[data-b21d-tog="{sid}"]');pg.wait_for_timeout(250)
+HORS1="s=>{const c=document.querySelector('[data-b21d-hors=\"'+s+'\"]');return{sid:s,v:c.dataset.b21dCompat,pill:c.querySelector('[data-b21d-cv]').innerText,n:(c.querySelector('[data-b21d-n]')||{dataset:{}}).dataset.b21dN||null,mot:c.querySelectorAll('.b21d-mot li').length,txt:c.innerText,dis:c.querySelector('[data-b21d-ajout]').disabled,bl:(c.querySelector('[data-b21d-bloque]')||{}).innerText||''}}"
+def hors(pg):
+    out=[]
+    for s in pg.evaluate("()=>[...document.querySelectorAll('[data-b21d-hors]')].map(c=>c.dataset.b21dHors)"):
+        ouvre(pg,s);out.append(pg.evaluate(HORS1,s))
+    return out
 with sync_playwright() as p:
     b=p.chromium.launch();ctx,pg,errs=demarrer(b,1440,900);ev=lambda js,*a:pg.evaluate(js,*a);W=lambda:ev("()=>window.__writes.slice()")
     ev("()=>{window.__toastLog=[];const o=window.toast;window.toast=m=>{window.__toastLog.push(String(m));return o(m);};}")
     reel0=ev("ids=>JSON.stringify(ids.map(i=>[S.ao[i].decision||null,S.ao[i].statut,S.ao[i].soc,S.ao[i].decisionHist||null]))",REELS)
     dec(pg,"fx-dec");w0=len(W())
-    C=ev("()=>[...document.querySelectorAll('[data-b21d-oid]')].map(c=>({soc:c.dataset.b21dSoc,oid:c.dataset.b21dOid,n:[...c.querySelectorAll('tbody tr')].filter(r=>!r.classList.contains('b21d-sec')).length,v:c.querySelector('[data-b21d-verdict]').dataset.b21dVerdict}))")
-    chk(sorted(x["soc"] for x in C)==["alwaad-ataib","sakdat","siditrav"] and all(x["n"]==NP for x in C),f"une carte par société candidate (3), {NP} pièces chacune, construites depuis les pièces du RC")
-    T=pg.inner_text("[data-b21d]")
+    PC="""s=>{const c=document.querySelector('[data-b21d-soc="'+s+'"]'),rows=[...c.querySelectorAll('tbody tr')].filter(r=>!r.classList.contains('b21d-sec')),t=c.querySelector('table.b21d-tab'),th=[...t.querySelectorAll('thead th')];
+      const row=p=>rows.find(r=>r.innerText.includes(p));return{soc:s,n:rows.length,v:c.querySelector('[data-b21d-verdict]').dataset.b21dVerdict,pre:!!c.querySelector('[data-b21d-dec][aria-pressed="true"]'),
+      st:Object.fromEntries(['CPS et RC','attestations de référence','Bordereau des prix'].map(p=>[p,row(p)?row(p).dataset.b21dK:null])),ks:rows.map(r=>r.dataset.b21dK),fin:(c.querySelector('[data-b21d-fin]')||{}).innerText||'',txt:c.innerText,
+      bp:(r=>r?{t:r.innerText,go:(r.querySelector('[data-b21d-go]')||{dataset:{}}).dataset.b21dGo}:null)(row('Bordereau des prix')),ae:(r=>r?(r.querySelector('[data-b21d-go]')||{dataset:{}}).dataset.b21dGo:null)(row("Acte d'engagement")),
+      hd:{txt:th.map(x=>x.innerText.trim()),vis:getComputedStyle(t.tHead).display!=='none'&&th.every(x=>x.getBoundingClientRect().height>0),scope:th.every(x=>x.getAttribute('scope')==='col'),cap:!!t.caption,lab:t.getAttribute('aria-label')}}}"""
+    C=[]
+    for sid in ev("()=>[...document.querySelectorAll('[data-b21d-oid]')].map(c=>c.dataset.b21dSoc)"):ouvre(pg,sid);C.append(ev(PC,sid))
+    CB={x["soc"]:x for x in C}
+    chk(sorted(CB)==["alwaad-ataib","sakdat","siditrav"] and all(x["n"]==NP for x in C),f"une carte par société candidate (3), {NP} pièces chacune (détails ouverts une carte à la fois), construites depuis les pièces du RC")
+    T="\n".join(x["txt"] for x in C)
     chk("Enveloppe 1 · Dossier administratif" in T and "Enveloppe 1 · Dossier technique" in T and "Enveloppe 2 · Offre financière" in T and T.find("Enveloppe 1 · Dossier administratif")<T.find("Enveloppe 2 · Offre financière"),"sections Enveloppe 1 (administratif puis technique) puis Enveloppe 2 (financier)")
-    chk(not re.search(r"(?i)recommand|conclusion automatique|la plus avancée",T) and next(x for x in C if x["soc"]=="sakdat")["v"]=="aucune" and ev("()=>document.querySelector('[data-b21d-soc=\"sakdat\"] [data-b21d-dec][aria-pressed=\"true\"]')") is None,"aucune recommandation, conclusion automatique ni présélection ; SAKDAT sans décision affiché « Aucune décision »")
-    st=lambda s,piece:ev("([s,p])=>{const c=document.querySelector('[data-b21d-soc=\"'+s+'\"]');const r=[...c.querySelectorAll('tbody tr')].find(r=>r.innerText.includes(p));return r?r.dataset.b21dK:null}",[s,piece])
+    chk(not re.search(r"(?i)recommand|conclusion automatique|la plus avancée",T+pg.inner_text("[data-b21d]")) and CB["sakdat"]["v"]=="aucune" and not CB["sakdat"]["pre"],"aucune recommandation, conclusion automatique ni présélection ; SAKDAT sans décision affiché « Aucune décision »")
+    st=lambda s_,p_:CB[s_]["st"].get(p_)
     chk(st("siditrav","CPS et RC")=="pret" and st("sakdat","CPS et RC")!="pret" and st("alwaad-ataib","CPS et RC")!="pret","« CPS et RC signés » Prêt seulement pour SIDITRAV (CPS et RC cachetés VÉRIFIÉ à son nom)")
     chk(st("sakdat","attestations de référence")=="pret" and st("alwaad-ataib","attestations de référence")!="pret","références Prêt pour SAKDAT (fichier VÉRIFIÉ à son nom) ; jamais pour ALWAAD avec un fichier au nom d'une autre société")
-    ks=ev("()=>[...document.querySelectorAll('[data-b21d-k]')].map(r=>r.dataset.b21dK)");chk(set(ks)<= {"pret","verif","joindre","compl","nonexige","attrib","chiffre","chval"} and "joindre" in ks and "compl" in ks and "verif" in ks,f"statuts limités à Prêt / À vérifier / À joindre / À compléter (+ non exigé, si attribué, chiffré) : {sorted(set(ks))}")
-    fin=ev("()=>Object.fromEntries([...document.querySelectorAll('[data-b21d-oid]')].map(c=>[c.dataset.b21dSoc,(c.querySelector('[data-b21d-fin]')||{}).innerText||'']))")
-    TT=pg.inner_text("[data-b21d]").replace(" "," ").replace("\xa0"," ")
-    chk("2/2 PU saisis" in fin["sakdat"] and "1/2 PU saisis" in fin["siditrav"] and not re.search(r"TTC|\bHT\b",TT) and not re.search(r"1 111,11|999,99|22,22",TT),"aucun montant HT / TVA / TTC ni PU dans la vue multi-sociétés : couverture (2/2, 1/2 PU) et validation seulement")
+    ks=[k for x in C for k in x["ks"]];chk(set(ks)<= {"pret","verif","joindre","compl","nonexige","attrib","chiffre","chval"} and "joindre" in ks and "compl" in ks and "verif" in ks,f"statuts limités à Prêt / À vérifier / À joindre / À compléter (+ non exigé, si attribué, chiffré) : {sorted(set(ks))}")
+    TT=T.replace(" "," ").replace("\xa0"," ")
+    chk("2/2 PU saisis" in CB["sakdat"]["fin"] and "1/2 PU saisis" in CB["siditrav"]["fin"] and not re.search(r"TTC|\bHT\b",TT) and not re.search(r"1 111,11|999,99|22,22",TT),"aucun montant HT / TVA / TTC ni PU dans la vue multi-sociétés : couverture (2/2, 1/2 PU) et validation seulement")
     chk(st("sakdat","Bordereau des prix")=="chiffre" and st("siditrav","Bordereau des prix")=="compl","bordereau : « Chiffré · à valider » quand tous les PU de la société sont saisis (non validé), « À compléter » si partiel")
-    bp=ev("""()=>{const r=[...document.querySelectorAll('[data-b21d-soc="sakdat"] tbody tr')].find(r=>r.innerText.includes('Bordereau des prix'));return{t:r.innerText,go:r.querySelector('[data-b21d-go]').dataset.b21dGo}}""")
-    chk("Chiffré · à valider" in bp["t"] and "Couverture 2/2 PU saisis" in bp["t"] and "signature et cachet restent à faire" in bp["t"] and "Ouvrir" in bp["t"] and bp["go"]=="prix","bordereau rempli : couverture réelle, signature non prétendue, action « Ouvrir » le chiffrage B3.1")
-    ae=ev("""()=>{const r=[...document.querySelectorAll('[data-b21d-soc="sakdat"] tbody tr')].find(r=>r.innerText.includes("Acte d'engagement"));return r.querySelector('[data-b21d-go]').dataset.b21dGo}""")
-    chk(ae=="pieces","acte d'engagement : action vers sa préparation (pièces B3.2), pas le chiffrage")
-    hd=ev("""()=>[...document.querySelectorAll('[data-b21d-oid]')].map(c=>{const t=c.querySelector('table.b21d-tab'),th=[...t.querySelectorAll('thead th')];return{txt:th.map(x=>x.innerText.trim()),vis:getComputedStyle(t.tHead).display!=='none'&&th.every(x=>x.getBoundingClientRect().height>0),scope:th.every(x=>x.getAttribute('scope')==='col'),cap:!!t.caption,lab:t.getAttribute('aria-label')}})""")
-    chk(all(h["txt"]==["Pièce","Statut","Action"] and h["vis"] and h["scope"] and h["cap"] and "pièce, statut, action" in h["lab"] for h in hd),"en-têtes Pièce / Statut / Action visibles (scope=col), légende et libellé accessibles sur chaque tableau")
+    bp=CB["sakdat"]["bp"];chk("Chiffré · à valider" in bp["t"] and "Couverture 2/2 PU saisis" in bp["t"] and "signature et cachet restent à faire" in bp["t"] and "Ouvrir" in bp["t"] and bp["go"]=="prix","bordereau rempli : couverture réelle, signature non prétendue, action « Ouvrir » le chiffrage B3.1")
+    chk(CB["sakdat"]["ae"]=="pieces","acte d'engagement : action vers sa préparation (pièces B3.2), pas le chiffrage")
+    chk(all(x["hd"]["txt"]==["Pièce","Statut","Action"] and x["hd"]["vis"] and x["hd"]["scope"] and x["hd"]["cap"] and "pièce, statut, action" in x["hd"]["lab"] for x in C),"en-têtes Pièce / Statut / Action visibles (scope=col), légende et libellé accessibles sur chaque tableau")
     chk(len(W())==w0,"affichage : aucune écriture")
+    # ===== b21d-5 : cartes repliées, une seule ouverte, filtres, Modifier, Actualiser, changement d'AO =====
+    dec(pg,"fx-dec");pg.evaluate("()=>{B21D.ui={id:null,open:null,f:'tout'};render();}");pg.wait_for_timeout(200);w0=len(W());dec0=ev("()=>JSON.stringify(['fx-dec','fx-dec~siditrav','fx-dec~alwaad-ataib'].map(i=>[S.ao[i].decision||null,S.ao[i].statut]))")
+    SUM="""()=>[...document.querySelectorAll('[data-b21d-carte]')].map(c=>{const t=c.querySelector('[data-b21d-tog]'),d=c.querySelector('.b21d-det');return{sid:c.dataset.b21dCarte,ouv:c.dataset.b21dOuvert,aj:c.querySelector('[data-b21d-aj]').dataset.b21dAj,cv:c.querySelector('[data-b21d-cv]').innerText,reste:c.querySelector('[data-b21d-reste]').dataset.b21dReste,sdec:c.querySelector('[data-b21d-sdec]').innerText,
+      exp:t.getAttribute('aria-expanded'),ctl:t.getAttribute('aria-controls')===d.id&&!!document.getElementById(t.getAttribute('aria-controls')),lab:t.innerText,hid:d.hidden,vide:d.innerHTML==='',btns:c.querySelectorAll('[data-b21d-dec],[data-b21d-ajout],tbody').length}})"""
+    S0=ev(SUM);B={x["sid"]:x for x in S0}
+    chk(len(S0)==9 and all(x["ouv"]=="0" and x["exp"]=="false" and x["ctl"] and x["hid"] and x["vide"] and x["btns"]==0 and x["lab"].startswith("Afficher les détails") for x in S0),"toutes les cartes repliées au départ : détails absents du DOM (région vide et masquée), aucun bouton Go / No-Go / Ajouter ni tableau rendu ; aria-expanded=false, aria-controls valide")
+    ref=ev("""()=>{const a=S.ao['fx-dec'];return Object.fromEntries(b21dSibs('fx-dec',a).map(x=>[x.sid,[compatEval(x.oid,x.a,x.sid).v,b21dCarteData(x.oid,x.a,x.sid).reste.length]]))}""")
+    lab={"Possible":"Compatible","À vérifier":"À vérifier","Écartée":"Incompatible en l'état"}
+    chk(all(B[k]["aj"]=="1" and B[k]["cv"]=="Compatibilité RC : "+lab[v[0]] and B[k]["reste"]==str(v[1]) for k,v in ref.items()) and sum(x["aj"]=="1" for x in S0)==3,f"résumé des sociétés ajoutées : « Ajoutée », compatibilité réelle de leur dossier (compatEval), points restants ({ {k:v[1] for k,v in ref.items()} })")
+    chk(B["siditrav"]["sdec"]=="Décision : Go · 01/10/2026" and B["alwaad-ataib"]["sdec"]=="Décision : No-Go · 02/10/2026" and B["sakdat"]["sdec"]=="Non décidée" and all(B[k]["sdec"]=="Non décidée" and B[k]["reste"]=="" for k in B if B[k]["aj"]=="0"),"résumé : décision humaine actuelle avec date, ou « Non décidée » (état seulement)")
+    R5=ev("()=>({r:document.querySelector('[data-b21d-resume]').innerText,f:Object.fromEntries([...document.querySelectorAll('[data-b21d-f]')].map(b=>[b.dataset.b21dF,[+b.dataset.b21dFn,b.getAttribute('aria-pressed')]])),st:document.querySelector('[data-b21d-fstat]').getAttribute('role')})")
+    cats=ev("()=>{const a=S.ao['fx-dec'],X=b21dSibs('fx-dec',a),h=new Set(X.map(x=>x.sid));return X.map(x=>compatEval(x.oid,x.a,x.sid).v).concat(SOC.filter(z=>!h.has(z.sid)).map(z=>compatEval('fx-dec',a,z.sid).v))}")
+    exp={"tout":9,"ajoutees":3,"compat":cats.count("Possible"),"averif":cats.count("À vérifier"),"incompat":cats.count("Écartée")}
+    chk(R5["r"]=="9 sociétés · 3 ajoutées · 6 non ajoutées" and {k:v[0] for k,v in R5["f"].items()}==exp and R5["f"]["tout"][1]=="true" and R5["st"]=="status",f"résumé « {R5['r']} » ; filtres avec comptes calculés par compatEval {exp} ; « Tout » sélectionné (aria-pressed), état annoncé (role=status)")
+    pg.click('[data-b21d-tog="sakdat"]');pg.wait_for_timeout(250);S1={x["sid"]:x for x in ev(SUM)}
+    chk(S1["sakdat"]["exp"]=="true" and S1["sakdat"]["lab"].startswith("Masquer les détails") and not S1["sakdat"]["hid"] and S1["sakdat"]["btns"]>0 and ev("()=>document.activeElement&&document.activeElement.dataset.b21dTog")=="sakdat","« Afficher les détails » : tableau, décisions et motif rendus ; bouton « Masquer les détails », aria-expanded=true, focus conservé sur le bouton")
+    pg.click('[data-b21d-tog="siditrav"]');pg.wait_for_timeout(250);S2={x["sid"]:x for x in ev(SUM)}
+    chk(S2["siditrav"]["exp"]=="true" and S2["sakdat"]["exp"]=="false" and S2["sakdat"]["vide"] and sum(x["ouv"]=="1" for x in S2.values())==1,"une seule carte ouverte : ouvrir SIDITRAV replie SAKDAT (ses détails sont retirés du DOM)")
+    pg.focus('[data-b21d-tog="siditrav"]');pg.keyboard.press("Enter");pg.wait_for_timeout(250);k1=ev("()=>document.querySelector('[data-b21d-carte=\"siditrav\"]').dataset.b21dOuvert")
+    pg.keyboard.press("Space");pg.wait_for_timeout(250);k2=ev("()=>[document.querySelector('[data-b21d-carte=\"siditrav\"]').dataset.b21dOuvert,document.activeElement.dataset.b21dTog]")
+    chk(k1=="0" and k2==["1","siditrav"],"clavier : Entrée replie, Espace rouvre, le focus reste sur le bouton")
+    pg.click('[data-b21d-f="ajoutees"]');pg.wait_for_timeout(250);F1=ev("()=>({c:[...document.querySelectorAll('[data-b21d-carte]')].map(c=>c.dataset.b21dCarte),p:document.querySelector('[data-b21d-f=\"ajoutees\"]').getAttribute('aria-pressed'),s:document.querySelector('[data-b21d-fstat]').innerText,o:B21D.ui.open})")
+    chk(sorted(F1["c"])==["alwaad-ataib","sakdat","siditrav"] and F1["p"]=="true" and "« Ajoutées » : 3 sociétés affichées sur 9" in F1["s"] and F1["o"]=="siditrav","filtre « Ajoutées » : 3 cartes, bouton pressé, état annoncé ; la carte ouverte (encore visible) reste ouverte")
+    pg.click('[data-b21d-f="compat"]');pg.wait_for_timeout(250);F2=ev("()=>({n:document.querySelectorAll('[data-b21d-carte]').length,v:(document.querySelector('[data-b21d-vide]')||{}).innerText||'',o:B21D.ui.open})")
+    chk(F2["n"]==0 and "Aucune société dans le filtre « Compatibles »" in F2["v"] and F2["o"] is None,f"filtre vide (« Compatibles » : 0 avec le moteur réel) : message clair et « Tout afficher » ; carte ouverte refermée ({F2['v'][:60]}…)")
+    pg.click('[data-b21d-vide] button');pg.wait_for_timeout(250);chk(ev("()=>[document.querySelectorAll('[data-b21d-carte]').length,B21D.ui.f]")==[9,"tout"],"« Tout afficher » : les 9 sociétés, ordre b21d-4")
+    # compatibilité orthogonale à « ajoutée » (substitution limitée à cette page de test)
+    ev("""()=>{window.__ce5=compatEval;compatEval=function(id,a,sid){const v=window.__ce5(id,a,sid);if(sid==='siditrav'||sid==='up-modulor')return Object.assign({},v,{v:'Possible'});if(sid==='signalsud-sahara')return Object.assign({},v,{v:'Écartée'});return v;};render();}""")
+    pg.click('[data-b21d-f="compat"]');pg.wait_for_timeout(250);F3=ev("()=>({c:[...document.querySelectorAll('[data-b21d-carte]')].map(c=>c.dataset.b21dCarte),n:Object.fromEntries([...document.querySelectorAll('[data-b21d-f]')].map(b=>[b.dataset.b21dF,+b.dataset.b21dFn]))})")
+    chk(F3["c"]==["siditrav","up-modulor"] and F3["n"]=={"tout":9,"ajoutees":3,"compat":2,"averif":6,"incompat":1},f"filtres orthogonaux : « Compatibles » montre une société ajoutée (SIDITRAV) et une non ajoutée, dans l'ordre b21d-4 ; comptes {F3['n']}")
+    pg.click('[data-b21d-f="incompat"]');pg.wait_for_timeout(250);chk(ev("()=>[...document.querySelectorAll('[data-b21d-carte]')].map(c=>c.dataset.b21dCarte)")==["signalsud-sahara"],"filtre « Incompatibles » : SIGNALSUD SAHARA seule")
+    ev("()=>{compatEval=window.__ce5;render();}")
+    # Modifier (retenues) : bonne carte ouverte, filtre rendu visible, défilement et focus sur le motif
+    pg.evaluate("()=>window.scrollTo(0,0)");pg.click('[data-b21d-modifier="siditrav"]');pg.wait_for_timeout(1200)
+    M=ev("()=>{const c=document.querySelector('[data-b21d-carte=\"siditrav\"]'),r=c&&c.getBoundingClientRect();return{f:B21D.ui.f,o:B21D.ui.open,vis:!!r&&r.top<innerHeight&&r.bottom>0,foc:document.activeElement&&document.activeElement.dataset.b21dMotif,ouv:c&&c.dataset.b21dOuvert}}")
+    chk(M["f"]=="tout" and M["o"]=="siditrav" and M["ouv"]=="1" and M["vis"] and M["foc"]=="fx-dec~siditrav",f"« Modifier » (retenues) depuis un filtre qui cachait SIDITRAV : filtre « Tout », carte SIDITRAV ouverte, défilement et focus sur son motif ({M})")
+    # Actualiser : filtre et carte ouverte conservés, rien d'écrit
+    pg.click('[data-b21d-f="ajoutees"]');pg.wait_for_timeout(250);pg.click('[data-b21d-maj]');pg.wait_for_timeout(400)
+    chk(ev("()=>[B21D.ui.f,B21D.ui.open,document.querySelector('[data-b21d-carte=\"siditrav\"]').dataset.b21dOuvert]")==["ajoutees","siditrav","1"],"« Actualiser » : filtre « Ajoutées » et carte SIDITRAV ouverte conservés")
+    chk(len(W())==w0 and ev("()=>JSON.stringify(['fx-dec','fx-dec~siditrav','fx-dec~alwaad-ataib'].map(i=>[S.ao[i].decision||null,S.ao[i].statut]))")==dec0,"ouvrir, fermer, filtrer, Modifier, Actualiser : aucune écriture, décisions et statuts identiques")
+    # changement d'AO : état d'affichage réinitialisé
+    dec(pg,"fx-decc");U=ev("()=>[B21D.ui.id,B21D.ui.f,B21D.ui.open,document.querySelectorAll('[data-b21d-carte][data-b21d-ouvert=\"1\"]').length]")
+    dec(pg,"fx-dec");U2=ev("()=>[B21D.ui.f,B21D.ui.open]")
+    chk(U==["fx-decc","tout",None,0] and U2==["tout",None],f"changer d'AO réinitialise filtre et carte ouverte (aucune carte d'un autre dossier reste ouverte) {U}")
     # ===== b21d-3 : la note d'analyse n'est ni calculée ni rendue dans la vue Décision ; aller-retour par le routage existant =====
     ev("()=>{window.__nNote=0;const o1=vNoteB21,o2=aoNote;vNoteB21=function(){window.__nNote++;return o1.apply(this,arguments);};aoNote=function(){window.__nNote++;return o2.apply(this,arguments);};}")
     dec(pg,"fx-dec");V=ev("""()=>{const m=document.querySelector('[data-mpn-dossier-vue]');return{vue:m.dataset.mpnDossierVue,h2:document.getElementById('mpn-h').innerText.trim(),note:document.querySelectorAll('[data-b21],.b21-dash,.b21-orig,[data-b21-pdf],[data-b21-sec]').length,
@@ -66,12 +122,12 @@ with sync_playwright() as p:
     chk(len(W())==w0,"navigation Décision ↔ Note : aucune écriture")
     dec(pg,"fx-dec")
     # actions = handlers existants de la bonne société
-    ev("()=>{const c=document.querySelector('[data-b21d-soc=\"siditrav\"] [data-b21d-go=\"pieces\"]');c.click();}");pg.wait_for_timeout(400)
+    ouvre(pg,"siditrav");ev("()=>{const c=document.querySelector('[data-b21d-soc=\"siditrav\"] [data-b21d-go=\"pieces\"]');c.click();}");pg.wait_for_timeout(400)
     r=ev("()=>({id:S.aoId,bur:MPN.dos&&MPN.dos.bur,k:MPN.dos&&MPN.dos.k})");chk(r["id"]=="fx-dec~siditrav" and r["bur"]=="MP-B3.2" and r["k"]=="pieces",f"action « pièces » de SIDITRAV : ouvre SON dossier au bureau B3.2 ({r})")
-    dec(pg,"fx-dec");ev("()=>document.querySelector('[data-b21d-soc=\"sakdat\"] [data-b21d-go=\"coffre\"]').click()");pg.wait_for_timeout(300)
+    dec(pg,"fx-dec");ouvre(pg,"sakdat");ev("()=>document.querySelector('[data-b21d-soc=\"sakdat\"] [data-b21d-go=\"coffre\"]').click()");pg.wait_for_timeout(300)
     chk(ev("()=>S.soc")=="sakdat","action « coffre » de SAKDAT : ouvre le coffre de SAKDAT (handler de la barre latérale)")
     # décision Go : deux appuis, seul le dossier de la société est écrit, rien d'automatique
-    dec(pg,"fx-dec");w0=len(W());pg.click(f'{CARD("sakdat")} [data-b21d-dec="Go"]');pg.wait_for_timeout(300)
+    dec(pg,"fx-dec");ouvre(pg,"sakdat");w0=len(W());pg.click(f'{CARD("sakdat")} [data-b21d-dec="Go"]');pg.wait_for_timeout(300)
     chk(len(W())==w0 and ev("()=>S.ao['fx-dec'].decision")is None and pg.locator(f'{CARD("sakdat")} .b21d-arm').count()==1,"Go : premier appui = demande de confirmation, rien n'est écrit")
     pg.click(f'{CARD("sakdat")} [data-b21d-dec="Go"]');pg.wait_for_timeout(500);d=ev("()=>S.ao['fx-dec']");ww=[w for w in W()[w0:] if w[1].startswith("ao/")]
     chk(d["decision"]["verdict"]=="Go" and d["decision"]["le"] and d["decision"]["qui"] and d["statut"]=="En préparation" and d["soc"]=="sakdat" and ww==[["set","ao/fx-dec"]],f"Go confirmé : décision (verdict, date, auteur) sur le seul dossier SAKDAT, société inchangée ({ww})")
@@ -87,11 +143,11 @@ with sync_playwright() as p:
     pg.fill(f'{CARD("siditrav")} [data-b21d-motif]',"reprendre l'étude (test)");pg.click('[data-b21d-retirer="siditrav"]');pg.wait_for_timeout(200);pg.click(f'{CARD("siditrav")} [data-b21d-dec="À reprendre"]');pg.wait_for_timeout(400)
     s2=ev("()=>S.ao['fx-dec~siditrav']");chk(s2["decision"]["verdict"]=="À reprendre" and s2["statut"]=="À examiner" and s2["dcePieces"]["cps"]["cachete"]["statut"]=="VÉRIFIÉ" and s2["decisionHist"][-1]["verdict"]=="Go","Retirer = « À reprendre » tracé, pièces cachetées conservées")
     chk(ev("()=>[...document.querySelectorAll('[data-b21d-ret]')].length")==0,"retirée de la liste des entreprises retenues")
-    pg.click(f'{CARD("siditrav")} [data-b21d-dec="Go"]');pg.wait_for_timeout(200);pg.click(f'{CARD("siditrav")} [data-b21d-dec="Go"]');pg.wait_for_timeout(400)
+    ouvre(pg,"siditrav");pg.click(f'{CARD("siditrav")} [data-b21d-dec="Go"]');pg.wait_for_timeout(200);pg.click(f'{CARD("siditrav")} [data-b21d-dec="Go"]');pg.wait_for_timeout(400)
     chk(ev("()=>[S.ao['fx-dec~siditrav'].decision.verdict,S.ao['fx-dec~siditrav'].statut,S.ao['fx-dec~siditrav'].decisionHist.length]")==["Go","En préparation",2],"réversible : nouveau Go, historique complet (2 décisions remplacées)")
     # ===== b21d-4 : toutes les sociétés actuelles du groupe ; cartes compactes ; ajout sans Go =====
-    HORS="()=>[...document.querySelectorAll('[data-b21d-hors]')].map(c=>({sid:c.dataset.b21dHors,v:c.dataset.b21dCompat,pill:c.querySelector('[data-b21d-cv]').innerText,n:(c.querySelector('[data-b21d-n]')||{dataset:{}}).dataset.b21dN||null,mot:c.querySelectorAll('.b21d-mot li').length,txt:c.innerText,dis:c.querySelector('[data-b21d-ajout]').disabled,bl:(c.querySelector('[data-b21d-bloque]')||{}).innerText||''}))"
-    dec(pg,"fx-dec");G=ev("()=>({soc:SOC.map(z=>z.sid),full:[...document.querySelectorAll('[data-b21d-oid]')].map(c=>c.dataset.b21dSoc),cpt:document.querySelector('[data-b21d-compte]').dataset.b21dCompte,cptT:document.querySelector('[data-b21d-compte]').innerText})");H=ev(HORS)
+    HORS0="()=>[...document.querySelectorAll('[data-b21d-hors]')].map(c=>({sid:c.dataset.b21dHors,v:c.dataset.b21dCompat,pill:c.querySelector('[data-b21d-cv]').innerText,n:(c.querySelector('[data-b21d-n]')||{dataset:{}}).dataset.b21dN||null,mot:c.querySelectorAll('.b21d-mot li').length,txt:c.innerText,dis:c.querySelector('[data-b21d-ajout]').disabled,bl:(c.querySelector('[data-b21d-bloque]')||{}).innerText||''}))"
+    dec(pg,"fx-dec");G=ev("()=>({soc:SOC.map(z=>z.sid),full:[...document.querySelectorAll('[data-b21d-oid]')].map(c=>c.dataset.b21dSoc),cpt:document.querySelector('[data-b21d-compte]').dataset.b21dCompte,cptT:document.querySelector('[data-b21d-compte]').innerText})");H=hors(pg)
     tous=G["full"]+[h["sid"] for h in H]
     chk(sorted(tous)==sorted(G["soc"]) and len(tous)==len(set(tous)) and len(G["soc"])==9 and G["cpt"]==f"{len(set(G['full']))}/9" and "ajoutée" in G["cptT"],f"liste dynamique (SOC = {len(G['soc'])} sociétés) : chaque société une seule fois, {len(G['full'])} cartes dossier + {len(H)} cartes compactes ; compteur « {G['cptT']} »")
     real=ev("()=>Object.fromEntries(SOC.map(z=>{const v=compatEval('fx-dec',S.ao['fx-dec'],z.sid);return[z.sid,[v.v,v.n.ok+'/'+v.n.ko+'/'+v.n.inc,v.contre.length]]}))")
@@ -104,18 +160,18 @@ with sync_playwright() as p:
       if(sid==='build-chantier')return Object.assign({},v,{v:'Inconnue',n:null,contre:[]});
       if(sid==='signalsud-sahara')return Object.assign({},v,{v:'Écartée',contre:['Attestation fiscale : incompatible en l\\'état, justificatif daté échu (test)'].concat(v.contre),n:{ok:0,ko:1,inc:7}});return v;};
       parCompat=function(id,a,sid){if(sid==='sahara-iaamar')return{st:'non',why:'Même signataire que SAKDAT (test) : interdit par l\\'article 27 du décret 2-22-431'};return window.__pc(id,a,sid);};render();}""")
-    H=ev(HORS);o=[h["sid"] for h in H];V={h["sid"]:h for h in H}
+    H=hors(pg);o=[h["sid"] for h in H];V={h["sid"]:h for h in H}
     chk(o==["up-modulor","structure-chantier","build-chantier","riyada-build","sahara-iaamar","signalsud-sahara"],f"ordre : ajoutées (cartes dossier), puis compatibles, à vérifier, incompatibles ({o})")
     chk(V["up-modulor"]["pill"]=="Compatibilité RC : Compatible" and V["build-chantier"]["pill"]=="Compatibilité RC : À vérifier" and "non calculable" in V["build-chantier"]["txt"] and not V["build-chantier"]["dis"],"compatibilité inconnue (verdict B2.3 non déterminé) : « À vérifier », jamais compatible")
     chk(V["signalsud-sahara"]["pill"]=="Compatibilité RC : Incompatible en l'état" and V["signalsud-sahara"]["dis"] and "Écartée pour ce marché" in V["signalsud-sahara"]["bl"] and "justificatif daté échu" in V["signalsud-sahara"]["txt"],f"incompatible : visible avec ses raisons, ajout bloqué par parCompat ({V['signalsud-sahara']['bl']})")
     chk(V["sahara-iaamar"]["dis"] and "article 27" in V["sahara-iaamar"]["bl"] and V["sahara-iaamar"]["pill"]=="Compatibilité RC : À vérifier",f"art. 27 : ajout bloqué avec la raison ({V['sahara-iaamar']['bl']}), compatibilité affichée à part")
     w0=len(W());ev("()=>b21dAjouter('fx-dec','signalsud-sahara')");pg.wait_for_timeout(200);chk(len(W())==w0 and "Écartée" in ev("()=>window.__toastLog.slice(-1)[0]"),"appel direct de l'ajout d'une société incompatible : refusé, rien n'est écrit")
-    pg.locator(".b21d-hs").screenshot(path=f"{OUT}/hors_ao_1440.png")
+    pg.locator(".b21d-socs").screenshot(path=f"{OUT}/hors_ao_1440.png")
     ev("()=>{compatEval=window.__ce;parCompat=window.__pc;render();}")
     # ajout réel de la fixture : riyada-build
     ev("()=>{window.__prep=0;const o=prepDemarrer;prepDemarrer=function(){window.__prep++;return o.apply(this,arguments);};}")
     av=ev("()=>JSON.stringify({d:S.ao['fx-dec'].decision||null,s:S.ao['fx-dec'].soc,st:S.ao['fx-dec'].statut,sid:S.ao['fx-dec~siditrav'].decision,o:Object.keys(S.offres).length,x:['fx-dec','fx-dec~siditrav'].map(i=>S.bpx[i]&&S.bpx[i].p)})")
-    w0=len(W());pg.click('[data-b21d-ajout="riyada-build"]');pg.wait_for_timeout(250)
+    ouvre(pg,"riyada-build");w0=len(W());pg.click('[data-b21d-ajout="riyada-build"]');pg.wait_for_timeout(250)
     chk(len(W())==w0 and ev("()=>S.ao['fx-dec~riyada-build']") is None and "Confirmer l'ajout" in pg.inner_text('[data-b21d-ajout="riyada-build"]') and "sans décision (aucun Go)" in ev("()=>window.__toastLog.slice(-1)[0]"),"Ajouter : premier appui = confirmation (« sans décision, aucun Go »), rien n'est créé")
     pg.click('[data-b21d-ajout="riyada-build"]');pg.wait_for_timeout(900);n=ev("()=>S.ao['fx-dec~riyada-build']");ww=W()[w0:]
     chk(n and n["soc"]=="riyada-build" and n["base"]=="fx-dec" and n["statut"]=="À examiner" and "decision" not in n and n["ajout"]["le"] and n["ajout"]["qui"] and ww==[["set","ao/fx-dec~riyada-build"]] and ev("()=>window.__prep")==0,f"ajout confirmé : dossier séparé fx-dec~riyada-build créé par creerSib (sansGo), statut « À examiner », aucune décision ni Go, préparation non lancée ; une seule écriture ({ww})")
@@ -133,8 +189,8 @@ with sync_playwright() as p:
     chk(st3["full"].count("riyada-build")==1 and "riyada-build" not in st3["hors"] and st3["cpt"]=="4/9" and st3["dec"] is None and st3["ret"]==["siditrav"] and len(st3["full"])+len(st3["hors"])==9,f"après rechargement : état stable (carte dossier unique, 4/9, aucune décision créée) {st3['cpt']}")
     W=lambda:ev("()=>window.__writes.slice()")
     # consultation clôturée : lecture seule
-    dec(pg,"fx-decc");w0=len(W());T=pg.inner_text("[data-b21d]")
-    HC=ev(HORS);chk("Consultation clôturée le" in T and pg.locator("[data-b21d-dec]").count()==0 and pg.locator("[data-b21d-ajout]:not([disabled])").count()==0 and "décision en lecture seule" in T,"consultation clôturée : décision en lecture, ni Go / No-Go, aucun ajout actif, aucune soumission")
+    dec(pg,"fx-decc");w0=len(W());ouvre(pg,"sakdat");T=pg.inner_text("[data-b21d]");nd=pg.locator("[data-b21d-dec]").count()
+    HC=hors(pg);chk("Consultation clôturée le" in T and nd==0 and pg.locator("[data-b21d-ajout]:not([disabled])").count()==0 and "décision en lecture seule" in T,"consultation clôturée : décision en lecture, ni Go / No-Go, aucun ajout actif, aucune soumission")
     chk(len(HC)+pg.locator("[data-b21d-oid]").count()==9 and all(h["dis"] and "date limite passée" in h["bl"] for h in HC),f"consultation clôturée : les 9 sociétés restent visibles ; « Ajouter » désactivé avec la raison « {HC[0]['bl'] if HC else ''} »")
     ev("()=>b21dAjouter('fx-decc','riyada-build')");pg.wait_for_timeout(200);chk(len(W())==w0 and "date limite passée" in ev("()=>window.__toastLog.slice(-1)[0]"),"clôturée : appel direct de l'ajout refusé, rien n'est écrit")
     chk(ev("()=>S.ao['fx-decc'].decision.verdict")=="Go","décision existante conservée (clôturée)")
@@ -144,17 +200,19 @@ with sync_playwright() as p:
     reel1=ev("ids=>JSON.stringify(ids.map(i=>[S.ao[i].decision||null,S.ao[i].statut,S.ao[i].soc,S.ao[i].decisionHist||null]))",REELS)
     chk(n3==3 and reel0==reel1 and not ecr_reel(pg) and not errs,f"dossier réel BG (base simulée) : 3 cartes en lecture, décisions et statuts inchangés, aucune écriture réelle, aucune erreur {errs[:2]}")
     dec(pg,"fx-dec");pg.screenshot(path=f"{OUT}/fx_dec_1440.png",full_page=False)
-    pg.locator('[data-b21d-soc="siditrav"]').screenshot(path=f"{OUT}/fx_dec_carte_siditrav.png");ctx.close()
+    ouvre(pg,"siditrav");pg.locator('[data-b21d-soc="siditrav"]').screenshot(path=f"{OUT}/fx_dec_carte_siditrav.png");ctx.close()
     for (w,h,sch,tag) in ((390,844,"light","390"),(390,844,"dark","390_sombre"),(1440,900,"dark","1440_sombre")):
         c=b.new_context(viewport={"width":w,"height":h},color_scheme=sch);c.add_init_script(INIT);q=c.new_page();e=[];q.on("pageerror",lambda x:e.append(str(x)))
         q.goto(URL);q.wait_for_function("()=>typeof S!=='undefined'&&S.aoState==='ok'&&Object.keys(S.ao).length>50",timeout=20000);q.wait_for_timeout(800);dec(q,"fx-dec")
+        sm=q.evaluate("()=>{const C=[...document.querySelectorAll('[data-b21d-carte]')];return{n:C.length,ouv:C.filter(c=>c.dataset.b21dOuvert==='1').length,ok:C.every(c=>{const r=c.getBoundingClientRect(),b=c.querySelector('[data-b21d-tog]').getBoundingClientRect();return b.left>=r.left-1&&b.right<=r.right+1&&b.height>=36&&c.scrollWidth<=c.clientWidth+1}),fb:[...document.querySelectorAll('[data-b21d-f]')].every(b=>b.getBoundingClientRect().height>=34),ov:document.documentElement.scrollWidth-document.documentElement.clientWidth}}")
+        chk(sm["n"]==9 and sm["ouv"]==0 and sm["ok"] and sm["fb"] and sm["ov"]<=1,f"{tag} : 9 résumés repliés, boutons « Afficher les détails » et filtres lisibles, sans débordement ({sm})")
+        q.locator(".b21d-socs").screenshot(path=f"{OUT}/replie_{tag}.png");ouvre(q,"siditrav")
         L=q.evaluate("()=>{const c=document.querySelector('[data-b21d-soc=\"siditrav\"]'),t=c.querySelector('.b21d-main').getBoundingClientRect(),d=c.querySelector('.b21d-dec').getBoundingClientRect();return{ov:document.documentElement.scrollWidth-document.documentElement.clientWidth,dessous:d.top>=t.bottom-2,droite:d.left>=t.right-2}}")
         hv=q.evaluate("""()=>{const t=document.querySelector('[data-b21d-soc="siditrav"] table.b21d-tab');return getComputedStyle(t.tHead).display!=='none'&&[...t.tHead.querySelectorAll('th')].map(x=>x.innerText.trim()).join('|')==='Pièce|Statut|Action'}""")
         tw=q.evaluate("""()=>[...document.querySelectorAll('.b21d-tw')].map(t=>t.scrollWidth-t.clientWidth)""")
         nv=q.evaluate("()=>({note:document.querySelectorAll('[data-b21],[data-b21-pdf]').length,b:!!document.querySelector('[data-b21d-voirnote]')})")
-        hm=q.evaluate("()=>{const s=document.querySelector('.b21d-hs');if(!s)return null;const R=s.getBoundingClientRect(),C=[...s.querySelectorAll('.b21d-mini')].map(c=>{const r=c.getBoundingClientRect();return r.left>=R.left-1&&r.right<=R.right+1&&c.scrollWidth<=c.clientWidth+1});return{n:C.length,ok:C.every(Boolean)}}")
-        chk(hm and hm["n"]==6 and hm["ok"],f"{tag} : 6 cartes compactes lisibles, sans débordement ({hm})")
-        q.locator(".b21d-hs").screenshot(path=f"{OUT}/hors_ao_{tag}.png")
+        ouvre(q,"riyada-build");hm=q.evaluate("()=>{const c=document.querySelector('[data-b21d-carte=\"riyada-build\"]'),r=c.getBoundingClientRect(),b=c.querySelector('[data-b21d-ajout]').getBoundingClientRect();return{ok:b.left>=r.left-1&&b.right<=r.right+1&&c.scrollWidth<=c.clientWidth+1,ov:document.documentElement.scrollWidth-document.documentElement.clientWidth}}")
+        chk(hm["ok"] and hm["ov"]<=1,f"{tag} : détails d'une société non ajoutée (motifs, Ajouter) lisibles sans débordement ({hm})");q.locator('[data-b21d-carte="riyada-build"]').screenshot(path=f"{OUT}/hors_ao_{tag}.png");ouvre(q,"siditrav")
         q.click("[data-b21d-voirnote]");q.wait_for_selector("[data-b21]",timeout=15000);q.wait_for_timeout(300);q.click("[data-b21-dec]");q.wait_for_selector("[data-b21d]",timeout=15000);q.wait_for_timeout(300)
         chk(nv["note"]==0 and nv["b"] and q.evaluate("()=>document.querySelectorAll('[data-b21]').length")==0,f"{tag} : vue Décision sans note ; aller-retour vers la note et retour à la Décision")
         chk(hv and max(tw)<=1,f"{tag} : en-têtes Pièce / Statut / Action visibles, colonne Action entière (aucun défilement interne : {max(tw)} px)")

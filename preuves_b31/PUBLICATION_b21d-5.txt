@@ -1,0 +1,23 @@
+b21d-5 · B2.1 Décision : cartes repliées, une seule ouverte, filtres
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Base live vérifiée avant modification et juste avant publication : 1791931887-4159 (b21d-4), aucun changement concurrent.
+Version publiée : 299 · id 1791932650-9065 · index 1 592 842 octets, sha256 db193bedb42d454088c883f724d1d56bcaddd8ea73fb0d762484a2d0ea3f8b34
+Corps sha256 9b445ed02090c61e8fe757386f3e4d2b86e4a4d3d6d30cadef2459de4996db02 ; index = squelette + corps (diff 0) ; 16 fichiers ; capacités et partage inchangés ; sans force.
+
+Changements (module B2.1 Décision seulement ; build.py inchangé depuis b21d-4) :
+- Toutes les cartes repliées par défaut. Résumé toujours visible : nom, Ajoutée / Pas encore ajoutée, compatibilité RC réelle
+  (compatEval, aussi pour les sociétés ajoutées, sur leur propre dossier), points restants (ajoutées) ou « Aucun dossier »,
+  décision actuelle avec date ou « Non décidée ». Le résumé n'a aucun bouton d'action.
+- Bouton « Afficher les détails » / « Masquer les détails » (aria-expanded, aria-controls, clavier, focus conservé).
+  Détails rendus dans le DOM seulement pour la carte ouverte (région vide et masquée sinon ; actions des pièces construites à l'ouverture).
+  Une seule carte ouverte : en ouvrir une autre replie la précédente.
+- Détails : tableau pièces/actions, sources, chiffrage sans montants, compatibilité détaillée (motifs), décision/motif/historique ;
+  pour les non ajoutées : motifs de compatibilité, Ajouter (ou raison du blocage).
+- Résumé « n sociétés · n ajoutées · n non ajoutées » et filtres Tout / Ajoutées / Compatibles / À vérifier / Incompatibles avec comptes
+  (aria-pressed, état annoncé role=status, message vide + « Tout afficher »). « Ajoutée » est orthogonal à la compatibilité. Ordre b21d-4.
+- « Modifier » / « Retirer » (retenues) : ouvrent la bonne carte, remettent le filtre « Tout » si besoin, défilement et focus sur le motif.
+- « Actualiser » conserve filtre et carte ouverte (si encore présente). Changer de dossier/AO réinitialise l'état d'affichage.
+- État d'affichage uniquement en mémoire (B21D.ui) : aucune écriture, aucune décision.
+
+Recettes (fixtures uniquement, aucune donnée réelle modifiée) :
+qa_b21dec 84/84 · qa_b31 64/64 · qa_qual 21/21 · qa_hist 17/17 · qa_pdf 9/9 · qa_b31_v6e 14/14 · qa_ergo 344/344

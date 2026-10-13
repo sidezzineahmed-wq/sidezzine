@@ -1,0 +1,85 @@
+OK une carte par société candidate (3), 12 pièces chacune (détails ouverts une carte à la fois), construites depuis les pièces du RC
+OK sections Enveloppe 1 (administratif puis technique) puis Enveloppe 2 (financier)
+OK aucune recommandation, conclusion automatique ni présélection ; SAKDAT sans décision affiché « Aucune décision »
+OK « CPS et RC signés » Prêt seulement pour SIDITRAV (CPS et RC cachetés VÉRIFIÉ à son nom)
+OK références Prêt pour SAKDAT (fichier VÉRIFIÉ à son nom) ; jamais pour ALWAAD avec un fichier au nom d'une autre société
+OK statuts limités à Prêt / À vérifier / À joindre / À compléter (+ non exigé, si attribué, chiffré) : ['attrib', 'chiffre', 'compl', 'joindre', 'nonexige', 'pret', 'verif']
+OK aucun montant HT / TVA / TTC ni PU dans la vue multi-sociétés : couverture (2/2, 1/2 PU) et validation seulement
+OK bordereau : « Chiffré · à valider » quand tous les PU de la société sont saisis (non validé), « À compléter » si partiel
+OK bordereau rempli : couverture réelle, signature non prétendue, action « Ouvrir » le chiffrage B3.1
+OK acte d'engagement : action vers sa préparation (pièces B3.2), pas le chiffrage
+OK en-têtes Pièce / Statut / Action visibles (scope=col), légende et libellé accessibles sur chaque tableau
+OK affichage : aucune écriture
+OK toutes les cartes repliées au départ : détails absents du DOM (région vide et masquée), aucun bouton Go / No-Go / Ajouter ni tableau rendu ; aria-expanded=false, aria-controls valide
+OK résumé des sociétés ajoutées : « Ajoutée », compatibilité réelle de leur dossier (compatEval), points restants ({'alwaad-ataib': 7, 'siditrav': 6, 'sakdat': 6})
+OK résumé : décision humaine actuelle avec date, ou « Non décidée » (état seulement)
+OK résumé « 9 sociétés · 3 ajoutées · 6 non ajoutées » ; filtres avec comptes calculés par compatEval {'tout': 9, 'ajoutees': 3, 'compat': 0, 'averif': 9, 'incompat': 0} ; « Tout » sélectionné (aria-pressed), état annoncé (role=status)
+OK « Afficher les détails » : tableau, décisions et motif rendus ; bouton « Masquer les détails », aria-expanded=true, focus conservé sur le bouton
+OK une seule carte ouverte : ouvrir SIDITRAV replie SAKDAT (ses détails sont retirés du DOM)
+OK clavier : Entrée replie, Espace rouvre, le focus reste sur le bouton
+OK filtre « Ajoutées » : 3 cartes, bouton pressé, état annoncé ; la carte ouverte (encore visible) reste ouverte
+OK filtre vide (« Compatibles » : 0 avec le moteur réel) : message clair et « Tout afficher » ; carte ouverte refermée (Aucune société dans le filtre « Compatibles » pour cet AO. T…)
+OK « Tout afficher » : les 9 sociétés, ordre b21d-4
+OK filtres orthogonaux : « Compatibles » montre une société ajoutée (SIDITRAV) et une non ajoutée, dans l'ordre b21d-4 ; comptes {'tout': 9, 'ajoutees': 3, 'compat': 2, 'averif': 6, 'incompat': 1}
+OK filtre « Incompatibles » : SIGNALSUD SAHARA seule
+OK « Modifier » (retenues) depuis un filtre qui cachait SIDITRAV : filtre « Tout », carte SIDITRAV ouverte, défilement et focus sur son motif ({'f': 'tout', 'o': 'siditrav', 'vis': True, 'foc': 'fx-dec~siditrav', 'ouv': '1'})
+OK « Actualiser » : filtre « Ajoutées » et carte SIDITRAV ouverte conservés
+OK ouvrir, fermer, filtrer, Modifier, Actualiser : aucune écriture, décisions et statuts identiques
+OK changer d'AO réinitialise filtre et carte ouverte (aucune carte d'un autre dossier reste ouverte) ['fx-decc', 'tout', None, 0]
+OK vue Décision : note d'analyse ni calculée (0 appel) ni rendue (aucun bloc, PDF de note, avis Analyste ni recommandation)
+OK titre unique « Décision d'Ahmed » (titres trouvés : ["Décision d'Ahmed"]) ; bouton « Voir la note d'analyse », plus de lien repliable
+OK « Voir la note d'analyse » : vraie vue Note d'analyse du même dossier (complète, PDF de note disponible), sans les cartes de décision ({'id': 'fx-dec', 'vue': 'MP-B2.1|note', 'b21': 'fx-dec', 'h2': "Note d'analyse", 'dec': 0, 'voir': True, 'pdf': 2})
+OK retour « Ouvrir la décision » (carte 09 de la note) depuis la note : vue Décision du même dossier, sans la note
+OK depuis le dossier SIDITRAV : la note ouverte est celle du dossier SIDITRAV (même dossier, même société)
+OK navigation Décision ↔ Note : aucune écriture
+OK action « pièces » de SIDITRAV : ouvre SON dossier au bureau B3.2 ({'id': 'fx-dec~siditrav', 'bur': 'MP-B3.2', 'k': 'pieces'})
+OK action « coffre » de SAKDAT : ouvre le coffre de SAKDAT (handler de la barre latérale)
+OK Go : premier appui = demande de confirmation, rien n'est écrit
+OK Go confirmé : décision (verdict, date, auteur) sur le seul dossier SAKDAT, société inchangée ([['set', 'ao/fx-dec']])
+OK les décisions des autres sociétés sont conservées
+OK No-Go sans motif : refusé, rien n'est écrit
+OK No-Go avec motif : décision remplacée tracée (historique), pièces conservées
+OK historique des décisions affiché dans la carte
+OK « Entreprises retenues » = uniquement les Go réels (['siditrav'])
+OK Retirer sans motif : refusé (motif demandé dans la carte)
+OK Retirer = « À reprendre » tracé, pièces cachetées conservées
+OK retirée de la liste des entreprises retenues
+OK réversible : nouveau Go, historique complet (2 décisions remplacées)
+OK liste dynamique (SOC = 9 sociétés) : chaque société une seule fois, 3 cartes dossier + 6 cartes compactes ; compteur « 3 / 9 sociétés ajoutées à cet AO »
+OK cartes compactes : nom, « Pas encore ajoutée à cet AO », verdict, compteurs et motifs repris du vrai moteur B2.3 (compatEval)
+OK moteur réel (exigences du marché inconnues) : toutes « À vérifier », aucune compatibilité inventée
+OK ajout proposé aux sociétés non bloquées par les règles existantes (parCompat)
+OK ordre : ajoutées (cartes dossier), puis compatibles, à vérifier, incompatibles (['up-modulor', 'structure-chantier', 'build-chantier', 'riyada-build', 'sahara-iaamar', 'signalsud-sahara'])
+OK compatibilité inconnue (verdict B2.3 non déterminé) : « À vérifier », jamais compatible
+OK incompatible : visible avec ses raisons, ajout bloqué par parCompat (Ajout bloqué : Écartée pour ce marché : Attestation fiscale : incompatible en l'état, justificatif daté échu (test))
+OK art. 27 : ajout bloqué avec la raison (Ajout bloqué : Même signataire que SAKDAT (test) : interdit par l'article 27 du décret 2-22-431), compatibilité affichée à part
+OK appel direct de l'ajout d'une société incompatible : refusé, rien n'est écrit
+OK Ajouter : premier appui = confirmation (« sans décision, aucun Go »), rien n'est créé
+OK ajout confirmé : dossier séparé fx-dec~riyada-build créé par creerSib (sansGo), statut « À examiner », aucune décision ni Go, préparation non lancée ; une seule écriture ([['set', 'ao/fx-dec~riyada-build']])
+OK dossier isolé : aucun prix, aucune offre, aucune pièce cachetée ou signée recopiée (FIN-ISO-001) ; fichiers []
+OK dossier ouvert, sa société, ses décisions et les prix des autres dossiers inchangés ; on reste sur la vue Décision
+OK la carte compacte devient carte dossier (sans doublon), compteur 4/9, « Aucune décision », retenues = Go réels seulement (['siditrav'])
+OK second ajout de la même société : refusé, rien n'est créé
+OK après rechargement : état stable (carte dossier unique, 4/9, aucune décision créée) 4/9
+OK consultation clôturée : décision en lecture, ni Go / No-Go, aucun ajout actif, aucune soumission
+OK consultation clôturée : les 9 sociétés restent visibles ; « Ajouter » désactivé avec la raison « Ajout bloqué : consultation clôturée le 01/09/2026 10H, date limite passée. »
+OK clôturée : appel direct de l'ajout refusé, rien n'est écrit
+OK décision existante conservée (clôturée)
+OK Actualiser : relecture sans écriture ni changement de décision
+OK dossier réel BG (base simulée) : 3 cartes en lecture, décisions et statuts inchangés, aucune écriture réelle, aucune erreur []
+OK 390 : 9 résumés repliés, boutons « Afficher les détails » et filtres lisibles, sans débordement ({'n': 9, 'ouv': 0, 'ok': True, 'fb': True, 'ov': 0})
+OK 390 : détails d'une société non ajoutée (motifs, Ajouter) lisibles sans débordement ({'ok': True, 'ov': 0})
+OK 390 : vue Décision sans note ; aller-retour vers la note et retour à la Décision
+OK 390 : en-têtes Pièce / Statut / Action visibles, colonne Action entière (aucun défilement interne : 0 px)
+OK 390 : décision sous le tableau, aucun débordement ({'ov': 0, 'dessous': True, 'droite': False})
+OK 390_sombre : 9 résumés repliés, boutons « Afficher les détails » et filtres lisibles, sans débordement ({'n': 9, 'ouv': 0, 'ok': True, 'fb': True, 'ov': 0})
+OK 390_sombre : détails d'une société non ajoutée (motifs, Ajouter) lisibles sans débordement ({'ok': True, 'ov': 0})
+OK 390_sombre : vue Décision sans note ; aller-retour vers la note et retour à la Décision
+OK 390_sombre : en-têtes Pièce / Statut / Action visibles, colonne Action entière (aucun défilement interne : 0 px)
+OK 390_sombre : décision sous le tableau, aucun débordement ({'ov': 0, 'dessous': True, 'droite': False})
+OK 1440_sombre : 9 résumés repliés, boutons « Afficher les détails » et filtres lisibles, sans débordement ({'n': 9, 'ouv': 0, 'ok': True, 'fb': True, 'ov': 0})
+OK 1440_sombre : détails d'une société non ajoutée (motifs, Ajouter) lisibles sans débordement ({'ok': True, 'ov': 0})
+OK 1440_sombre : vue Décision sans note ; aller-retour vers la note et retour à la Décision
+OK 1440_sombre : en-têtes Pièce / Statut / Action visibles, colonne Action entière (aucun défilement interne : 0 px)
+OK 1440_sombre : décision à droite, aucun débordement ({'ov': 0, 'dessous': False, 'droite': True})
+84 / 84

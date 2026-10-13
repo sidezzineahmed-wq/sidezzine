@@ -5,7 +5,7 @@
    a.decision {verdict, le, qui, motif} ; jamais de Go automatique ni de présélection ; une décision remplacée est conservée
    (a.decisionHist) et tracée au journal ; la société d'un dossier n'est jamais changée ici. L'avis et la recommandation de
    l'Analyste restent dans la note d'analyse. Consultation clôturée : décision affichée en lecture, aucune nouvelle soumission. */
-const B21D={v:"b21d-2",motif:{},conf:null};
+const B21D={v:"b21d-3",motif:{},conf:null};
 const B21D_ST={chiffre:["b21d-amb","Chiffré · à valider"],chval:["b21d-ok","Chiffré · validé"],pret:["b21d-ok","Prêt"],verif:["b21d-amb","À vérifier"],joindre:["b21d-ko","À joindre"],compl:["b21d-amb","À compléter"],nonexige:["b21d-neu","Non exigé"],attrib:["b21d-neu","Si attribué"]};
 const B21D_COFFRE=["qc","refs","fis","cnss","rc","pouvoirs"],B21D_FIN=["bpu","sdp"];   /* l'acte d'engagement se prépare dans les pièces (B3.2) */
 /* b21d-2 : état du chiffrage de LA société, sans aucun montant (FIN-ISO-001) : couverture des PU et validation seulement */
@@ -84,7 +84,8 @@ function vDecisionB21(id,a){b21dCss();const X=b21dSibs(id,a),clos=b21dClos(a),li
   let h=`<div class="b21d" data-b21d="${esc(id)}"><header class="b21d-top"><div><p class="b21d-src b21d-ref">${esc(a.ref||id)} · ${esc(String(a.obj||"").slice(0,120))}</p></div>
     <div class="b21d-cm">${lim?`<span class="b21d-pill ${clos?"b21d-ko":"b21d-neu"}" data-b21d-clos="${clos}">${clos?"Consultation clôturée le ":"Date limite : "}${esc(fmtIso(a.lim))}${a.heure?" "+esc(a.heure):""}</span>`:`<span class="b21d-pill b21d-amb">Date limite non renseignée</span>`}<button type="button" class="b21d-btn" data-b21d-maj="1" data-act="${act(()=>{try{delete B21.cache;}catch(e){}render();toast("État et documents relus ; aucune décision modifiée.");})}">Actualiser</button></div></header>`;
   h+=`<p class="b21d-intro">Une carte par société candidate : chaque société a son propre dossier, ses pièces et ses prix (FIN-ISO-001). L'état des pièces (administratif) est distinct de votre décision commerciale Go / No-Go.</p>`;
-  h+=`<details class="b21d-note"><summary>Note d'analyse (avis de l'Analyste, sources)</summary><p>L'avis de l'Analyste, daté et sourcé, et la lecture du DCE sont dans la note d'analyse ; cette zone n'en reprend aucune recommandation. <button type="button" class="b21d-lnk" data-act="${act(()=>b21Aller(id,"note"))}">Ouvrir la note d'analyse</button></p></details>`;
+  /* b21d-3 : la note d'analyse n'est pas rendue ici ; navigation vers sa propre vue (même dossier, même société) par le routage existant */
+  h+=`<div class="b21d-noteb"><button type="button" class="b21d-btn" data-b21d-voirnote="1" data-act="${act(()=>b21Aller(id,"note"))}">Voir la note d'analyse</button><span class="b21d-src">L'avis de l'Analyste, daté et sourcé, et la lecture du DCE sont dans la note d'analyse (bureau B2.1) ; cette vue n'en reprend ni l'avis ni le classement des sociétés.</span></div>`;
   h+=X.map(x=>b21dCarte(x,clos)).join("");
   const G=X.filter(x=>x.a.decision&&x.a.decision.verdict==="Go"&&!["Abandonné","Non retenu","À examiner"].includes(x.a.statut));
   h+=`<section class="b21d-ret" aria-labelledby="b21d-rt"><h3 id="b21d-rt">Entreprises retenues pour la préparation</h3>`;
@@ -128,6 +129,7 @@ const B21D_CSS=`.b21d{--d-bg:#FBF8F2;--d-card:#FFFFFF;--d-line:#E6DFD2;--d-ink:#
 .b21d-hist summary{cursor:pointer;font-size:12px;color:var(--d-amb)}.b21d-hist ul{margin:6px 0 0;padding-left:16px;font-size:12px}.b21d-hist small{display:block;color:var(--d-mut)}
 .b21d-ret h3{font-size:15px;margin-bottom:8px}.b21d-rl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}.b21d-rl li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid var(--d-line);border-radius:8px}.b21d-rl small{display:block;color:var(--d-mut);font-size:12px}
 .b21d-rla{display:flex;gap:6px;align-items:center}.b21d-add{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.b21d-add p{flex-basis:100%;margin:0;font-size:12.5px}
+.b21d-noteb{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.b21d-noteb .b21d-src{margin:0;flex:1 1 260px}
 .b21d-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @container b21d (max-width:560px){.b21d-tab th,.b21d-tab td{padding:6px 4px}.b21d-tab td:nth-child(2){width:84px}.b21d-tab td:nth-child(3){width:86px}.b21d-tab .b21d-pill{white-space:normal;font-size:11px;padding:2px 7px}.b21d-tab .b21d-act{padding:4px 6px;max-width:100%}.b21d-tab .b21d-act small{display:none}.b21d-tab{table-layout:fixed}.b21d-tab th:nth-child(2),.b21d-tab td:nth-child(2){width:84px}.b21d-tab th:nth-child(3),.b21d-tab td:nth-child(3){width:78px}.b21d-tab td{overflow-wrap:anywhere}}`;
 function b21dCss(){if(document.getElementById("b21d-css"))return;const s=document.createElement("style");s.id="b21d-css";s.textContent=B21D_CSS;document.head.appendChild(s);}

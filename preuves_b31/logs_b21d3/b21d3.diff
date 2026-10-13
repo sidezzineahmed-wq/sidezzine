@@ -1,0 +1,25 @@
+2768,2769c2768,2769
+<     else if(D.bur==="MP-B2.1"){const n=st("note").body?st("note").body():"",dd=st("dec"),Pd=STEP_PILL[dd.st]||["p-dash",""];
+<       const hum=`<section class="mpn-humain" aria-labelledby="mpn-dec"><h3 id="mpn-dec">Décision d'Ahmed</h3><div class="mpn-dres"><span class="pill ${Pd[0]}">${esc(Pd[1])}</span><span>${esc(dd.res||"")}</span></div><p class="hint" style="margin-top:0">Espace humain relié au bureau B2.1 : la décision Go ou No-Go appartient à Ahmed. Aucun employé numérique ni aucun bureau ne décide.</p>${dd.body?dd.body():""}</section>`;
+---
+>     else if(D.bur==="MP-B2.1"){const dd=st("dec"),Pd=STEP_PILL[dd.st]||["p-dash",""];
+>       const hum=()=>`<section class="mpn-humain" aria-label="Décision d'Ahmed" data-mpn-dec-vue="1"><p class="hint" style="margin-top:0">Espace humain relié au bureau B2.1 : la décision Go ou No-Go appartient à Ahmed. Aucun employé numérique ni aucun bureau ne décide.</p>${dd.body?dd.body():""}</section>`;
+2771c2771
+<       w=D.k==="dec"?hum+`<h3 class="mpn-t3">Note d'analyse</h3>`+n:n+resume;}
+---
+>       w=D.k==="dec"?hum():(st("note").body?st("note").body():"")+resume;}
+2776c2776
+<   const titre=D.bur==="MP-B3.3"?"Pièces du dossier":D.bur==="MP-B2.2"?"Lecture RC / CPS":D.bur==="MP-B2.3"?"Compatibilité des sociétés":D.bur==="MP-B2.1"&&D.k==="dec"?"Décision d'Ahmed et note d'analyse":(MPN_ETAPE[D.k]||"");
+---
+>   const titre=D.bur==="MP-B3.3"?"Pièces du dossier":D.bur==="MP-B2.2"?"Lecture RC / CPS":D.bur==="MP-B2.3"?"Compatibilité des sociétés":D.bur==="MP-B2.1"&&D.k==="dec"?"Décision d'Ahmed":(MPN_ETAPE[D.k]||"");
+9753c9753
+< const B21D={v:"b21d-2",motif:{},conf:null};
+---
+> const B21D={v:"b21d-3",motif:{},conf:null};
+9832c9832,9833
+<   h+=`<details class="b21d-note"><summary>Note d'analyse (avis de l'Analyste, sources)</summary><p>L'avis de l'Analyste, daté et sourcé, et la lecture du DCE sont dans la note d'analyse ; cette zone n'en reprend aucune recommandation. <button type="button" class="b21d-lnk" data-act="${act(()=>b21Aller(id,"note"))}">Ouvrir la note d'analyse</button></p></details>`;
+---
+>   /* b21d-3 : la note d'analyse n'est pas rendue ici ; navigation vers sa propre vue (même dossier, même société) par le routage existant */
+>   h+=`<div class="b21d-noteb"><button type="button" class="b21d-btn" data-b21d-voirnote="1" data-act="${act(()=>b21Aller(id,"note"))}">Voir la note d'analyse</button><span class="b21d-src">L'avis de l'Analyste, daté et sourcé, et la lecture du DCE sont dans la note d'analyse (bureau B2.1) ; cette vue n'en reprend ni l'avis ni le classement des sociétés.</span></div>`;
+9875a9877
+> .b21d-noteb{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.b21d-noteb .b21d-src{margin:0;flex:1 1 260px}

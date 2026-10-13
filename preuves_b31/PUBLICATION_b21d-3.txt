@@ -1,0 +1,14 @@
+b21d-3 · B2.1 Décision d'Ahmed sans note d'analyse
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Version publiée : 297 · id 1791930922-fdd7 (base live vérifiée : 1791879865-e4ce = b21d-2, aucun changement concurrent dans index.html)
+Index publié sha256 bd8a3165061ffebdaaf1dab243af9752c9cc5ffdb8ad0e152d3f988705cb43e6 ; corps identique à corps_b21d3 (diff 0)
+16 fichiers conservés, contrat 0.2.54, capacités inchangées (assets, db 2 règles, downloads, mcp 2 serveurs, sample, user), partage par lien conservé.
+
+Correction à la source (mpnDossier, branche MP-B2.1) : en mode Décision, la note n'est plus calculée ni rendue
+(plus de titre « Note d'analyse » doublé, plus de [data-b21], ni d'aperçu/téléchargement PDF de note, ni panneau Analyste).
+Titre unique « Décision d'Ahmed ». Le lien repliable est remplacé par le bouton « Voir la note d'analyse »
+(b21Aller(id,"note") → vue MP-B2.1|note du même dossier/société) ; retour par le bouton « Décision » de la note ([data-b21-dec]).
+
+Recettes (fixtures uniquement, aucune écriture réelle) :
+qa_b21dec 47/47 (absence de note, vNoteB21/aoNote appelés 0 fois, aller-retour 1440 clair/sombre, 390 clair/sombre, SIDITRAV)
+qa_b31 64/64 · qa_qual 21/21 · qa_hist 17/17 · qa_pdf 9/9 · qa_b31_v6e 14/14 · qa_ergo 344/344

@@ -1,0 +1,351 @@
+2769c2769
+<       const hum=()=>`<section class="mpn-humain" aria-label="Décision d'Ahmed" data-mpn-dec-vue="1"><p class="hint" style="margin-top:0">Espace humain relié au bureau B2.1 : la décision Go ou No-Go appartient à Ahmed. Aucun employé numérique ni aucun bureau ne décide.</p>${dd.body?dd.body():""}</section>`;
+---
+>       const hum=()=>`<section class="mpn-humain" aria-label="Décision d'Ahmed" data-mpn-dec-vue="1"><p class="hint" style="margin-top:0">Espace humain relié au bureau B2.1 : la décision (Participer, Ne pas participer, À réexaminer) appartient à Ahmed. Aucun employé numérique ni aucun bureau ne décide.</p>${dd.body?dd.body():""}</section>`;
+9753c9753
+< const B21D={v:"b21d-7",motif:{},conf:null,ajout:null,ui:{id:null,open:null,f:"tout"},cat:{}};
+---
+> const B21D={v:"b21d-8",motif:{},conf:null,ajout:null,ui:{id:null,open:null,f:"tout"},cat:{}};
+9793,9807d9792
+< function b21dDecider(oid,verdict){const a=S.ao[oid];if(!a)return;if(!editable())return toast(RO_MSG);
+<   if(b21dClos(a))return toast("Consultation clôturée : la décision reste affichée en lecture, aucune nouvelle soumission.");
+<   if(["Déposé","Attribué","Non retenu"].includes(a.statut))return toast("Dossier "+a.statut.toLowerCase()+" : décision figée.");
+<   const motif=String(B21D.motif[oid]||"").trim().slice(0,300);
+<   if(verdict!=="Go"&&!motif)return toast("Saisissez le motif (obligatoire pour « "+verdict+" »).");
+<   if(verdict==="Go"){const GB=b21dGoBloc(oid);if(GB.bloc.length)return toast("Go impossible en l'état : "+GB.bloc.map(z=>z.t).join(" ; ")+".");}
+<   if(a.decision&&a.decision.verdict===verdict&&(a.decision.motif||"")===motif)return toast("Décision inchangée : rien n'est enregistré.");
+<   const k=oid+"|"+verdict;if(!B21D.conf||B21D.conf.k!==k||Date.now()-B21D.conf.t>6000){B21D.conf={k,t:Date.now()};render();return toast("Confirmez « "+verdict+" » pour "+socCourt(a.soc)+" : appuyez encore une fois. "+(verdict==="Go"?"La préparation de son dossier est lancée ; ":"")+"aucune autre société n'est modifiée.");}
+<   B21D.conf=null;const me=S.role.me||null,now=new Date().toISOString(),prev=a.decision;
+<   if(prev)a.decisionHist=(a.decisionHist||[]).concat([Object.assign({},prev,{remplaceLe:now,remplacePar:me})]).slice(-50);
+<   a.decision={verdict,le:isoToday(),qui:me,motif,soc:a.soc,source:"B2.1 décision par société"};
+<   a.statut=verdict==="Go"?"En préparation":verdict==="No-Go"?"Abandonné":"À examiner";
+<   saveAO(oid);logJ(a.ref+" : décision "+verdict+" pour "+socCourt(a.soc)+(prev?" (remplace "+(prev.verdict||"?")+" du "+(prev.le?fmtIso(prev.le):"?")+")":"")+(motif?" — "+motif:""));
+<   if(verdict==="Go")prepDemarrer(oid,"Go (B2.1)");delete B21D.motif[oid];render();
+<   toast(verdict==="Go"?"Go enregistré pour "+socCourt(a.soc)+" : la préparation démarre ; les pièces restantes restent à traiter avant dépôt.":verdict==="No-Go"?"No-Go enregistré pour "+socCourt(a.soc)+" : ses pièces sont conservées.":"« À reprendre » enregistré pour "+socCourt(a.soc)+" : retiré de la préparation, pièces conservées, réversible par un nouveau Go.");}
+9839c9824,9828
+< B21D.pf={};B21D.wq={};B21D.ouvF={};
+---
+> B21D.pf={};B21D.wq={};B21D.ouvF={};B21D.ptr=false;B21D.rq=0;
+> function b21dRenderSafe(){if(B21D.ptr){B21D.rq=1;return;}render();}
+> document.addEventListener("pointerdown",()=>{B21D.ptr=true;},true);
+> document.addEventListener("pointerup",()=>{B21D.ptr=false;if(B21D.rq){B21D.rq=0;setTimeout(render,60);}},true);
+> document.addEventListener("pointercancel",()=>{B21D.ptr=false;if(B21D.rq){B21D.rq=0;setTimeout(render,60);}},true);
+9847,9849d9835
+< function b21dPfOuvrir(sid,k){const key=sid+"|"+k;B21D.ouvF[key]=!B21D.ouvF[key];
+<   if(B21D.ouvF[key]&&!B21D.pf[key]){const cur=k==="gerants"?null:b21dPfStored(sid,k);B21D.pf[key]=k==="gerants"?{v:{nom:"",qualite:"Gérant",signe:"unique"},st:"edit"}:{v:String(profilOf(sid)[k]||""),base:String(cur),saved:null,st:"edit"};}
+<   render();if(B21D.ouvF[key])b21dFocus('#b21d-pf-'+CSS.escape(sid)+'-'+k+(k==="gerants"?"-nom":""));}
+9852,9855c9838,9841
+<   if(!editable()){F.st="lecture";return render();}
+<   if(k==="gerants"){const g=F.v;if(!String(g.nom||"").trim()){F.st="invalid";F.msg="Indiquez le nom du gérant ou du signataire.";return render();}}
+<   else{const v=b21dPfNorm(k,F.v),er=b21dPfValid(k,v);if(er){F.st="invalid";F.msg=er;return render();}if(v===F.saved&&!force)return;}
+<   if(!S.db){F.st="err";F.msg="base indisponible";return render();}
+---
+>   if(!editable()){F.st="lecture";return b21dRenderSafe();}
+>   if(k==="gerants"){const g=F.v;if(!String(g.nom||"").trim()){F.st="invalid";F.msg="Indiquez le nom du gérant ou du signataire.";return b21dRenderSafe();}}
+>   else{const v=b21dPfNorm(k,F.v),er=b21dPfValid(k,v);if(er){F.st="invalid";F.msg=er;return b21dRenderSafe();}if(v===F.saved&&!force)return;}
+>   if(!S.db){F.st="err";F.msg="base indisponible";return b21dRenderSafe();}
+9862,9874c9848,9849
+<       if(k!=="gerants"){F.base=val;F.saved=val;}F.st="ok";F.cur=null;logJ((socCourt(sid)||sid)+" : profil mis à jour depuis la décision B2.1 ("+(k==="gerants"?"signataire":(B21D_PF.F[k]||{}).lab||k)+")");})
+<     .catch(e=>{F.st="err";F.msg=(e&&e.code)||"erreur";}).finally(()=>render());}
+< function b21dPfPaint(key){const F=B21D.pf[key],n=document.querySelector('[data-b21d-pff="'+CSS.escape(key)+'"] [data-b21d-pfst]');if(!F||!n)return;n.dataset.b21dPfst=F.st;n.innerHTML=`<span class="b21d-pill b21d-neu">Enregistrement…</span> `+esc(b21dPfEtat(F));}
+< function b21dPfForm(sid,x){const key=sid+"|"+x.k,F=B21D.pf[key]||{st:"edit",v:""},ed=editable(),idb="b21d-pf-"+sid+"-"+x.k,etat=b21dPfEtat(F);
+<   const cls=F.st==="ok"?"b21d-ok":F.st==="err"||F.st==="conflit"||F.st==="invalid"?"b21d-ko":"b21d-neu";
+<   let h=`<div class="b21d-pff" data-b21d-pff="${esc(key)}">`;
+<   if(x.k==="gerants")h+=`<div class="b21d-pfg"><label>Nom et prénom<input id="${esc(idb)}-nom" data-b21d-pfg="${esc(key)}|nom" value="${esc(F.v.nom||"")}" ${ed?"":"disabled"} autocomplete="off"></label><label>Qualité<input id="${esc(idb)}-qualite" data-b21d-pfg="${esc(key)}|qualite" value="${esc(F.v.qualite||"")}" ${ed?"":"disabled"}></label><label>Signature<select id="${esc(idb)}-signe" data-b21d-pfg="${esc(key)}|signe" ${ed?"":"disabled"}>${[["unique","Seul"],["séparée","Séparée"],["conjointe","Conjointe"]].map(([v,l])=>`<option value="${v}" ${F.v.signe===v?"selected":""}>${l}</option>`).join("")}</select></label></div>`;
+<   else{const t=(B21D_PF.F[x.k]||{}).t;h+=`<label class="b21d-pfl">${esc(x.lab)}<input id="${esc(idb)}" data-b21d-pf="${esc(key)}" type="${t==="email"?"email":"text"}" inputmode="${x.k==="tel"||x.k==="fax"?"tel":x.k==="ice"||x.k==="rib"||x.k==="capital"?"numeric":"text"}" value="${esc(F.v)}" ${ed?"":"disabled"} autocomplete="off"></label>`;}
+<   h+=`<p class="b21d-pfs" role="status" aria-live="polite" data-b21d-pfst="${esc(F.st)}"><span class="b21d-pill ${cls}">${esc(F.st==="ok"?"Enregistré ✓":F.st==="saving"?"Enregistrement…":F.st==="err"?"Échec":F.st==="conflit"?"Conflit":F.st==="invalid"?"À corriger":"Brouillon")}</span> ${esc(etat)}</p>`;
+<   if(ed&&(F.st==="err"))h+=`<button type="button" class="b21d-btn" data-b21d-pfretry="${esc(key)}" data-act="${act(()=>b21dPfSave(sid,x.k))}">Réessayer</button>`;
+<   if(ed&&F.st==="conflit")h+=`<div class="b21d-ma"><button type="button" class="b21d-btn" data-b21d-pfforce="${esc(key)}" data-act="${act(()=>b21dPfSave(sid,x.k,true))}">Remplacer par ma saisie</button><button type="button" class="b21d-btn" data-b21d-pfkeep="${esc(key)}" data-act="${act(()=>{delete B21D.pf[key];B21D.ouvF[key]=false;render();})}">Garder la valeur enregistrée</button></div>`;
+<   if(ed&&x.k==="gerants"&&F.st!=="ok")h+=`<button type="button" class="b21d-btn" data-b21d-pfsave="${esc(key)}" data-act="${act(()=>b21dPfSave(sid,"gerants"))}">Enregistrer le signataire</button>`;
+<   return h+`<p class="b21d-src">Enregistré dans le profil de ${esc(socCourt(sid))} (coffre de la société), visible dans le Paramétrage et la Préparation. Aucune autre société n'est modifiée.</p></div>`;}
+---
+>       if(k!=="gerants"){F.base=val;F.saved=val;}F.dirty=false;F.st="ok";F.cur=null;logJ((socCourt(sid)||sid)+" : profil mis à jour depuis la décision B2.1 ("+(k==="gerants"?"signataire":(B21D_PF.F[k]||{}).lab||k)+")");})
+>     .catch(e=>{F.st="err";F.msg=(e&&e.code)||"erreur";}).finally(()=>b21dRenderSafe());}
+9879,9922d9853
+< function b21dPanneau(x,clos){const a=x.a,d=a.decision,ed=editable()&&!clos&&!["Déposé","Attribué","Non retenu"].includes(a.statut),H=(a.decisionHist||[]).slice().reverse();
+<   const cls=!d?"b21d-neu":d.verdict==="Go"?"b21d-ok":d.verdict==="No-Go"?"b21d-ko":"b21d-amb";
+<   let h=`<aside class="b21d-dec" aria-label="Votre décision pour ${esc(socCourt(x.sid))}"><h4>Votre décision</h4><p><span class="b21d-pill ${cls} b21d-big" data-b21d-verdict="${esc(d?d.verdict:"aucune")}">${esc(d?d.verdict:"Aucune décision")}</span></p><p class="b21d-src">${esc(b21dDecTxt(d))}</p>`;
+<   if(ed){const v=B21D.motif[x.oid]||"",c=B21D.conf&&B21D.conf.k.startsWith(x.oid+"|")?B21D.conf.k.split("|")[1]:null;
+<     const GB=b21dGoBloc(x.oid),gb=GB.bloc.length>0;
+<     h+=`<div class="b21d-btns" role="group" aria-label="Décision">${["Go","No-Go","À reprendre"].map(V=>V==="Go"&&gb?`<button type="button" class="b21d-db" disabled aria-describedby="b21d-gb-${esc(x.oid)}" data-b21d-dec="Go">Go</button>`:`<button type="button" class="b21d-db${c===V?" b21d-arm":""}" aria-pressed="${!!(d&&d.verdict===V)}" data-b21d-dec="${esc(V)}" data-act="${act(()=>b21dDecider(x.oid,V))}">${c===V?"Confirmer « "+V+" »":V}</button>`).join("")}</div>`;
+<     {const PM=b21dProfMiss(x.sid).filter(z=>!z.fait);if(PM.length)h+=`<div class="b21d-pm" data-b21d-prepbloc="${PM.length}"><b>Préparation bloquée (pas le Go)</b> : profil de ${esc(socCourt(x.sid))} à compléter — ${esc(PM.map(z=>z.lab+(z.inv?" (format invalide)":"")).join(", "))}. Corrigeable dans « Prérequis société » ; ce n'est pas une non-éligibilité.</div>`;}
+<     if(gb)h+=`<div class="b21d-gb" id="b21d-gb-${esc(x.oid)}" data-b21d-gobloc="${GB.bloc.length}"><b>Go impossible en l'état (éligibilité)</b><ul>${GB.bloc.map(z=>`<li>${esc(z.t)}${z.src?`<small>Source : ${esc(z.src)}</small>`:""}</li>`).join("")}</ul></div>`;
+<     if(GB.verif.length)h+=`<details class="b21d-gv" data-b21d-goverif="${GB.verif.length}"><summary>Vérifications d'éligibilité requises (${GB.verif.length})</summary><p class="b21d-src">Non renseigné n'est pas inexistant : ces points sont à établir (coffre, RC) ; ils ne bloquent pas le Go.</p><ul>${GB.verif.map(z=>`<li>${esc(z.t)}${z.src?`<small>Source : ${esc(z.src)}</small>`:""}</li>`).join("")}</ul></details>`;
+<     h+=`
+<       <label class="b21d-lab">Motif <small>(obligatoire pour No-Go et À reprendre)</small><textarea rows="2" data-b21d-motif="${esc(x.oid)}" placeholder="Motif de votre décision">${esc(v)}</textarea></label>
+<       <p class="b21d-src">Go = participer et démarrer la préparation, pas un dossier complet : les pièces à préparer après le Go restent signalées et les contrôles avant dépôt s'appliquent. Aucun Go n'est proposé ni présélectionné.</p>`;}
+<   else h+=`<p class="b21d-src">${clos?"Consultation clôturée : décision en lecture seule, aucune nouvelle soumission.":!editable()?"Lecture seule.":"Dossier "+esc(a.statut)+" : décision figée."}</p>`;
+<   if(H.length)h+=`<details class="b21d-hist"><summary>Historique des décisions (${H.length})</summary><ul>${H.map(z=>`<li>${esc(b21dDecTxt(z))}<small>remplacée le ${esc(fmtDT(z.remplaceLe))} par ${esc(b21dQui(z.remplacePar))}</small></li>`).join("")}</ul></details>`;
+<   return h+`</aside>`;}
+< function b21dDetDossier(e,clos){const x=e.x,D=e.D,a=x.a;
+<   /* b21d-6 : périmètre avant dépôt seulement ; ni chiffrage (B3.1 / Préparation) ni pièces après attribution (Résultat B4.2) */
+<   const FR=D.F?{ajour:["b21d-ok","Lecture à jour"],perimee:["b21d-ko","Note à actualiser"],inconnue:["b21d-amb","Fraîcheur non vérifiée"],absente:["b21d-amb","Aucune lecture"]}[D.F.k]:null;
+<   let h=`<header class="b21d-ch"><p class="b21d-src">Dossier séparé · ${esc(a.statut||"")} · ${esc(a.ref||x.oid)}</p>${FR?`<span class="b21d-pill ${FR[0]}" title="${esc(D.F.txt)}">${FR[1]}</span>`:""}</header><div class="b21d-body"><div class="b21d-main">`;
+<   h+=b21dPrereqTable(D,x)+(D.rcOk?b21dPrepTable(D,x):`<p class="b21d-warn">Pièces du RC non relevées pour ce dossier : liste indisponible (aucune pièce supposée). <button type="button" class="b21d-lnk" data-act="${act(()=>b21dAller(x.oid,"MP-B2.2","note"))}">Ouvrir la lecture RC / CPS</button></p>`);
+<   const nAtt=D.rows.filter(z=>z.env==="att").length;
+<   h+=`<p class="b21d-src" data-b21d-perim="1">Prérequis société : données et preuves propres à ${esc(socCourt(x.sid))} sans lesquelles l'équipe ne peut pas préparer correctement. Les pièces « À préparer après Go » sont produites en Préparation et restent exigées avant le dépôt (contrôles du dépôt inchangés)${nAtt?` ; les ${nAtt} pièce${nAtt>1?"s":""} exigée${nAtt>1?"s":""} de l'attributaire sont dans la vue <button type="button" class="b21d-lnk" data-b21d-vres="1" data-act="${act(()=>b21dAller(x.oid,"MP-B4.2","res"))}">Résultat (B4.2)</button>`:""}.</p>`;
+<   h+=b21dCompatDet(e.c,x.oid)+`<p class="b21d-src">Sources : pièces du RC lues (${esc(D.rcId)}), coffre et pièces de ${esc(socCourt(x.sid))}. ${D.F?esc(D.F.txt):""}</p></div>${b21dPanneau(x,clos)}</div>`;
+<   return h;}
+< function b21dPrereqTable(D,x){const sid=x.sid,nm=socCourt(sid),ed=editable();
+<   let h=`<section class="b21d-sct" data-b21d-prereq="${D.nPre}" aria-labelledby="b21d-pr-${esc(sid)}"><h4 id="b21d-pr-${esc(sid)}">Prérequis société à compléter <span class="b21d-pill ${D.nPre?"b21d-amb":"b21d-ok"}">${D.nPre?D.nPre+" en attente":"aucun en attente"}</span></h4>`;
+<   h+=`<div class="b21d-tw"><table class="b21d-tab" aria-label="Prérequis de ${esc(nm)} : élément, statut, action"><caption class="b21d-sr">Prérequis société de ${esc(nm)} (profil et coffre)</caption><thead><tr><th scope="col">Élément</th><th scope="col">Statut</th><th scope="col">Action</th></tr></thead><tbody>`;
+<   if(D.prof.length){h+=`<tr class="b21d-sec"><th colspan="3" scope="colgroup">Profil de la société (champs requis du Paramétrage)</th></tr>`;
+<     D.prof.forEach(z=>{const key=sid+"|"+z.k,F=B21D.pf[key],o=!!B21D.ouvF[key],k=z.fait||(F&&F.st==="ok")?"prof":z.inv?"pinv":"arens",S2=B21D_PST[k];
+<       h+=`<tr data-b21d-pk="${k}" data-b21d-pfk="${esc(z.k)}"><td><b>${esc(z.lab)}</b><small>${z.inv?"Valeur enregistrée au mauvais format":k==="prof"?"Renseigné depuis cette vue":"Non renseigné au profil : nécessaire pour préparer les pièces au nom de la société"}</small><small class="b21d-src">Source : Paramétrage des sociétés (profil de ${esc(nm)})</small></td><td><span class="b21d-pill ${S2[0]}">${S2[1]}</span></td>
+<         <td>${ed?`<button type="button" class="b21d-act" aria-expanded="${o}" aria-controls="b21d-pfr-${esc(sid)}-${esc(z.k)}" data-b21d-saisir="${esc(key)}" data-act="${act(()=>b21dPfOuvrir(sid,z.k))}">${o?"Fermer":k==="prof"?"Modifier":"Saisir"}<small>profil ${esc(nm)}</small></button>`:`<span class="b21d-na">Lecture seule</span>`}</td></tr>`;
+<       h+=`<tr class="b21d-pfrow" id="b21d-pfr-${esc(sid)}-${esc(z.k)}"${o?"":" hidden"}><td colspan="3">${o?b21dPfForm(sid,z):""}</td></tr>`;});}
+<   if(D.pre.length){h+=`<tr class="b21d-sec"><th colspan="3" scope="colgroup">Preuves du coffre exigées par le RC</th></tr>`;
+<     D.pre.forEach(z=>{const S2=B21D_PST[z.k]||B21D_PST.averif,lab=z.k==="nonrens"?"Joindre au coffre":z.k==="invalide"?"Mettre à jour":z.k==="joint"?"Ouvrir":"Vérifier";
+<       h+=`<tr data-b21d-pk="${z.k}" data-b21d-std="${esc(z.std)}"><td><b>${esc(z.piece)}</b>${z.ctrl?`<small>${esc(z.ctrl)}</small>`:""}${z.k==="joint"?`<small>Justificatif joint et en validité ; son contenu n'est pas vérifié automatiquement</small>`:""}${z.src?`<small class="b21d-src">Source : ${esc(z.src)}</small>`:""}</td><td><span class="b21d-pill ${S2[0]}">${S2[1]}</span></td>
+<         <td><button type="button" class="b21d-act" data-b21d-go="coffre" data-b21d-vk="${esc(z.vk||"")}" data-act="${act(()=>b21dCoffrePiece(sid,z.vk))}">${lab}<small>coffre ${esc(nm)}</small></button></td></tr>`;});}
+<   if(!D.prof.length&&!D.pre.length)h+=`<tr><td colspan="3"><span class="b21d-na">Aucun prérequis société relevé pour ce dossier.</span></td></tr>`;
+<   return h+`</tbody></table></div></section>`;}
+< function b21dPrepTable(D,x){const sid=x.sid,nm=socCourt(sid),sec=[["e1","adm","Enveloppe 1 · Dossier administratif"],["e1","tec","Enveloppe 1 · Dossier technique"],["e1","aut","Enveloppe 1 · Autres pièces du RC"],["e2","fin","Enveloppe 2 · Offre financière"]];
+<   let h=`<section class="b21d-sct" data-b21d-aprep-sec="${D.nPrep}" aria-labelledby="b21d-ap-${esc(sid)}"><h4 id="b21d-ap-${esc(sid)}">À préparer après Go · requis avant dépôt <span class="b21d-pill b21d-neu">${D.nPrep} pièce${D.nPrep>1?"s":""}</span></h4><p class="b21d-src">Produites en Préparation après le Go (signatures, cachets, déclarations, mémoire, acte d'engagement, bordereau, récépissé de caution…). Elles ne bloquent pas le Go ; elles restent contrôlées avant le dépôt.</p>`;
+<   h+=`<div class="b21d-tw"><table class="b21d-tab" aria-label="Pièces de ${esc(nm)} à préparer : pièce, statut, action"><caption class="b21d-sr">Pièces à préparer après le Go pour ${esc(nm)}</caption><thead><tr><th scope="col">Pièce</th><th scope="col">Statut</th><th scope="col">Action</th></tr></thead><tbody>`;
+<   sec.forEach(([e,s2,t])=>{const R2=D.prep.filter(z=>z.env===e&&z.sec===s2);if(!R2.length)return;h+=`<tr class="b21d-sec"><th colspan="3" scope="colgroup">${esc(t)}</th></tr>`;
+<     R2.forEach(z=>{const S2=B21D_ST[z.k]||B21D_ST.prep2;h+=`<tr data-b21d-k="${z.k}"><td><b>${esc(z.piece)}</b>${z.ctrl&&z.k!=="prep2"?`<small>${esc(z.ctrl)}</small>`:""}${z.src?`<small class="b21d-src">Source : ${esc(z.src)}</small>`:""}</td><td><span class="b21d-pill ${S2[0]}">${S2[1]}</span></td><td>${z.k==="nonexige"?`<span class="b21d-na">—</span>`:`<button type="button" class="b21d-act" data-b21d-go="pieces" data-act="${act(()=>b21dAller(x.oid,"MP-B3.2","pieces"))}">Préparation<small>pièces B3.2</small></button>`}</td></tr>`;});});
+<   return h+`</tbody></table></div></section>`;}
+9941,9960d9871
+< function b21dHorsAO(id,a,X){const have=new Set(X.map(x=>x.sid)),ed=editable(),passe=b21dPasse(a),fig=["Déposé","Attribué","Non retenu"].includes(a.statut);
+<   return SOC.filter(z=>z&&z.sid&&!have.has(z.sid)).map((z,i)=>{const c=b21dCompat(id,a,z.sid);let pc;try{pc=parCompat(id,a,z.sid);}catch(e){pc={st:"non",why:"contrôle art. 27 / FIN-ISO-001 indisponible"};}
+<     const bloc=passe?"consultation clôturée le "+fmtIso(a.lim)+(a.heure?" "+a.heure:"")+", date limite passée.":!ed?"lecture seule.":fig?"dossier "+a.statut.toLowerCase()+".":(pc.st==="non"||pc.st==="deja")?(pc.why||"règles du marché."):null;
+<     return{sid:z.sid,c,pc,bloc,o:(B21D_CMP[c.v]||B21D_CMP["À vérifier"])[0],i};}).sort((x,y)=>x.o-y.o||x.i-y.i);}
+< function b21dCompatDet(c,oid){const n=c.n,M=c.contre||[];
+<   let h=`<div class="b21d-cd"><p class="b21d-mc"><b>Compatibilité RC (informative, B2.3)</b>${n?`<span class="b21d-src" data-b21d-n="${n.ok}/${n.ko}/${n.inc}">${n.ok} justifié${n.ok>1?"s":""} · ${n.ko} incompatible${n.ko>1?"s":""} · ${n.inc} à vérifier</span>`:""}</p>`;
+<   if(M.length)h+=`<ul class="b21d-mot" data-b21d-motifs="${M.length}">${M.slice(0,3).map(t=>`<li>${esc(t)}</li>`).join("")}${M.length>3?`<li class="b21d-src">… et ${M.length-3} autre${M.length-3>1?"s":""} motif${M.length-3>1?"s":""} (détail dans B2.3)</li>`:""}</ul>`;
+<   return h+`<button type="button" class="b21d-lnk" data-act="${act(()=>b21dAller(oid,"MP-B2.3","note"))}">Compatibilité détaillée (B2.3)</button></div>`;}
+< function b21dDetHors(id,y){const arm=!!(B21D.conf&&B21D.conf.k==="add|"+y.sid&&Date.now()-B21D.conf.t<=6000);
+<   let h=b21dCompatDet(y.c,id);
+<   if(y.pc.st==="attention"&&!y.bloc)h+=`<p class="b21d-warn" data-b21d-attn="1">${esc(y.pc.why)}</p>`;
+<   h+=`<div class="b21d-ma">`+(y.bloc?`<button type="button" class="b21d-btn" disabled aria-describedby="b21d-bl-${esc(y.sid)}" data-b21d-ajout="${esc(y.sid)}">Ajouter à cet AO</button><span class="b21d-src" id="b21d-bl-${esc(y.sid)}" data-b21d-bloque="1">Ajout bloqué : ${esc(y.bloc)}</span>`
+<     :`<button type="button" class="b21d-btn${arm?" b21d-arm":""}" data-b21d-ajout="${esc(y.sid)}" data-act="${act(()=>b21dAjouter(id,y.sid))}">${arm?"Confirmer l'ajout de "+esc(socCourt(y.sid)):"Ajouter à cet AO"}</button><span class="b21d-src">Crée seulement son dossier séparé, sans décision ni Go.</span>`)+`</div>`;
+<   return h;}
+< /* b21d-5 : cartes repliées par défaut, une seule ouverte à la fois, filtres. État d'affichage seulement (B21D.ui), propre au dossier
+<    affiché, jamais enregistré ; ouvrir, fermer ou filtrer n'écrit rien et ne décide rien. Détails rendus seulement pour la carte ouverte. */
+< const B21D_F=[["tout","Tout"],["ajoutees","Ajoutées"],["compat","Compatibles"],["averif","À vérifier"],["incompat","Incompatibles"]];
+< const b21dCat=v=>v==="Possible"?"compat":v==="Écartée"?"incompat":"averif";
+< const b21dDans=(k,f)=>!!k&&(f==="tout"||(f==="ajoutees"?k.aj:k.cat===f));
+< function b21dUi(id){if(B21D.ui.id!==id){B21D.ui={id,open:null,f:"tout"};B21D.conf=null;}return B21D.ui;}
+9962,10004c9873,10007
+< function b21dToggle(sid){const u=B21D.ui;u.open=u.open===sid?null:sid;B21D.conf=null;render();b21dFocus('[data-b21d-tog="'+CSS.escape(sid)+'"]');}
+< function b21dFiltre(f){const u=B21D.ui;u.f=f;if(u.open&&!b21dDans(B21D.cat[u.open],f))u.open=null;B21D.conf=null;render();b21dFocus('[data-b21d-f="'+f+'"]');}
+< function b21dMontrer(sid,motif){const u=B21D.ui;u.open=sid;if(!b21dDans(B21D.cat[sid],u.f))u.f="tout";B21D.conf=null;render();
+<   setTimeout(()=>{const e=document.querySelector('[data-b21d-carte="'+CSS.escape(sid)+'"]');if(!e)return;e.scrollIntoView({behavior:"smooth",block:"start"});const t=(motif&&e.querySelector("[data-b21d-motif]"))||e.querySelector("[data-b21d-tog]");if(t)setTimeout(()=>t.focus({preventScroll:true}),350);},0);}
+< function b21dCarteR(id,e,clos,open){const sid=e.sid,C=B21D_CMP[e.c.v]||B21D_CMP["À vérifier"],did="b21d-det-"+sid,a=e.x&&e.x.a,d=a&&a.decision,nm=socCourt(sid);
+<   const r=e.x?e.D.reste.length:null,dcls=!d?"b21d-neu":d.verdict==="Go"?"b21d-ok":d.verdict==="No-Go"?"b21d-ko":"b21d-amb";
+<   const at=e.x?`id="b21d-${esc(e.x.oid)}" data-b21d-soc="${esc(sid)}" data-b21d-oid="${esc(e.x.oid)}"`:`data-b21d-hors="${esc(sid)}"`;
+<   let h=`<article class="b21d-card${e.x?"":" b21d-mini"}" ${at} data-b21d-carte="${esc(sid)}" data-b21d-compat="${esc(e.c.v)}" data-b21d-ouvert="${open?1:0}"><div class="b21d-sum">
+<     <h3 id="b21d-nm-${esc(sid)}">${esc(nm)}</h3><button type="button" class="b21d-btn b21d-tog" aria-expanded="${open}" aria-controls="${did}" data-b21d-tog="${esc(sid)}" data-act="${act(()=>b21dToggle(sid))}">${open?"Masquer les détails":"Afficher les détails"}<span class="b21d-sr"> de ${esc(nm)}</span></button>
+<     <div class="b21d-chips"><span class="b21d-pill ${e.x?"b21d-ok":"b21d-neu"}" data-b21d-aj="${e.x?1:0}">${e.x?"Ajoutée à cet AO":"Pas encore ajoutée à cet AO"}</span><span class="b21d-pill ${C[1]}" data-b21d-cv="1">Compatibilité RC : ${C[2]}</span>`
+<     +(e.x?`<span class="b21d-pill ${r?"b21d-amb":"b21d-ok"}" data-b21d-reste="${r}">${r?r+" prérequis société":"Prérequis société : aucun en attente"}</span><span class="b21d-pill b21d-neu" data-b21d-aprep="${e.D.nPrep}">${e.D.nPrep} à préparer après Go</span>${(()=>{const n=b21dGoBloc(e.x.oid).bloc.length;return n?`<span class="b21d-pill b21d-ko" data-b21d-sgobloc="${n}">Go bloqué : ${n} raison${n>1?"s":""}</span>`:"";})()}`:`<span class="b21d-pill b21d-neu" data-b21d-reste="">Aucun dossier</span>`)
+<     +`<span class="b21d-pill ${dcls}" data-b21d-sdec="${esc(d?d.verdict:"aucune")}">${d?"Décision : "+esc(d.verdict)+(d.le?" · "+esc(fmtIso(d.le)):""):"Non décidée"}</span></div></div>`;
+<   h+=`<div class="b21d-det" id="${did}" role="region" aria-labelledby="b21d-nm-${esc(sid)}"${open?"":" hidden"}>${open?(e.x?b21dDetDossier(e,clos):b21dDetHors(id,e)):""}</div></article>`;
+<   return h;}
+< async function b21dAjouter(id,sid){const a=S.ao[id];if(!a)return;if(!editable())return toast(RO_MSG);
+<   if(b21dPasse(a))return toast("Consultation clôturée : date limite passée, aucun ajout.");
+<   if(["Déposé","Attribué","Non retenu"].includes(a.statut))return toast("Dossier "+a.statut.toLowerCase()+" : aucun ajout.");
+<   if(b21dSibs(id,a).some(x=>x.sid===sid))return toast(socCourt(sid)+" a déjà son dossier pour cet AO : rien n'est créé.");
+<   let pc;try{pc=parCompat(id,a,sid);}catch(e){return toast("Contrôle art. 27 / FIN-ISO-001 impossible : rien n'est créé.");}
+<   if(pc.st==="non"||pc.st==="deja")return toast(pc.why||"Ajout bloqué par les règles du marché.");
+<   const k="add|"+sid;if(!B21D.conf||B21D.conf.k!==k||Date.now()-B21D.conf.t>6000){B21D.conf={k,t:Date.now()};render();return toast("Ajouter "+socCourt(sid)+" à cet AO : son dossier séparé sera créé sans décision (aucun Go)"+(pc.st==="attention"?" ; "+pc.why:"")+". Appuyez encore une fois pour confirmer.");}
+<   B21D.conf=null;if(B21D.ajout)return toast("Ajout en cours, patientez.");B21D.ajout=sid;
+<   try{await creerSib(id,sid,{sansGo:true,source:"B2.1 Décision · ajout de société"});}finally{B21D.ajout=null;}}
+< function vDecisionB21(id,a){b21dCss();const X=b21dSibs(id,a),clos=b21dClos(a),lim=b21dLim(a),ed=editable(),Y=b21dHorsAO(id,a,X),nA=new Set(X.map(x=>x.sid)).size,nT=nA+Y.length;
+<   let h=`<div class="b21d" data-b21d="${esc(id)}"><header class="b21d-top"><div><p class="b21d-src b21d-ref">${esc(a.ref||id)} · ${esc(String(a.obj||"").slice(0,120))}</p></div>
+<     <div class="b21d-cm">${lim?`<span class="b21d-pill ${clos?"b21d-ko":"b21d-neu"}" data-b21d-clos="${clos}">${clos?"Consultation clôturée le ":"Date limite : "}${esc(fmtIso(a.lim))}${a.heure?" "+esc(a.heure):""}</span>`:`<span class="b21d-pill b21d-amb">Date limite non renseignée</span>`}<span class="b21d-pill b21d-neu" data-b21d-compte="${nA}/${nT}">${nA} / ${nT} société${nT>1?"s":""} ajoutée${nA>1?"s":""} à cet AO</span><button type="button" class="b21d-btn" data-b21d-maj="1" data-act="${act(()=>{try{delete B21.cache;}catch(e){}render();toast("État et documents relus ; aucune décision modifiée.");})}">Actualiser</button></div></header>`;
+<   h+=`<p class="b21d-intro">Toutes les sociétés actuelles du groupe. Chaque société ajoutée a son propre dossier, ses pièces et ses prix (FIN-ISO-001). L'état des pièces (administratif) et la compatibilité (informative, B2.3) sont distincts de votre décision commerciale Go / No-Go.</p>`;
+<   /* b21d-3 : la note d'analyse n'est pas rendue ici ; navigation vers sa propre vue (même dossier, même société) par le routage existant */
+<   h+=`<div class="b21d-noteb"><button type="button" class="b21d-btn" data-b21d-voirnote="1" data-act="${act(()=>b21Aller(id,"note"))}">Voir la note d'analyse</button><span class="b21d-src">L'avis de l'Analyste, daté et sourcé, et la lecture du DCE sont dans la note d'analyse (bureau B2.1) ; cette vue n'en reprend ni l'avis ni le classement des sociétés.</span></div>`;
+<   /* b21d-5 : une seule liste, ordre b21d-4 (ajoutées, puis compatibles, à vérifier, incompatibles), filtres et carte ouverte */
+<   const u=b21dUi(id),E=X.map(x=>({sid:x.sid,x,c:b21dCompat(x.oid,x.a,x.sid),D:b21dCarteData(x.oid,x.a,x.sid)})).concat(Y);
+<   B21D.cat={};E.forEach(e=>{if(!B21D.cat[e.sid])B21D.cat[e.sid]={aj:!!e.x,cat:b21dCat(e.c.v)};});
+<   if(u.open&&!E.some(e=>e.sid===u.open&&b21dDans(B21D.cat[e.sid],u.f)))u.open=null;
+<   const NF=Object.fromEntries(B21D_F.map(([k])=>[k,E.filter(e=>b21dDans(B21D.cat[e.sid],k)).length])),F=E.filter(e=>b21dDans(B21D.cat[e.sid],u.f)),fl=(B21D_F.find(z=>z[0]===u.f)||B21D_F[0])[1];
+<   h+=`<section class="b21d-socs" aria-labelledby="b21d-st"><h3 id="b21d-st">Sociétés du groupe</h3><p class="b21d-resume" data-b21d-resume="${E.length}/${nA}/${E.length-nA}">${E.length} société${E.length>1?"s":""} · ${nA} ajoutée${nA>1?"s":""} · ${E.length-nA} non ajoutée${E.length-nA>1?"s":""}</p>
+<     <div class="b21d-filt" role="group" aria-label="Filtrer les sociétés">${B21D_F.map(([k,l])=>`<button type="button" class="b21d-fb" aria-pressed="${u.f===k}" data-b21d-f="${k}" data-b21d-fn="${NF[k]}" data-act="${act(()=>b21dFiltre(k))}">${l} <span class="b21d-fn">${NF[k]}</span></button>`).join("")}</div>
+<     <p class="b21d-src b21d-fst" role="status" aria-live="polite" data-b21d-fstat="${u.f}">Filtre « ${esc(fl)} » : ${F.length} société${F.length>1?"s":""} affichée${F.length>1?"s":""} sur ${E.length}. La compatibilité est informative (B2.3) et ne vaut pas décision ; Go, No-Go et Ajouter se trouvent dans les détails de chaque carte.</p>`;
+<   h+=F.length?`<div class="b21d-list">${F.map(e=>b21dCarteR(id,e,clos,u.open===e.sid)).join("")}</div>`:`<p class="b21d-vide" data-b21d-vide="1">Aucune société dans le filtre « ${esc(fl)} » pour cet AO. <button type="button" class="b21d-lnk" data-act="${act(()=>b21dFiltre("tout"))}">Tout afficher</button></p>`;
+<   h+=`</section>`;
+<   const G=X.filter(x=>x.a.decision&&x.a.decision.verdict==="Go"&&!["Abandonné","Non retenu","À examiner"].includes(x.a.statut));
+<   h+=`<section class="b21d-ret" aria-labelledby="b21d-rt"><h3 id="b21d-rt">Entreprises retenues pour la préparation</h3>`;
+<   h+=G.length?`<ul class="b21d-rl">${G.map(x=>`<li data-b21d-ret="${esc(x.sid)}"><div><b>${esc(socCourt(x.sid))}</b><small>${esc(b21dDecTxt(x.a.decision))} · ${esc(x.a.statut)}</small></div><div class="b21d-rla"><button type="button" class="b21d-btn" data-b21d-modifier="${esc(x.sid)}" data-act="${act(()=>b21dMontrer(x.sid,true))}">Modifier</button>${ed&&!clos?`<button type="button" class="b21d-btn" data-b21d-retirer="${esc(x.sid)}" data-act="${act(()=>{if(!String(B21D.motif[x.oid]||"").trim()){b21dMontrer(x.sid,true);return toast("Retirer = « À reprendre » : saisissez d'abord le motif dans la carte de "+socCourt(x.sid)+".");}b21dDecider(x.oid,"À reprendre");})}">Retirer</button>`:""}</div></li>`).join("")}</ul>`:`<p class="b21d-src">Aucune entreprise avec un Go enregistré.</p>`;
+<   h+=`</section>`;
+---
+> /* ===================== b21d-8 · Décision B2.1 : liste des sociétés + panneau société (maquette validée) =====================
+>    Toutes les sociétés du groupe sont évaluées depuis leur propre profil, coffre et compatEval (B2.3), avec ou sans dossier.
+>    Sélectionner, chercher, filtrer : affichage seulement (B21D.ui), rien n'est créé ni écrit. Les informations manquantes se
+>    saisissent sous la pièce qui les utilise (correspondance tirée des générateurs existants pfMissing : DH, AE, plan de charge) ;
+>    enregistrement automatique b21d-7 dans le profil de LA société. Décision : choix explicite + « Confirmer la décision ». */
+> const B21D_DV={Go:"Participer","No-Go":"Ne pas participer","À reprendre":"À réexaminer"},B21D_DVK={participer:"Go",nepas:"No-Go",reex:"À reprendre"};
+> const B21D_GEN={dsh:"dh",ae:"ae",pc:"pc"};
+> /* libellés de pfMissing → clé du profil (champs saisissables) ; montants, lot, rabais : chiffrage (Préparation B3), jamais ici */
+> const B21D_FLD={"signataire":"gerants","téléphone":"tel","e-mail":"mail","RIB":"rib","RIB (24 chiffres attendus)":"rib","localité de la banque":"banque","Capital":"capital","CNSS":"cnss","RC":"rc","Patente":"patente","ICE":"ice","Siège":"siege"};
+> const B21D_FLAB={gerants:"Signataire (gérant)",tel:"Téléphone",mail:"E-mail",rib:"RIB (24 chiffres)",banque:"Banque / agence",capital:"Capital (DH)",cnss:"N° CNSS",rc:"N° RC",patente:"Taxe professionnelle",ice:"ICE (15 chiffres)",siege:"Siège social"};
+> const B21D_FIC={tel:"☎",mail:"✉",rib:"🏦",banque:"🏦",gerants:"✍",capital:"§",cnss:"§",rc:"§",patente:"§",ice:"§",siege:"⌂"};
+> const b21dFin=t=>/montant|n° de lot|rabais/i.test(t);
+> B21D.docF={};B21D.dec=null;
+> function b21dUi8(id,a){if(B21D.ui.id!==id){B21D.ui={id,sel:a.soc,f:"toutes",q:"",mob:"list"};B21D.dec=null;B21D.conf=null;}const u=B21D.ui;if(!u.f)u.f="toutes";if(u.q==null)u.q="";if(!u.sel)u.sel=a.soc;if(!u.mob)u.mob="list";return u;}
+> /* éligibilité pour cet AO : règles B2.3 existantes (preuves d'éligibilité non « attributaire ») et art. 27 / déjà membre */
+> function b21dElig(id,a,sid,X){const oid=X?X.oid:id,ac=X?X.a:a,non=[],ver=[],ok=[];let E=null;try{E=compatEval(oid,ac,sid);}catch(e){}
+>   if(!E)ver.push({t:"Compatibilité B2.3 non calculable pour cette société : rien n'est supposé",src:""});
+>   else{(E.crits||[]).forEach(c=>{if(c.attrib||!B21D_ELIG.includes(c.k))return;const r={t:c.lab+" : "+c.motif,src:c.src,vk:c.k,lab:c.lab};if(c.e==="ko")non.push(r);else if(c.e==="inc")ver.push(r);else ok.push(r);});
+>     if(E.inconnues&&E.inconnues.length)ver.push({t:"Exigences du marché inconnues : "+E.inconnues.join(", "),src:"Exigences lues du RC (B2.2)",b23:1,lab:"Exigences du marché"});}
+>   try{if(X){b21dGoBloc(X.oid).bloc.filter(z=>/décret|article/i.test(z.src||"")).forEach(z=>non.push({t:z.t,src:z.src}));}
+>     else{const pc=parCompat(id,a,sid);if((pc.st==="non"||pc.st==="deja")&&/article|décret/i.test(pc.why||""))non.push({t:pc.why,src:"décret 2-22-431"});}}catch(e){}
+>   return{k:non.length?"non":ver.length?"averif":"ok",non,ver,ok,E};}
+> /* documents à produire (RC) et informations nécessaires, par document ; proofs = preuves du coffre exigées par le RC */
+> function b21dDocs(id,a,sid,X){const oid=X?X.oid:id,ac=X?X.a:a,D=b21dCarteData(oid,ac,sid);let f0={};try{f0={...pfDefaults(ac,sid),...((ac.pieces||{})[sid]||{})};}catch(e){}
+>   const docs=(D.prep||[]).map((z,i)=>{const gen=B21D_GEN[z.std],o={i,piece:z.piece,std:z.std,src:z.src,fields:[],autres:[],fin:false,kind:"ready",note:""};
+>     if(z.k==="nonexige"){o.kind="nonexige";return o;}
+>     if(gen){let m=[];try{m=pfMissing(gen,ac,sid,f0).filter(x=>x!=="date");}catch(e){o.kind="verif";o.note="Contrôle des informations indisponible : vérification requise";return o;}
+>       m.forEach(l=>{if(b21dFin(l)){o.fin=true;return;}const k=B21D_FLD[l];if(k){if(!o.fields.some(f=>f.k===k))o.fields.push({k,lab:B21D_FLAB[k]||l,inv:/24 chiffres/.test(l)});}else o.autres.push(l);});
+>       o.kind=o.fields.length||o.autres.length?"miss":"ready";if(o.fin)o.note="Montants : préparés et chiffrés en Préparation (B3), pas dans la décision";}
+>     else if(z.std==="cpsrc"){if(z.k==="pret")o.note="Paraphés et cachetés au nom de "+socCourt(sid)+" (VÉRIFIÉ)";else if(!f0.sig){o.fields.push({k:"gerants",lab:B21D_FLAB.gerants});o.kind="miss";}else o.note="À parapher et signer par "+f0.sig;}
+>     else if(z.std==="caution")o.note="Récépissé à obtenir de la banque après la décision ; ligne de caution : voir l'éligibilité";
+>     else if(z.std==="bpu"||z.std==="sdp"){o.kind="b3";o.note="Chiffré en Préparation (B3)";}
+>     else if(z.std==="memoire"||z.std==="moyens"||z.std==="planning"){o.kind="verif";o.note="Moyens humains et matériels réels : non structurés dans EAIOS (le générateur laisse des repères [à compléter]) ; vérification requise";o.vk="Organigramme & effectifs";}
+>     else{o.kind="verif";o.note="Informations nécessaires non déterminées automatiquement pour cette pièce : vérification requise";}
+>     const kd=sid+"|"+z.std;B21D.docF[kd]=Array.from(new Set([...(B21D.docF[kd]||[]),...o.fields.map(f=>f.k)]));
+>     (B21D.docF[kd]||[]).forEach(k=>{if(!o.fields.some(f=>f.k===k)&&B21D.pf[sid+"|"+k])o.fields.push({k,lab:B21D_FLAB[k]||k,fait:true});});
+>     return o;});
+>   const proofs=(D.pre||[]);return{D,docs,proofs,rcOk:D.rcOk,rcId:D.rcId};}
+> function b21dEval(id,a,sid,X){const el=b21dElig(id,a,sid,X),dc=b21dDocs(id,a,sid,X),miss=new Set();dc.docs.forEach(d=>d.fields.filter(f=>!f.fait).forEach(f=>miss.add(f.k)));
+>   const nAutres=dc.docs.reduce((n,d)=>n+d.autres.length,0),nVer=dc.docs.filter(d=>d.kind==="verif").length,info=miss.size+nAutres;
+>   const B=[];if(el.k==="non")B.push(["non","Non éligible","b21d-ko"]);if(info)B.push(["comp","Informations à compléter","b21d-amb"]);if(el.k==="averif")B.push(["verif","Éligibilité à vérifier","b21d-amb"]);if(nVer)B.push(["verif","Documents à vérifier","b21d-amb"]);
+>   const pret=el.k==="ok"&&!info&&!nVer&&dc.rcOk;if(pret)B.push(["pret","Prête à préparer","b21d-ok"]);
+>   const pend=Object.entries(B21D.pf).some(([k,F])=>k.startsWith(sid+"|")&&F&&(F.st==="err"||F.st==="conflit"||F.st==="saving"||F.st==="invalid"||(F.st==="edit"&&F.dirty)));
+>   return{sid,X,el,dc,miss,info,nVer,B,pret,pend};}
+> const B21D_F8=[["toutes","Toutes",()=>true],["pretes","Prêtes",e=>e.pret],["comp","À compléter",e=>e.info>0],["verif","À vérifier",e=>e.el.k==="averif"||e.nVer>0],["non","Non éligible",e=>e.el.k==="non"]];
+> const B21D_SHORT={"Non éligible":"Non éligible","Informations à compléter":"À compléter","Éligibilité à vérifier":"À vérifier","Documents à vérifier":"À vérifier","Prête à préparer":"Prête à préparer"};
+> /* ---- sélection, filtre, recherche : état d'affichage seulement ---- */
+> function b21dSel(sid){const u=B21D.ui;if(u.sel!==sid)B21D.dec=null;u.sel=sid;u.mob="panel";render();b21dFocus('#b21d-ph');}
+> function b21dFil(f){B21D.ui.f=f;render();b21dFocus('[data-b21d-f="'+f+'"]');}
+> /* ---- champ saisissable sous la pièce (enregistrement automatique b21d-7, état partagé par société et champ) ---- */
+> function b21dPfEnsure(sid,k){const key=sid+"|"+k;if(!B21D.pf[key])B21D.pf[key]=k==="gerants"?{v:{nom:"",qualite:"Gérant",signe:"unique"},st:"edit"}:{v:String((profilOf(sid)||{})[k]||""),base:String(b21dPfStored(sid,k)),saved:null,st:"edit"};return B21D.pf[key];}
+> function b21dChip(F){const st=F?F.st:"vide";const M={vide:["b21d-neu","À saisir"],edit:["b21d-neu","Brouillon"],saving:["b21d-neu","Enregistrement…"],ok:["b21d-ok","Enregistré ✓"],err:["b21d-ko","Échec"],conflit:["b21d-ko","Conflit"],invalid:["b21d-ko","À corriger"],lecture:["b21d-neu","Lecture seule"]}[st]||["b21d-neu","Brouillon"];return M;}
+> function b21dFieldRow(sid,f,di){const key=sid+"|"+f.k,F=B21D.pf[key],ed=editable(),idb="b21d-pf-"+sid+"-"+f.k+"-"+di,C=b21dChip(F&&(F.st!=="edit"||F.dirty)?F:null);
+>   let h=`<div class="b21d-fr" data-b21d-fr="${esc(key)}" data-b21d-fdoc="${di}"><span class="b21d-fi" aria-hidden="true">${B21D_FIC[f.k]||"•"}</span>`;
+>   if(f.k==="gerants"){const v=F&&typeof F.v==="object"?F.v:{nom:"",qualite:"Gérant",signe:"unique"};
+>     h+=`<span class="b21d-fl">${esc(f.lab)}</span><div class="b21d-fg"><input id="${esc(idb)}-nom" aria-label="Nom et prénom du signataire" placeholder="Nom et prénom" data-b21d-pfg="${esc(key)}|nom" value="${esc(v.nom||"")}" ${ed?"":"disabled"} autocomplete="off"><input id="${esc(idb)}-qualite" aria-label="Qualité" placeholder="Qualité" data-b21d-pfg="${esc(key)}|qualite" value="${esc(v.qualite||"")}" ${ed?"":"disabled"}><select id="${esc(idb)}-signe" aria-label="Signature" data-b21d-pfg="${esc(key)}|signe" ${ed?"":"disabled"}>${[["unique","Seul"],["séparée","Séparée"],["conjointe","Conjointe"]].map(([x,l])=>`<option value="${x}" ${v.signe===x?"selected":""}>${l}</option>`).join("")}</select></div>`;
+>     h+=`<span class="b21d-fs"><span class="b21d-pill ${C[0]}" data-b21d-pfst="${esc(F?F.st:"vide")}" data-b21d-pfkey="${esc(key)}">${C[1]}</span>${ed&&(!F||F.st!=="ok")?`<button type="button" class="b21d-sb" data-b21d-pfsave="${esc(key)}" data-act="${act(()=>{b21dPfEnsure(sid,"gerants");b21dPfSave(sid,"gerants");})}">Enregistrer</button>`:""}</span>`;}
+>   else{const val=F?F.v:String((profilOf(sid)||{})[f.k]||""),t=(B21D_PF.F[f.k]||{}).t;
+>     h+=`<label class="b21d-fl" for="${esc(idb)}">${esc(f.lab)}</label><input id="${esc(idb)}" data-b21d-pf="${esc(key)}" type="${t==="email"?"email":"text"}" inputmode="${f.k==="tel"?"tel":f.k==="ice"||f.k==="rib"||f.k==="capital"?"numeric":"text"}" value="${esc(val)}" placeholder="Saisir" ${ed?"":"disabled"} autocomplete="off">
+>       <span class="b21d-fs"><span class="b21d-pill ${C[0]}" data-b21d-pfst="${esc(F?F.st:"vide")}" data-b21d-pfkey="${esc(key)}">${C[1]}</span>${ed&&F&&F.st==="err"?`<button type="button" class="b21d-sb" data-b21d-pfretry="${esc(key)}" data-act="${act(()=>b21dPfSave(sid,f.k))}">Réessayer</button>`:""}</span>`;}
+>   if(F&&(F.st==="err"||F.st==="conflit"||F.st==="invalid"))h+=`<p class="b21d-fm" role="status">${esc(b21dPfEtat(F))}</p>`;
+>   if(ed&&F&&F.st==="conflit")h+=`<div class="b21d-fm"><button type="button" class="b21d-sb" data-b21d-pfforce="${esc(key)}" data-act="${act(()=>b21dPfSave(sid,f.k,true))}">Remplacer par ma saisie</button> <button type="button" class="b21d-sb" data-b21d-pfkeep="${esc(key)}" data-act="${act(()=>{delete B21D.pf[key];render();})}">Garder la valeur enregistrée</button></div>`;
+>   return h+`</div>`;}
+> function b21dPfPaint(key){const F=B21D.pf[key];if(!F)return;document.querySelectorAll('[data-b21d-pfkey="'+CSS.escape(key)+'"]').forEach(n=>{const C=b21dChip(F);n.dataset.b21dPfst=F.st;n.className="b21d-pill "+C[0];n.textContent=C[1];});}
+> /* ---- décision : choix explicite, motif, confirmation ; enregistrement avec les contrôles actuels ---- */
+> function b21dEnreg(oid,verdict,motif){const a=S.ao[oid];if(!a)return false;const me=S.role.me||null,now=new Date().toISOString(),prev=a.decision;
+>   if(prev)a.decisionHist=(a.decisionHist||[]).concat([Object.assign({},prev,{remplaceLe:now,remplacePar:me})]).slice(-50);
+>   a.decision={verdict,le:isoToday(),qui:me,motif,soc:a.soc,source:"B2.1 décision par société"};
+>   a.statut=verdict==="Go"?"En préparation":verdict==="No-Go"?"Abandonné":"À examiner";
+>   saveAO(oid);logJ(a.ref+" : décision « "+(B21D_DV[verdict]||verdict)+" » pour "+socCourt(a.soc)+(prev?" (remplace « "+(B21D_DV[prev.verdict]||prev.verdict||"?")+" » du "+(prev.le?fmtIso(prev.le):"?")+")":"")+(motif?" — "+motif:""));
+>   if(verdict==="Go")prepDemarrer(oid,"Participer (B2.1)");return true;}
+> async function b21dConfirmer(id,sid){const a=S.ao[id],D=B21D.dec;if(!a)return;if(!D||D.sid!==sid||!D.v)return toast("Choisissez d'abord : Participer, Ne pas participer ou À réexaminer.");
+>   if(!editable())return toast(RO_MSG);if(b21dPasse(a))return toast("Consultation clôturée : décisions en lecture seule.");
+>   const X=b21dSibs(id,a).find(x=>x.sid===sid),V=B21D_DVK[D.v],motif=String(B21D.motif["s:"+sid]||"").trim().slice(0,300);
+>   if(V!=="Go"&&!motif)return toast("Motif obligatoire pour « "+B21D_DV[V]+" ».");
+>   if(X&&["Déposé","Attribué","Non retenu"].includes(X.a.statut))return toast("Dossier "+X.a.statut.toLowerCase()+" : décision figée.");
+>   if(V==="Go"){const el=b21dElig(id,a,sid,X);if(el.k==="non")return toast("Participation impossible en l'état : "+el.non.map(z=>z.t).join(" ; ")+".");}
+>   if(!X){if(V!=="Go")return toast("Aucun dossier pour "+socCourt(sid)+" : rien à enregistrer.");
+>     if(B21D.ajout)return toast("Création en cours, patientez.");B21D.ajout=sid;render();
+>     try{await creerSib(id,sid,{sansGo:true,source:"B2.1 décision · Participer"});}finally{B21D.ajout=null;}
+>     const nid=(a.base||id)+"~"+sid;if(!S.ao[nid]){render();return toast("Dossier non créé : aucune décision enregistrée.");}
+>     b21dEnreg(nid,"Go",motif);}
+>   else{if(X.a.decision&&X.a.decision.verdict===V&&(X.a.decision.motif||"")===motif)return toast("Décision inchangée : rien n'est enregistré.");b21dEnreg(X.oid,V,motif);}
+>   B21D.dec=null;delete B21D.motif["s:"+sid];render();toast("Décision « "+B21D_DV[V]+" » enregistrée pour "+socCourt(sid)+".");}
+> function b21dDecSec(id,a,e){const sid=e.sid,X=e.X,d=X&&X.a.decision,ed=editable(),passe=b21dPasse(a),fig=X&&["Déposé","Attribué","Non retenu"].includes(X.a.statut),peut=ed&&!passe&&!fig,D=B21D.dec&&B21D.dec.sid===sid?B21D.dec:null,H=X?(X.a.decisionHist||[]).slice().reverse():[];
+>   let h=`<section class="b21d-ds" aria-labelledby="b21d-dt" data-b21d-decsec="${esc(sid)}"><div class="b21d-dh"><div><h3 id="b21d-dt">Votre décision</h3><p class="b21d-src" data-b21d-decact="${esc(d?d.verdict:"aucune")}">${d?`<b>${esc(B21D_DV[d.verdict]||d.verdict)}</b> · le ${esc(d.le?fmtIso(d.le):"?")} · par ${esc(b21dQui(d.qui))}${d.motif?" · motif : "+esc(d.motif):""}`:"Aucune décision enregistrée."}</p></div>`;
+>   if(peut)h+=`<button type="button" class="b21d-pd" aria-expanded="${!!D}" aria-controls="b21d-dform" data-b21d-prendre="1" data-act="${act(()=>{B21D.dec=B21D.dec&&B21D.dec.sid===sid?null:{sid,v:null};render();b21dFocus('#b21d-dform [role=radio]');})}">${d?"Modifier la décision":"Prendre une décision"} <span aria-hidden="true">${D?"▴":"▾"}</span></button>`;
+>   h+=`</div>`;
+>   if(!peut)h+=`<p class="b21d-src" data-b21d-declock="1">${passe?"Consultation clôturée : décision en lecture seule, aucune nouvelle soumission.":!ed?"Lecture seule.":"Dossier "+esc(X.a.statut)+" : décision figée."}</p>`;
+>   if(peut&&D){const sansDos=!X;h+=`<div class="b21d-df" id="b21d-dform"><div class="b21d-dc"><div role="radiogroup" aria-label="Décision pour ${esc(socCourt(sid))}" class="b21d-dcs">${[["participer","Participer","b21d-cp"],["nepas","Ne pas participer","b21d-cn"],["reex","À réexaminer","b21d-cr"]].map(([k,l,c])=>{const dis=sansDos&&k!=="participer";return`<button type="button" role="radio" aria-checked="${D.v===k}" class="b21d-ch8 ${c}" data-b21d-choix="${k}" ${dis?"disabled":""} data-act="${act(()=>{if(dis)return;B21D.dec={sid,v:k};render();b21dFocus('[data-b21d-choix="'+k+'"]');})}">${l}</button>`;}).join("")}</div>
+>       <p class="b21d-src">${sansDos?"Aucun dossier pour cet AO : « Participer » crée d'abord le dossier séparé de "+esc(socCourt(sid))+" (aucune donnée financière d'un autre dossier), puis enregistre la participation.":"Votre décision sera enregistrée et visible dans le suivi du dossier."} Les documents à préparer ne bloquent pas « Participer ».</p></div>
+>       <div class="b21d-dm"><label class="b21d-lab" for="b21d-motif-${esc(sid)}">Motif / commentaire <small>(obligatoire pour Ne pas participer et À réexaminer)</small></label><textarea id="b21d-motif-${esc(sid)}" rows="3" data-b21d-motif="s:${esc(sid)}" placeholder="Saisir un commentaire…">${esc(B21D.motif["s:"+sid]||"")}</textarea>
+>       <button type="button" class="b21d-cf" data-b21d-confirmer="1" ${D.v&&!B21D.ajout?"":"disabled"} data-act="${act(()=>b21dConfirmer(id,sid))}">${B21D.ajout===sid?"Création du dossier…":"Confirmer la décision"}</button></div></div>`;
+>     if(D.v==="participer"&&e.el.k==="non")h+=`<p class="b21d-warn" data-b21d-gobloc="${e.el.non.length}"><b>Participation impossible en l'état :</b> ${esc(e.el.non.map(z=>z.t+(z.src?" (source : "+z.src+")":"")).join(" ; "))}</p>`;}
+>   if(H.length)h+=`<details class="b21d-hist"><summary>Historique des décisions (${H.length})</summary><ul>${H.map(z=>`<li>${esc(B21D_DV[z.verdict]||z.verdict||"?")} · ${esc(z.le?fmtIso(z.le):"?")} · ${esc(b21dQui(z.qui))}${z.motif?" · "+esc(z.motif):""}<small>remplacée le ${esc(fmtDT(z.remplaceLe))} par ${esc(b21dQui(z.remplacePar))}</small></li>`).join("")}</ul></details>`;
+>   return h+`</section>`;}
+> /* ---- panneau d'une société ---- */
+> function b21dPanel(id,a,e){const sid=e.sid,X=e.X,nm=socCourt(sid),el=e.el,ELP={ok:["b21d-ok","Prouvée"],averif:["b21d-amb","À vérifier"],non:["b21d-ko","Non éligible"]}[el.k];
+>   let h=`<section class="b21d-p" aria-labelledby="b21d-ph" data-b21d-panel="${esc(sid)}"><button type="button" class="b21d-back" data-b21d-back="1" data-act="${act(()=>{B21D.ui.mob="list";render();b21dFocus('[data-b21d-item="'+sid+'"]');})}">← Sociétés</button>
+>     <header class="b21d-pt"><span class="b21d-pic" aria-hidden="true">▦</span><div><h3 id="b21d-ph" tabindex="-1">${esc(nm)}</h3><p class="b21d-src" data-b21d-psub="1">${e.B.length?esc(e.B.map(b=>b[1]).join(" · ")):"Aucun point relevé"}${X?" · dossier "+esc(X.a.statut||""):" · aucun dossier pour cet AO"}</p></div>
+>     <button type="button" class="b21d-lnk b21d-oc" data-b21d-coffre="${esc(sid)}" data-act="${act(()=>{const i=SOC.findIndex(z=>z.sid===sid);go(()=>{S.cur=i<0?0:i;S.soc=null;S.dept="coffre";S.cview="soc";S.aoId=null;});})}">Ouvrir le coffre ↗</button></header>`;
+>   const R=el.k==="non"?el.non:el.ver,r0=R[0],vk=(r0&&r0.vk)||null;
+>   h+=`<div class="b21d-eb b21d-eb-${el.k}" data-b21d-elig="${el.k}"><span class="b21d-ei" aria-hidden="true">⛨</span><div><p class="b21d-et"><b>Éligibilité pour cet AO</b> · <span class="b21d-pill ${ELP[0]}">${ELP[1]}</span></p><p class="b21d-src">${el.k==="ok"?"Preuves d'éligibilité exigées présentes et en validité (contenu non vérifié automatiquement).":esc(R[0]?R[0].t:"")+(R.length>1?" · + "+(R.length-1)+" autre"+(R.length>2?"s":"")+" point"+(R.length>2?"s":""):"")}${r0&&r0.src?" · Source : "+esc(r0.src):""}</p></div>`;
+>   if(r0)h+=`<button type="button" class="b21d-lnk" data-b21d-everif="1" data-act="${act(()=>vk&&VAULT.some(([c,ps])=>ps.some(p=>p.k===vk))?b21dCoffrePiece(sid,vk):b21dAller(X?X.oid:id,"MP-B2.3","note"))}">${vk?"Vérifier : "+esc(r0.lab||vk):"Voir les exigences (B2.3)"} →</button>`;
+>   h+=`</div>`;
+>   const P=e.dc.proofs;if(P.length||R.length>1)h+=`<details class="b21d-pv" data-b21d-proofs="${P.length}"><summary>Preuves d'éligibilité du coffre (${P.length}) et raisons détaillées</summary><ul>${R.map(z=>`<li>${esc(z.t)}${z.src?`<small>Source : ${esc(z.src)}</small>`:""}</li>`).join("")}${P.map(z=>{const S2=B21D_PST[z.k]||B21D_PST.averif;return`<li data-b21d-pk="${z.k}" data-b21d-std="${esc(z.std)}"><b>${esc(z.piece)}</b> <span class="b21d-pill ${S2[0]}">${S2[1]}</span> <button type="button" class="b21d-lnk" data-b21d-go="coffre" data-act="${act(()=>b21dCoffrePiece(sid,z.vk))}">${z.k==="nonrens"?"Joindre au coffre":z.k==="invalide"?"Mettre à jour":z.k==="joint"?"Ouvrir":"Vérifier"}</button>${z.src?`<small>Source : ${esc(z.src)}</small>`:""}</li>`;}).join("")}</ul></details>`;
+>   h+=`<div class="b21d-dd"><h4>Documents et informations nécessaires</h4><p class="b21d-src">Compléter les informations demandées pour préparer l'offre de ${esc(nm)}.</p>`;
+>   if(!e.dc.rcOk)h+=`<p class="b21d-warn">Pièces du RC non relevées pour ce dossier : liste indisponible (aucune pièce supposée).</p>`;
+>   e.dc.docs.forEach(d=>{const todo=d.fields.filter(f=>!f.fait).length+d.autres.length,open=d.fields.length||d.autres.length;
+>     if(d.kind==="nonexige")return;
+>     if(d.kind==="ready"&&!open){h+=`<div class="b21d-dl" data-b21d-doc="${esc(d.std||"")}" data-b21d-dk="ready"><span class="b21d-dic" aria-hidden="true">▤</span><b>${esc(d.piece)}</b><span class="b21d-pill b21d-ok">Prête à préparer</span>${d.note?`<small>${esc(d.note)}</small>`:""}</div>`;return;}
+>     if(d.kind==="b3"){h+=`<div class="b21d-dl" data-b21d-doc="${esc(d.std||"")}" data-b21d-dk="b3"><span class="b21d-dic" aria-hidden="true">▤</span><b>${esc(d.piece)}</b><span class="b21d-pill b21d-neu">Préparation (B3)</span><small>${esc(d.note)}</small></div>`;return;}
+>     if(d.kind==="verif"){h+=`<div class="b21d-dl" data-b21d-doc="${esc(d.std||"")}" data-b21d-dk="verif"><span class="b21d-dic" aria-hidden="true">▤</span><b>${esc(d.piece)}</b><span class="b21d-pill b21d-amb">Vérification requise</span><small>${esc(d.note)}</small>${d.vk?`<button type="button" class="b21d-lnk" data-act="${act(()=>b21dCoffrePiece(sid,d.vk))}">Voir le coffre</button>`:""}</div>`;return;}
+>     h+=`<article class="b21d-dcard" data-b21d-doc="${esc(d.std||"")}" data-b21d-dk="${todo?"miss":"done"}"><div class="b21d-dch"><span class="b21d-dic" aria-hidden="true">▤</span><div><p><b>${esc(d.piece)}</b> <span class="b21d-pill ${todo?"b21d-amb":"b21d-ok"}">${todo?"Informations à compléter":"Prête à préparer"}</span></p><p class="b21d-src">${todo?"Informations manquantes pour la génération :":"Informations complétées"}${d.src?" · Source : "+esc(d.src):""}</p></div><p class="b21d-gn">ⓘ Ce document sera généré après validation de votre décision.</p></div>`;
+>     h+=`<div class="b21d-frs">${d.fields.map(f=>b21dFieldRow(sid,f,d.i)).join("")}${d.autres.map(t=>`<div class="b21d-fr" data-b21d-autre="1"><span class="b21d-fi" aria-hidden="true">•</span><span class="b21d-fl">${esc(t)}</span><span class="b21d-src">À compléter dans les chantiers de la société (pas de saisie ici)</span></div>`).join("")}</div>`;
+>     if(d.fields.length)h+=`<p class="b21d-src b21d-sv">ⓘ Sauvegarde automatique dans le coffre de ${esc(nm)}.${d.note?" "+esc(d.note):""}</p>`;
+>     h+=`</article>`;});
+>   h+=`<p class="b21d-fn8">ⓘ Informations complètes ne signifie pas offre prête au dépôt : signatures, cachets et contrôles avant dépôt restent à faire.</p></div>`;
+>   h+=b21dDecSec(id,a,e);
+>   return h+`</section>`;}
+> function vDecisionB21(id,a){b21dCss();const u=b21dUi8(id,a),X=b21dSibs(id,a),lim=b21dLim(a),passe=b21dPasse(a);
+>   const ids=[];SOC.forEach(z=>{if(z&&z.sid&&!ids.includes(z.sid))ids.push(z.sid);});X.forEach(x=>{if(!ids.includes(x.sid))ids.push(x.sid);});
+>   const E=ids.map(sid=>b21dEval(id,a,sid,X.find(x=>x.sid===sid)||null));if(!E.some(e=>e.sid===u.sel))u.sel=(E[0]||{}).sid;
+>   const F8=B21D_F8.find(z=>z[0]===u.f)||B21D_F8[0],q=norm(u.q||"").toLowerCase(),L=E.filter(e=>F8[2](e)&&(!q||norm(socCourt(e.sid)).toLowerCase().includes(q)));
+>   let h=`<div class="b21d b21d8" data-b21d="${esc(id)}" data-b21d-mob="${esc(u.mob)}"><header class="b21d-top"><div><p class="b21d-sub8">Choisir une société, vérifier les prérequis, décider.</p></div>
+>     <div class="b21d-ao"><div><b>AO — ${esc(a.ref||id)}</b><span class="b21d-src">${esc(String(a.obj||"").slice(0,90))}</span></div><div class="b21d-cm">${lim?`<span class="b21d-pill ${passe?"b21d-ko":"b21d-neu"}" data-b21d-clos="${passe}">${passe?"Consultation clôturée le ":"Date limite : "}${esc(fmtIso(a.lim))}${a.heure?" "+esc(a.heure):""}</span>`:`<span class="b21d-pill b21d-amb">Date limite non renseignée</span>`}<button type="button" class="b21d-btn" data-b21d-maj="1" data-act="${act(()=>{try{delete B21.cache;}catch(e){}render();toast("État et documents relus ; aucune décision modifiée.");})}">Actualiser</button></div></div>
+>     <nav class="b21d-tabs" aria-label="Ce dossier"><button type="button" aria-current="page" data-b21d-tab="dec">Décision</button><button type="button" data-b21d-tab="note" data-b21d-voirnote="1" data-act="${act(()=>b21Aller(id,"note"))}">Note d'analyse</button><button type="button" data-b21d-tab="prep" data-act="${act(()=>b21dAller(id,"MP-B3.2","pieces"))}">Préparation</button><button type="button" data-b21d-tab="res" data-act="${act(()=>b21dAller(id,"MP-B4.2","res"))}">Résultat</button></nav></header>`;
+>   h+=`<div class="b21d-grid"><aside class="b21d-l" aria-labelledby="b21d-lt"><div class="b21d-lh"><h3 id="b21d-lt">Sociétés du groupe</h3><span class="b21d-src" data-b21d-total="${E.length}">${E.length} société${E.length>1?"s":""}</span></div>
+>     <label class="b21d-sr" for="b21d-q">Rechercher une société</label><input id="b21d-q" class="b21d-q" type="search" placeholder="Rechercher une société" data-b21d-q="1" value="${esc(u.q||"")}" autocomplete="off">
+>     <div class="b21d-filt" role="group" aria-label="Filtrer les sociétés">${B21D_F8.map(([k,l,fn])=>{const n=E.filter(fn).length;return`<button type="button" class="b21d-fb b21d-fb-${k}" aria-pressed="${u.f===k}" data-b21d-f="${k}" data-b21d-fn="${n}" data-act="${act(()=>b21dFil(k))}">${l} <span class="b21d-fn">${n}</span></button>`;}).join("")}</div>
+>     <p class="b21d-sr" role="status" aria-live="polite" data-b21d-fstat="${esc(u.f)}">Filtre « ${esc(F8[1])} » : ${L.length} société${L.length>1?"s":""} sur ${E.length}.</p>`;
+>   h+=L.length?`<ul class="b21d-ll">${L.map(e=>{const d=e.X&&e.X.a.decision,bs=[...new Map(e.B.map(b=>[B21D_SHORT[b[1]]||b[1],b])).entries()];return`<li><button type="button" class="b21d-it" aria-current="${u.sel===e.sid}" data-b21d-item="${esc(e.sid)}" data-act="${act(()=>b21dSel(e.sid))}"><span class="b21d-pic" aria-hidden="true">▦</span><span class="b21d-in">${esc(socCourt(e.sid))}</span><span class="b21d-ib">${bs.map(([t,b])=>`<span class="b21d-pill ${b[2]}" data-b21d-badge="${esc(b[0])}">${esc(t)}</span>`).join("")}${d?`<span class="b21d-pill b21d-neu" data-b21d-idec="${esc(d.verdict)}">${esc(B21D_DV[d.verdict]||d.verdict)}</span>`:""}${e.pend?`<span class="b21d-pill b21d-ko" data-b21d-pend="1">Saisie non enregistrée</span>`:""}</span><span aria-hidden="true" class="b21d-chev">›</span></button></li>`;}).join("")}</ul>`:`<p class="b21d-vide" data-b21d-vide="1">Aucune société dans « ${esc(F8[1])} »${q?" pour « "+esc(u.q)+" »":""}. <button type="button" class="b21d-lnk" data-act="${act(()=>{B21D.ui.f="toutes";B21D.ui.q="";render();})}">Tout afficher</button></p>`;
+>   h+=`</aside>`;
+>   const sel=E.find(e=>e.sid===u.sel);h+=sel?b21dPanel(id,a,sel):`<section class="b21d-p"><p class="b21d-src">Aucune société.</p></section>`;
+>   h+=`</div>`;
+10014,10017c10017,10022
+< document.getElementById("view").addEventListener("input",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.b21dMotif!=null)B21D.motif[t.dataset.b21dMotif]=t.value;
+<   if(t&&t.dataset&&t.dataset.b21dPf){const key=t.dataset.b21dPf,F=B21D.pf[key];if(!F)return;F.v=t.value;F.dirty=true;if(F.st!=="saving"){F.st="edit";}clearTimeout(F.t);const[sid,k]=key.split("|");F.t=setTimeout(()=>{if(document.activeElement!==t||b21dPfNorm(k,F.v)!==F.saved)b21dPfSave(sid,k);},1500);}
+<   if(t&&t.dataset&&t.dataset.b21dPfg){const[sid,k,f]=t.dataset.b21dPfg.split("|"),F=B21D.pf[sid+"|"+k];if(F&&F.v&&typeof F.v==="object"){F.v[f]=t.value;F.dirty=true;}}});
+< document.getElementById("view").addEventListener("change",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.b21dPfg){const[sid,k,f]=t.dataset.b21dPfg.split("|"),F=B21D.pf[sid+"|"+k];if(F&&F.v&&typeof F.v==="object")F.v[f]=t.value;}});
+---
+> document.getElementById("view").addEventListener("input",e=>{const t=e.target;if(!t||!t.dataset)return;if(t.dataset.b21dMotif!=null)B21D.motif[t.dataset.b21dMotif]=t.value;
+>   if(t.dataset.b21dQ!=null){B21D.ui.q=t.value;render();return;}
+>   if(t.dataset.b21dPf){const key=t.dataset.b21dPf,[sid,k]=key.split("|"),F=b21dPfEnsure(sid,k);F.v=t.value;F.dirty=true;if(F.st!=="saving")F.st="edit";clearTimeout(F.t);F.t=setTimeout(()=>{if(document.activeElement!==t||b21dPfNorm(k,F.v)!==F.saved)b21dPfSave(sid,k);},1500);
+>     document.querySelectorAll('[data-b21d-pf="'+CSS.escape(key)+'"]').forEach(o=>{if(o!==t)o.value=t.value;});}
+>   if(t.dataset.b21dPfg){const[sid,k,f]=t.dataset.b21dPfg.split("|"),F=b21dPfEnsure(sid,k);F.v[f]=t.value;F.dirty=true;}});
+> document.getElementById("view").addEventListener("change",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.b21dPfg){const[sid,k,f]=t.dataset.b21dPfg.split("|"),F=b21dPfEnsure(sid,k);F.v[f]=t.value;F.dirty=true;}});
+10058a10064,10092
+> .b21d8{--d-acc:#A85F1C;--d-accb:#FBEFDF;--d-ok2:#2E7D4F;gap:14px}
+> @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .b21d8{--d-acc:#E3A55C;--d-accb:rgba(227,165,92,.16);--d-ok2:#7FD1A6}}:root[data-theme="dark"] .b21d8{--d-acc:#E3A55C;--d-accb:rgba(227,165,92,.16);--d-ok2:#7FD1A6}
+> .b21d8 .b21d-top{align-items:center}.b21d-sub8{margin:0;color:var(--d-mut);font-size:14px}.b21d-ao{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;border:1px solid var(--d-line);background:var(--d-card);border-radius:12px;padding:10px 14px;flex:1 1 320px}.b21d-ao>div:first-child{display:flex;flex-direction:column;min-width:0}.b21d-ao .b21d-src{margin:0}
+> .b21d-tabs{display:flex;flex-wrap:wrap;gap:4px;border:1px solid var(--d-line);background:var(--d-card);border-radius:12px;padding:4px 8px}.b21d-tabs button{border:0;background:none;font-family:inherit;font-size:14px;font-weight:500;color:var(--d-ink);padding:8px 12px;cursor:pointer;border-bottom:2px solid transparent}.b21d-tabs button[aria-current="page"]{color:var(--d-acc);font-weight:700;border-bottom-color:var(--d-acc)}
+> .b21d-grid{display:grid;grid-template-columns:minmax(260px,330px) minmax(0,1fr);gap:16px;align-items:start}
+> .b21d-l,.b21d-p{background:var(--d-card);border:1px solid var(--d-line);border-radius:14px;padding:14px;min-width:0}.b21d-lh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.b21d-lh h3{font-size:18px}
+> .b21d-q{width:100%;margin:10px 0;border:1px solid var(--d-line);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:14px;background:var(--d-card);color:var(--d-ink)}
+> .b21d8 .b21d-fb{border-color:transparent;background:var(--d-neub)}.b21d8 .b21d-fb-comp,.b21d8 .b21d-fb-verif{background:var(--d-ambb);color:var(--d-amb)}.b21d8 .b21d-fb-non{background:var(--d-kob);color:var(--d-ko)}.b21d8 .b21d-fb[aria-pressed="true"]{background:var(--d-acc);color:var(--d-bg)}
+> .b21d-ll{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}.b21d-it{width:100%;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;text-align:left;border:1px solid var(--d-line);background:var(--d-card);color:var(--d-ink);border-radius:10px;padding:10px 12px;font-family:inherit;cursor:pointer}
+> .b21d-it[aria-current="true"]{border-color:var(--d-acc);background:var(--d-accb);box-shadow:0 0 0 1px var(--d-acc)}.b21d-in{font-weight:700;font-size:14px;overflow-wrap:anywhere}.b21d-ib{display:flex;flex-direction:column;align-items:flex-end;gap:3px}.b21d-chev{color:var(--d-mut);font-size:18px}.b21d-pic{color:var(--d-acc);font-size:18px}
+> .b21d-p{display:flex;flex-direction:column;gap:12px}.b21d-back{display:none}.b21d-pt{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center}.b21d-pt h3{font-size:22px;letter-spacing:.01em}.b21d-pt .b21d-src{margin:2px 0 0;font-size:13px}.b21d-oc{font-size:14px}.b21d-pt .b21d-pic{font-size:26px;width:44px;height:44px;display:grid;place-items:center;border-radius:10px;background:var(--d-sec)}
+> .b21d-eb{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--d-line);border-radius:12px;padding:10px 14px;background:var(--d-sec)}.b21d-eb-non{background:var(--d-kob);border-color:var(--d-ko)}.b21d-eb-ok{background:var(--d-okb)}.b21d-et{margin:0}.b21d-eb .b21d-src{margin:2px 0 0}.b21d-ei{font-size:22px;color:var(--d-acc)}
+> .b21d-pv summary{cursor:pointer;font-size:12.5px;color:var(--d-amb)}.b21d-pv ul{margin:6px 0 0;padding-left:16px;font-size:12.5px;display:flex;flex-direction:column;gap:4px}.b21d-pv small{display:block;color:var(--d-mut)}
+> .b21d-dd{display:flex;flex-direction:column;gap:8px}.b21d-dd h4{font-size:17px}.b21d-dd>.b21d-src{margin:0}
+> .b21d-dl{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 10px;align-items:center;border:1px solid var(--d-line);border-radius:10px;padding:9px 12px}.b21d-dl small{grid-column:2 / -1;color:var(--d-mut);font-size:12px}.b21d-dl .b21d-lnk{grid-column:2 / -1;justify-self:start}.b21d-dic{color:var(--d-acc);font-size:18px}
+> .b21d-dcard{border:1px solid var(--d-line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}.b21d-dch{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start}.b21d-dch p{margin:0}.b21d-gn{font-size:12px;color:var(--d-mut);max-width:260px}
+> .b21d-frs{border:1px solid var(--d-line);border-radius:10px;overflow:hidden}.b21d-fr{display:grid;grid-template-columns:24px minmax(110px,170px) minmax(0,1fr) auto;gap:8px 10px;align-items:center;padding:7px 10px;border-top:1px solid var(--d-line)}.b21d-fr:first-child{border-top:0}
+> .b21d-fr input,.b21d-fr select{width:100%;border:1px solid var(--d-line);border-radius:8px;padding:7px 9px;font-family:inherit;font-size:14px;background:var(--d-card);color:var(--d-ink);min-width:0}.b21d-fl{font-size:13px;font-weight:600}.b21d-fi{color:var(--d-mut);text-align:center}.b21d-fs{display:flex;gap:6px;align-items:center;justify-content:flex-end}
+> .b21d-fg{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);gap:6px}.b21d-fm{grid-column:2 / -1;margin:0;font-size:12px;color:var(--d-ko)}.b21d-sb{border:1px solid var(--d-acc);color:var(--d-acc);background:var(--d-card);border-radius:8px;padding:5px 10px;font-family:inherit;font-weight:600;font-size:12.5px;cursor:pointer}
+> .b21d-sv{margin:0}.b21d-fn8{margin:0;font-size:12.5px;color:var(--d-mut);background:var(--d-sec);border-radius:8px;padding:8px 10px}
+> .b21d-ds{border-top:1px solid var(--d-line);padding-top:12px;display:flex;flex-direction:column;gap:10px}.b21d-dh{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:flex-start}.b21d-dh h3{font-size:18px}.b21d-dh .b21d-src{margin:2px 0 0}
+> .b21d-pd{border:1px solid var(--d-acc);color:var(--d-acc);background:var(--d-card);border-radius:10px;padding:8px 14px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer}
+> .b21d-df{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px}.b21d-dcs{display:flex;flex-wrap:wrap;gap:8px}.b21d-ch8{flex:1 1 140px;border:1.5px solid var(--d-line);background:var(--d-card);color:var(--d-ink);border-radius:10px;padding:12px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer}
+> .b21d-cp{border-color:var(--d-ok2);color:var(--d-ok2)}.b21d-cp[aria-checked="true"]{background:var(--d-ok2);color:var(--d-bg)}.b21d-cn{border-color:var(--d-ko);color:var(--d-ko)}.b21d-cn[aria-checked="true"]{background:var(--d-ko);color:var(--d-bg)}.b21d-cr{border-color:var(--d-acc);color:var(--d-acc)}.b21d-cr[aria-checked="true"]{background:var(--d-acc);color:var(--d-bg)}.b21d-ch8[disabled]{opacity:.45;cursor:not-allowed}
+> .b21d-dm{display:flex;flex-direction:column;gap:6px}.b21d-dm textarea{width:100%;border:1px solid var(--d-line);border-radius:8px;padding:8px;font-family:inherit;font-size:13px;background:var(--d-card);color:var(--d-ink)}.b21d-cf{align-self:flex-end;background:var(--d-acc);color:var(--d-bg);border:0;border-radius:10px;padding:10px 16px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer}.b21d-cf[disabled]{opacity:.5;cursor:not-allowed}
+> @container b21d (max-width:820px){.b21d-df{grid-template-columns:minmax(0,1fr)}.b21d-dch{grid-template-columns:auto minmax(0,1fr)}.b21d-gn{grid-column:1 / -1;max-width:none}}
+> @container b21d (max-width:760px){.b21d-grid{grid-template-columns:minmax(0,1fr)}.b21d8[data-b21d-mob="list"] .b21d-p{display:none}.b21d8[data-b21d-mob="panel"] .b21d-l{display:none}.b21d-back{display:inline-block;align-self:flex-start;border:0;background:none;color:var(--d-acc);font-family:inherit;font-weight:700;font-size:14px;padding:4px 0;cursor:pointer}
+>   .b21d-pt{grid-template-columns:auto minmax(0,1fr)}.b21d-oc{grid-column:1 / -1;justify-self:start}.b21d-eb{grid-template-columns:auto minmax(0,1fr)}.b21d-eb .b21d-lnk{grid-column:1 / -1;justify-self:start}
+>   .b21d-fr{grid-template-columns:20px minmax(0,1fr) auto}.b21d-fr input,.b21d-fr .b21d-fg{grid-column:1 / -1}.b21d-fs{grid-column:3;grid-row:1}.b21d-fg{grid-template-columns:minmax(0,1fr)}.b21d-dl{grid-template-columns:auto minmax(0,1fr)}.b21d-dl .b21d-pill{grid-column:2;justify-self:start}.b21d-dch p .b21d-pill{display:inline-block;margin-top:2px}.b21d-tabs button{padding:6px 8px;font-size:13px}}

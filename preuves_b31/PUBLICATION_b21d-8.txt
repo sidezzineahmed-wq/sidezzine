@@ -1,0 +1,19 @@
+b21d-8 · Décision B2.1 selon la maquette validée : liste des sociétés (recherche, filtres) + panneau société unique
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Base live : 1792009467-b552 (collecteur mis à jour ; index.html identique à b21d-7, sha256 ffbbb1c5…, vérifié avant modification et avant publication).
+La version live ne pouvait pas être lue en entier (≈ 700 k jetons) : contenu identique confirmé par le service (soumission du contenu b21d-7 :
+« same author content »), puis publication de la page seule ; fichiers du collecteur conservés (catalogue.json 4 458 330 o).
+Version publiée : 306 · id 1792018850-adec · index 1 624 104 octets, sha256 7674e2ce94aa359ce390c8c199687fe647345669cfc81f7b9c01b9ba38889861
+Corps sha256 3d5e0607e20170b5c804a256fa0dce912e42e9e1df76fbb17efe6f80e05c31f3 ; index = squelette + corps (diff 0) ; 16 fichiers ; capacités et partage inchangés ; sans force.
+
+Correspondance document → informations (générateurs existants pfMissing) :
+- Déclaration sur l'honneur (dh) : signataire, téléphone, e-mail, RIB, capital, CNSS, RC, taxe professionnelle, ICE, siège.
+- Acte d'engagement (ae) : signataire, RIB, localité de la banque, capital, CNSS, RC, taxe professionnelle, ICE, siège ;
+  montant HT / lot / rabais / min-max exclus (chiffrage B3).
+- Plan de charge (pc) : signataire ; taux et montants des chantiers (non saisissables ici).
+- CPS et RC signés : signataire (pfDefaults) ; « Prêt » si cachetés VÉRIFIÉ au nom de la société.
+- Récépissé de caution : obtenu après la décision ; ligne de caution = preuve d'éligibilité (B2.3).
+- Bordereau / sous-détail : Préparation (B3). Note moyens / mémoire / planning et autres pièces : vérification requise (relation non structurée).
+
+Recettes (fixtures et base simulée ; aucune donnée réelle) :
+qa_b21dec 58/58 · qa_b31 64/64 · qa_qual 21/21 · qa_hist 17/17 · qa_pdf 9/9 · qa_b31_v6e 14/14 · qa_ergo 344/344

@@ -1,0 +1,59 @@
+OK liste : les 9 sociétés actuelles du groupe, chacune une fois (avec ou sans dossier)
+OK plus de statut principal « Ajoutée / Non ajoutée » ; chaque société porte au moins un badge d'état
+OK filtres Toutes / Prêtes / À compléter / À vérifier / Non éligible : comptes dynamiques issus de l'évaluation réelle {'toutes': 9, 'pretes': 0, 'comp': 7, 'verif': 9, 'non': 0}
+OK plusieurs badges si nécessaire (ex. alwaad-ataib : ['Informations à compléter', 'Éligibilité à vérifier', 'Documents à vérifier'])
+OK filtre « À compléter » : sociétés avec informations manquantes ; état sélectionné annoncé (aria-pressed, role=status)
+OK filtre vide (« Non éligible » sur ces fixtures) : message et « Tout afficher »
+OK recherche « sak » : SAKDAT seule, focus conservé dans le champ
+OK recherche sans résultat : message clair
+OK sélection : un seul panneau (ALWAAD), ligne marquée aria-current, focus sur le titre du panneau
+OK sélectionner, chercher, filtrer : aucune écriture, aucun dossier créé
+OK champs sous la bonne pièce, d'après le générateur existant pfMissing : DH ['tel', 'mail', 'rib'], AE ['rib', 'banque']
+OK AE : montant HT, lot, rabais exclus de la décision (préparés en B3)
+OK note sur les moyens : relation non structurée → « vérification requise » ; bordereau → Préparation (B3)
+OK document complet : une ligne compacte « nom + Prête à préparer », sans champs
+OK panneau : mention « ne signifie pas offre prête au dépôt » ; aucun tableau, chiffrage ni après attribution
+OK bande « Éligibilité pour cet AO » : statut, raison, source, action « Vérifier »
+OK saisie sous la DH : curseur stable, aucune écriture pendant la frappe
+OK pause : enregistré dans le profil d'ALWAAD (update du seul champ), « Enregistré ✓ » après réponse de la base
+OK RIB saisi sous la DH : même brouillon visible sous l'AE, une seule écriture ; les deux pièces le voient (aucune copie)
+OK changer de société pendant la saisie : la valeur part dans le profil d'ALWAAD seulement, jamais chez SAKDAT
+OK échec pendant un changement de société : « Saisie non enregistrée » dans la liste, brouillon conservé, « Échec » + « Réessayer »
+OK « Réessayer » : enregistré
+OK modification concurrente : « Conflit », rien n'est écrasé sans choix explicite
+OK « Remplacer par ma saisie » : seul ce champ est remplacé
+OK valeur invalide : « À corriger », rien n'est écrit
+OK isolation : autres sociétés intactes ; chez ALWAAD, seuls les champs saisis
+OK saisies : aucune décision, aucun dossier créé ni modifié
+OK après rechargement : informations relues de la base ; DH et AE d'ALWAAD « Prête à préparer »
+OK décision : aucun choix affiché avant « Prendre une décision »
+OK « Prendre une décision » : Participer / Ne pas participer / À réexaminer, aucun choix initial, confirmation désactivée, rien d'écrit
+OK choisir n'enregistre rien
+OK « Ne pas participer » sans motif : refusé
+OK « Participer » confirmé : enregistré comme Go (mapping inchangé en base) sur le seul dossier SAKDAT
+OK décision existante : date, auteur, motif ; « Modifier la décision » ; badge « Participer » dans la liste
+OK décisions des autres sociétés conservées
+OK société sans dossier : seule « Participer » possible, création annoncée, rien n'est créé à l'ouverture
+OK « Participer » confirmé sans dossier : dossier indépendant créé (creerSib, sans finances ni pièces signées), puis participation enregistrée ([['set', 'ao/fx-dec~up-modulor'], ['set', 'ao/fx-dec~up-modulor']])
+OK autres « Non éligible » éventuels : uniquement par la règle art. 27 existante, sourcée ([('signalsud-sahara', "Même signataire que SAKDAT (Mahraoui El Mustapha) : interdit par l'art"), ('sahara-iaamar', "Même signataire que SAKDAT (Mahraoui El Mustapha) : interdit par l'art")])
+OK incompatibilité confirmée et sourcée : « Non éligible » (bande, badge, filtre) ; « Participer » refusé avec la raison, rien d'écrit
+OK consultation clôturée : décision en lecture seule, pas de « Prendre une décision »
+OK clôturée : confirmation directe refusée, décision existante conservée
+OK vue Décision : la note d'analyse n'est ni calculée ni rendue ; titre « Décision d'Ahmed »
+OK onglet « Note d'analyse » : vraie vue Note du même dossier
+OK retour à la Décision depuis la note
+OK onglet « Résultat » : vue B4.2 avec la section après attribution (b21d-6)
+OK B3.1 intact : chiffrage du dossier et prix fictifs inchangés
+OK dossier réel BG (base simulée) : 9 sociétés en lecture, décisions inchangées, aucune écriture réelle, aucune erreur []
+OK 390 : sélecteur de sociétés puis panneau (bouton « ← Sociétés »), champs lisibles, aucun débordement ({'l': False, 'p': True, 'ov': 0, 'F': True, 'back': True})
+OK 390 : retour à la liste, focus sur la société
+OK 390 : société sélectionnée lisible (contraste 15.8)
+OK 390 : aucune erreur JavaScript []
+OK 390_sombre : sélecteur de sociétés puis panneau (bouton « ← Sociétés »), champs lisibles, aucun débordement ({'l': False, 'p': True, 'ov': 0, 'F': True, 'back': True})
+OK 390_sombre : retour à la liste, focus sur la société
+OK 390_sombre : société sélectionnée lisible (contraste 13.1)
+OK 390_sombre : aucune erreur JavaScript []
+OK 1440_sombre : liste et panneau côte à côte, champs lisibles, aucun débordement
+OK 1440_sombre : société sélectionnée lisible (contraste 13.1)
+OK 1440_sombre : aucune erreur JavaScript []
+58 / 58

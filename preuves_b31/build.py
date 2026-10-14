@@ -44,5 +44,10 @@ for A,B in [
 ]:
   assert out.count(A)==1,A[:60]
   out=out.replace(A,B)
+# b21d-9 : création hors offre (horsOffre, avec sansGo) pour mémoriser « Ne pas participer » / « À réexaminer » : le dossier reste
+# « À examiner » puis « Abandonné » ou « À examiner », statuts exclus des offres actives (consultSibs) ; « Participer » reste contrôlé.
+A9='{const pc=parCompat(id,a,sid);if(pc.st==="deja"||pc.st==="non")return toast(pc.why||"Offre impossible pour cette société sur ce marché.");}'
+assert out.count(A9)==1
+out=out.replace(A9,'{const pc=parCompat(id,a,sid);if(!(o.sansGo&&o.horsOffre)&&(pc.st==="deja"||pc.st==="non"))return toast(pc.why||"Offre impossible pour cette société sur ce marché.");}')
 open("page_b21.html","w",encoding="utf-8").write(out)
 print(hashlib.sha256(out.encode()).hexdigest(),len(out))

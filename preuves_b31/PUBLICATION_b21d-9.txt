@@ -1,0 +1,14 @@
+b21d-9 · Décision B2.1 : Participer / Ne pas participer / À réexaminer pour toute société, même sans dossier
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Base live vérifiée avant modification et avant publication : 1792018850-adec (b21d-8), aucun changement concurrent.
+Version publiée : 307 · id 1792019178-faa0 · index 1 624 269 octets, sha256 3e4daac3d6e3a26052453023e3e144d81d5d66fc6991f827e967509040313fe0
+Corps sha256 1dd7d885fcb28e078875e76e082a08fdee30e86960fb47fa912af80e8dffcf16 ; index = squelette + corps (diff 0) ; 16 fichiers ; capacités et partage inchangés ; sans force.
+
+- Sans dossier : les trois choix sont actifs ; rien n'est créé à l'ouverture ni au choix. À « Confirmer la décision » : creerSib (sansGo)
+  crée le dossier indépendant (sibData, aucune donnée financière), puis b21dEnreg applique la décision (Go → En préparation + préparation ;
+  No-Go → Abandonné ; À reprendre → À examiner ; aucune préparation pour ces deux derniers).
+- Option horsOffre (avec sansGo, non-participation uniquement) : la création n'est plus refusée par parCompat (art. 27 / déjà membre /
+  écartée) car le dossier reste hors des offres actives (consultSibs exclut Abandonné et À examiner). « Participer » reste contrôlé :
+  parCompat à la création + b21dElig (éligibilité, art. 27) à la confirmation, y compris sur un dossier créé hors offre.
+
+Recette ciblée (fixtures et base simulée ; aucune donnée réelle) : qa_b21dec 68/68

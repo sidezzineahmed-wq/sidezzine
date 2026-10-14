@@ -5,7 +5,7 @@
    a.decision {verdict, le, qui, motif} ; jamais de Go automatique ni de présélection ; une décision remplacée est conservée
    (a.decisionHist) et tracée au journal ; la société d'un dossier n'est jamais changée ici. L'avis et la recommandation de
    l'Analyste restent dans la note d'analyse. Consultation clôturée : décision affichée en lecture, aucune nouvelle soumission. */
-const B21D={v:"b21d-8",motif:{},conf:null,ajout:null,ui:{id:null,open:null,f:"tout"},cat:{}};
+const B21D={v:"b21d-9",motif:{},conf:null,ajout:null,ui:{id:null,open:null,f:"tout"},cat:{}};
 const B21D_ST={prep:["b21d-neu","À préparer"],prep2:["b21d-neu","À préparer après Go · requis avant dépôt"],aprod:["b21d-amb","À produire si attribué"],pret:["b21d-ok","Prêt"],verif:["b21d-amb","À vérifier"],joindre:["b21d-ko","À joindre"],compl:["b21d-amb","À compléter"],nonexige:["b21d-neu","Non exigé"],attrib:["b21d-neu","Si attribué"]};
 const B21D_COFFRE=["qc","refs","fis","cnss","rc","pouvoirs"],B21D_FIN=["bpu","sdp"];   /* l'acte d'engagement se prépare dans les pièces (B3.2) */
 function b21dSibs(id,a){let L=[];try{L=b31Sibs(id,a);}catch(e){L=[{id,soc:a.soc,statut:a.statut}];}return L.map(s=>({oid:s.id,sid:s.soc,a:S.ao[s.id]})).filter(x=>x.a&&x.sid);}
@@ -202,11 +202,11 @@ async function b21dConfirmer(id,sid){const a=S.ao[id],D=B21D.dec;if(!a)return;if
   if(V!=="Go"&&!motif)return toast("Motif obligatoire pour « "+B21D_DV[V]+" ».");
   if(X&&["Déposé","Attribué","Non retenu"].includes(X.a.statut))return toast("Dossier "+X.a.statut.toLowerCase()+" : décision figée.");
   if(V==="Go"){const el=b21dElig(id,a,sid,X);if(el.k==="non")return toast("Participation impossible en l'état : "+el.non.map(z=>z.t).join(" ; ")+".");}
-  if(!X){if(V!=="Go")return toast("Aucun dossier pour "+socCourt(sid)+" : rien à enregistrer.");
+  if(!X){/* société sans dossier : création à la confirmation seulement (creerSib sans Go) ; hors offre pour une non-participation */
     if(B21D.ajout)return toast("Création en cours, patientez.");B21D.ajout=sid;render();
-    try{await creerSib(id,sid,{sansGo:true,source:"B2.1 décision · Participer"});}finally{B21D.ajout=null;}
+    try{await creerSib(id,sid,{sansGo:true,horsOffre:V!=="Go",source:"B2.1 décision · "+B21D_DV[V]});}finally{B21D.ajout=null;}
     const nid=(a.base||id)+"~"+sid;if(!S.ao[nid]){render();return toast("Dossier non créé : aucune décision enregistrée.");}
-    b21dEnreg(nid,"Go",motif);}
+    b21dEnreg(nid,V,motif);}
   else{if(X.a.decision&&X.a.decision.verdict===V&&(X.a.decision.motif||"")===motif)return toast("Décision inchangée : rien n'est enregistré.");b21dEnreg(X.oid,V,motif);}
   B21D.dec=null;delete B21D.motif["s:"+sid];render();toast("Décision « "+B21D_DV[V]+" » enregistrée pour "+socCourt(sid)+".");}
 function b21dDecSec(id,a,e){const sid=e.sid,X=e.X,d=X&&X.a.decision,ed=editable(),passe=b21dPasse(a),fig=X&&["Déposé","Attribué","Non retenu"].includes(X.a.statut),peut=ed&&!passe&&!fig,D=B21D.dec&&B21D.dec.sid===sid?B21D.dec:null,H=X?(X.a.decisionHist||[]).slice().reverse():[];
@@ -214,8 +214,8 @@ function b21dDecSec(id,a,e){const sid=e.sid,X=e.X,d=X&&X.a.decision,ed=editable(
   if(peut)h+=`<button type="button" class="b21d-pd" aria-expanded="${!!D}" aria-controls="b21d-dform" data-b21d-prendre="1" data-act="${act(()=>{B21D.dec=B21D.dec&&B21D.dec.sid===sid?null:{sid,v:null};render();b21dFocus('#b21d-dform [role=radio]');})}">${d?"Modifier la décision":"Prendre une décision"} <span aria-hidden="true">${D?"▴":"▾"}</span></button>`;
   h+=`</div>`;
   if(!peut)h+=`<p class="b21d-src" data-b21d-declock="1">${passe?"Consultation clôturée : décision en lecture seule, aucune nouvelle soumission.":!ed?"Lecture seule.":"Dossier "+esc(X.a.statut)+" : décision figée."}</p>`;
-  if(peut&&D){const sansDos=!X;h+=`<div class="b21d-df" id="b21d-dform"><div class="b21d-dc"><div role="radiogroup" aria-label="Décision pour ${esc(socCourt(sid))}" class="b21d-dcs">${[["participer","Participer","b21d-cp"],["nepas","Ne pas participer","b21d-cn"],["reex","À réexaminer","b21d-cr"]].map(([k,l,c])=>{const dis=sansDos&&k!=="participer";return`<button type="button" role="radio" aria-checked="${D.v===k}" class="b21d-ch8 ${c}" data-b21d-choix="${k}" ${dis?"disabled":""} data-act="${act(()=>{if(dis)return;B21D.dec={sid,v:k};render();b21dFocus('[data-b21d-choix="'+k+'"]');})}">${l}</button>`;}).join("")}</div>
-      <p class="b21d-src">${sansDos?"Aucun dossier pour cet AO : « Participer » crée d'abord le dossier séparé de "+esc(socCourt(sid))+" (aucune donnée financière d'un autre dossier), puis enregistre la participation.":"Votre décision sera enregistrée et visible dans le suivi du dossier."} Les documents à préparer ne bloquent pas « Participer ».</p></div>
+  if(peut&&D){const sansDos=!X;h+=`<div class="b21d-df" id="b21d-dform"><div class="b21d-dc"><div role="radiogroup" aria-label="Décision pour ${esc(socCourt(sid))}" class="b21d-dcs">${[["participer","Participer","b21d-cp"],["nepas","Ne pas participer","b21d-cn"],["reex","À réexaminer","b21d-cr"]].map(([k,l,c])=>{const dis=false;return`<button type="button" role="radio" aria-checked="${D.v===k}" class="b21d-ch8 ${c}" data-b21d-choix="${k}" ${dis?"disabled":""} data-act="${act(()=>{if(dis)return;B21D.dec={sid,v:k};render();b21dFocus('[data-b21d-choix="'+k+'"]');})}">${l}</button>`;}).join("")}</div>
+      <p class="b21d-src">${sansDos?"Aucun dossier pour cet AO : à la confirmation seulement, le dossier séparé de "+esc(socCourt(sid))+" est d'abord créé (aucune donnée financière d'un autre dossier), puis la décision est enregistrée. « Ne pas participer » et « À réexaminer » ne lancent aucune préparation.":"Votre décision sera enregistrée et visible dans le suivi du dossier."} Les documents à préparer ne bloquent pas « Participer ».</p></div>
       <div class="b21d-dm"><label class="b21d-lab" for="b21d-motif-${esc(sid)}">Motif / commentaire <small>(obligatoire pour Ne pas participer et À réexaminer)</small></label><textarea id="b21d-motif-${esc(sid)}" rows="3" data-b21d-motif="s:${esc(sid)}" placeholder="Saisir un commentaire…">${esc(B21D.motif["s:"+sid]||"")}</textarea>
       <button type="button" class="b21d-cf" data-b21d-confirmer="1" ${D.v&&!B21D.ajout?"":"disabled"} data-act="${act(()=>b21dConfirmer(id,sid))}">${B21D.ajout===sid?"Création du dossier…":"Confirmer la décision"}</button></div></div>`;
     if(D.v==="participer"&&e.el.k==="non")h+=`<p class="b21d-warn" data-b21d-gobloc="${e.el.non.length}"><b>Participation impossible en l'état :</b> ${esc(e.el.non.map(z=>z.t+(z.src?" (source : "+z.src+")":"")).join(" ; "))}</p>`;}

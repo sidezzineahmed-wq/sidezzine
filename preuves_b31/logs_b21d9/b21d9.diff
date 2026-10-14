@@ -1,0 +1,26 @@
+4582c4582
+< async function creerSib(id,sid,o){o=o||{};const a=S.ao[id],nid=(a.base||id)+"~"+sid;{const pc=parCompat(id,a,sid);if(pc.st==="deja"||pc.st==="non")return toast(pc.why||"Offre impossible pour cette société sur ce marché.");}
+---
+> async function creerSib(id,sid,o){o=o||{};const a=S.ao[id],nid=(a.base||id)+"~"+sid;{const pc=parCompat(id,a,sid);if(!(o.sansGo&&o.horsOffre)&&(pc.st==="deja"||pc.st==="non"))return toast(pc.why||"Offre impossible pour cette société sur ce marché.");}
+9753c9753
+< const B21D={v:"b21d-8",motif:{},conf:null,ajout:null,ui:{id:null,open:null,f:"tout"},cat:{}};
+---
+> const B21D={v:"b21d-9",motif:{},conf:null,ajout:null,ui:{id:null,open:null,f:"tout"},cat:{}};
+9950c9950
+<   if(!X){if(V!=="Go")return toast("Aucun dossier pour "+socCourt(sid)+" : rien à enregistrer.");
+---
+>   if(!X){/* société sans dossier : création à la confirmation seulement (creerSib sans Go) ; hors offre pour une non-participation */
+9952c9952
+<     try{await creerSib(id,sid,{sansGo:true,source:"B2.1 décision · Participer"});}finally{B21D.ajout=null;}
+---
+>     try{await creerSib(id,sid,{sansGo:true,horsOffre:V!=="Go",source:"B2.1 décision · "+B21D_DV[V]});}finally{B21D.ajout=null;}
+9954c9954
+<     b21dEnreg(nid,"Go",motif);}
+---
+>     b21dEnreg(nid,V,motif);}
+9962,9963c9962,9963
+<   if(peut&&D){const sansDos=!X;h+=`<div class="b21d-df" id="b21d-dform"><div class="b21d-dc"><div role="radiogroup" aria-label="Décision pour ${esc(socCourt(sid))}" class="b21d-dcs">${[["participer","Participer","b21d-cp"],["nepas","Ne pas participer","b21d-cn"],["reex","À réexaminer","b21d-cr"]].map(([k,l,c])=>{const dis=sansDos&&k!=="participer";return`<button type="button" role="radio" aria-checked="${D.v===k}" class="b21d-ch8 ${c}" data-b21d-choix="${k}" ${dis?"disabled":""} data-act="${act(()=>{if(dis)return;B21D.dec={sid,v:k};render();b21dFocus('[data-b21d-choix="'+k+'"]');})}">${l}</button>`;}).join("")}</div>
+<       <p class="b21d-src">${sansDos?"Aucun dossier pour cet AO : « Participer » crée d'abord le dossier séparé de "+esc(socCourt(sid))+" (aucune donnée financière d'un autre dossier), puis enregistre la participation.":"Votre décision sera enregistrée et visible dans le suivi du dossier."} Les documents à préparer ne bloquent pas « Participer ».</p></div>
+---
+>   if(peut&&D){const sansDos=!X;h+=`<div class="b21d-df" id="b21d-dform"><div class="b21d-dc"><div role="radiogroup" aria-label="Décision pour ${esc(socCourt(sid))}" class="b21d-dcs">${[["participer","Participer","b21d-cp"],["nepas","Ne pas participer","b21d-cn"],["reex","À réexaminer","b21d-cr"]].map(([k,l,c])=>{const dis=false;return`<button type="button" role="radio" aria-checked="${D.v===k}" class="b21d-ch8 ${c}" data-b21d-choix="${k}" ${dis?"disabled":""} data-act="${act(()=>{if(dis)return;B21D.dec={sid,v:k};render();b21dFocus('[data-b21d-choix="'+k+'"]');})}">${l}</button>`;}).join("")}</div>
+>       <p class="b21d-src">${sansDos?"Aucun dossier pour cet AO : à la confirmation seulement, le dossier séparé de "+esc(socCourt(sid))+" est d'abord créé (aucune donnée financière d'un autre dossier), puis la décision est enregistrée. « Ne pas participer » et « À réexaminer » ne lancent aucune préparation.":"Votre décision sera enregistrée et visible dans le suivi du dossier."} Les documents à préparer ne bloquent pas « Participer ».</p></div>

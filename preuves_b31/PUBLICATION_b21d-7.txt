@@ -1,0 +1,19 @@
+b21d-7 · Décision B2.1 : prérequis société / à préparer après Go ; saisie en ligne du profil ; blocage du Go selon règles existantes
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Base live vérifiée avant modification : 1791934139-92e7 (b21d-6) ; juste avant publication : 1791937405-9f0c (fichiers du collecteur mis à jour,
+index.html identique à b21d-6, sha256 a5eccbe8…) ; publication de la page seule : fichiers du collecteur conservés.
+Version publiée : 302 · id 1791937957-f117 · index 1 616 046 octets, sha256 ffbbb1c5aaaca939250aeb44a353fecc9244a335a7c6d8db1141031db74e72d3
+Corps sha256 9145ec8d88c532239176bfc14e6b04641889ba7b0da6caccf68bb25369560a3d ; index = squelette + corps (diff 0) ; 16 fichiers ; capacités et partage inchangés ; sans force.
+
+Champs réellement implémentés (saisie en ligne, profil de la société, societes/<sid>.profil) : champs texte du Paramétrage requis par paramMiss :
+raison sociale, capital, RC, ICE, IF, taxe professionnelle, CNSS, siège, téléphone, e-mail, banque, RIB ; + signataire (nom, qualité,
+signature) seulement si aucun gérant n'est renseigné. Écriture : update({profil:{champ,maj}}) (fusion récursive, rien d'autre écrasé),
+set seulement si le document n'existe pas ; relecture avant écriture (conflit → choix explicite) ; file d'écriture par société.
+Non supportés en ligne (route coffre précise) : pièces/justificatifs (qualification, références, attestations, pouvoirs).
+Blocage du Go : critère B2.3 « incompatible » sur une preuve d'éligibilité de l'AO (qualification exigée échue ; liste B21D_ELIG),
+art. 27 / même société (règle parCompat). Jamais : DH, CPS/RC signés, note moyens, AE, BPU, récépissé de caution, signature
+électronique, attestations de l'attributaire, champs de profil (ceux-ci bloquent la préparation, affichés à part).
+
+Recettes (fixtures et base simulée ; aucune donnée réelle) :
+qa_b21dec 119/119 · qa_b31 64/64 · qa_qual 21/21 · qa_hist 17/17 · qa_pdf 9/9 · qa_b31_v6e 14/14 · qa_ergo 344/344
+(base simulée : update rendue récursive comme le contrat db 0.2.54, dans qa_b21dec seulement)

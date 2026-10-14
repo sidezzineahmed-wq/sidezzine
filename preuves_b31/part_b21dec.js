@@ -5,8 +5,8 @@
    a.decision {verdict, le, qui, motif} ; jamais de Go automatique ni de présélection ; une décision remplacée est conservée
    (a.decisionHist) et tracée au journal ; la société d'un dossier n'est jamais changée ici. L'avis et la recommandation de
    l'Analyste restent dans la note d'analyse. Consultation clôturée : décision affichée en lecture, aucune nouvelle soumission. */
-const B21D={v:"b21d-6",motif:{},conf:null,ajout:null,ui:{id:null,open:null,f:"tout"},cat:{}};
-const B21D_ST={prep:["b21d-neu","À préparer"],aprod:["b21d-amb","À produire si attribué"],pret:["b21d-ok","Prêt"],verif:["b21d-amb","À vérifier"],joindre:["b21d-ko","À joindre"],compl:["b21d-amb","À compléter"],nonexige:["b21d-neu","Non exigé"],attrib:["b21d-neu","Si attribué"]};
+const B21D={v:"b21d-7",motif:{},conf:null,ajout:null,ui:{id:null,open:null,f:"tout"},cat:{}};
+const B21D_ST={prep:["b21d-neu","À préparer"],prep2:["b21d-neu","À préparer après Go · requis avant dépôt"],aprod:["b21d-amb","À produire si attribué"],pret:["b21d-ok","Prêt"],verif:["b21d-amb","À vérifier"],joindre:["b21d-ko","À joindre"],compl:["b21d-amb","À compléter"],nonexige:["b21d-neu","Non exigé"],attrib:["b21d-neu","Si attribué"]};
 const B21D_COFFRE=["qc","refs","fis","cnss","rc","pouvoirs"],B21D_FIN=["bpu","sdp"];   /* l'acte d'engagement se prépare dans les pièces (B3.2) */
 function b21dSibs(id,a){let L=[];try{L=b31Sibs(id,a);}catch(e){L=[{id,soc:a.soc,statut:a.statut}];}return L.map(s=>({oid:s.id,sid:s.soc,a:S.ao[s.id]})).filter(x=>x.a&&x.sid);}
 function b21dRcId(oid,a){return[oid,a.base].filter(Boolean).find(x=>S.rc[x]&&Array.isArray(S.rc[x].pieces)&&S.rc[x].pieces.length)||oid;}
@@ -33,7 +33,11 @@ function b21dCarteData(oid,oa,sid){const rcId=b21dRcId(oid,oa),r=S.rc[rcId]||{},
   const env={"Administratif":["e1","adm"],"Technique":["e1","tec"],"Technique (offre technique)":["e1","tec"],"Financier":["e2","fin"],"Si attribué":["att","att"]};
   const L=rows.filter(x=>x.pi!=null||x.st==="nonrens").map(x=>{const p=x.pi!=null?P[x.pi]:null,K=p?((env[x.g]||[])[0]==='att'?b21dPieceAtt(x):b21dPiece(x,p,oa,sid)):{k:"verif"},e=env[x.g]||["e1","aut"];
     return{piece:x.piece,ctrl:K.ctrl||x.ctrl,k:K.k,src:x.src,std:p&&p.std,env:e[0],sec:e[1],act:p?()=>b21dAction(x,p,K.k,oid,sid):null};});
-  return{rcId,rows:L,reste:L.filter(x=>x.env==="e1"&&!["pret","nonexige","attrib","prep"].includes(x.k)),rcOk:P.length>0,F:(()=>{try{return b21Fraicheur(rcId,oa);}catch(e){return null;}})()};}
+  /* b21d-7 : prérequis société (preuves du coffre exigées par le RC) / à préparer après Go (tout le reste avant dépôt) */
+  const pre=[],prep=[];L.forEach(x=>{if(x.env==="att")return;if(x.env==="e1"&&B21D_COFFRE.includes(x.std)){const rw=rows.find(r=>r.piece===x.piece&&P[r.pi]&&P[r.pi].std===x.std)||{};const k=x.k==="pret"?"joint":b21dPreK(rw.st);pre.push(Object.assign({},x,{k,vk:B21D_VK[x.std]}));}
+    else prep.push(Object.assign({},x,{k:x.k==="nonexige"||x.k==="pret"?x.k:"prep2"}));});
+  const prof=b21dProfMiss(sid),nPre=prof.filter(z=>!z.fait).length+pre.filter(z=>z.k!=="joint").length,nPrep=prep.filter(z=>z.k==="prep2").length;
+  return{rcId,rows:L,pre,prep,prof,nPre,nPrep,reste:prof.filter(z=>!z.fait).concat(pre.filter(z=>z.k!=="joint")),rcOk:P.length>0,F:(()=>{try{return b21Fraicheur(rcId,oa);}catch(e){return null;}})()};}
 function b21dTable(D,sid,att){const sec=att?[["att","att","Pièces exigées de l'attributaire (si le marché est attribué)"]]:[["e1","adm","Enveloppe 1 · Dossier administratif"],["e1","tec","Enveloppe 1 · Dossier technique"],["e1","aut","Enveloppe 1 · Autres pièces du RC"],["e2","fin","Enveloppe 2 · Offre financière (à préparer en Préparation)"]];
   let h=`<div class="b21d-tw"><table class="b21d-tab" aria-label="Pièces de ${esc(socCourt(sid||""))} : pièce, statut, action"><caption class="b21d-sr">Pièces du dossier de ${esc(socCourt(sid||""))} selon le RC</caption><thead><tr><th scope="col">Pièce</th><th scope="col">Statut</th><th scope="col">Action</th></tr></thead><tbody>`;
   sec.forEach(([e,s,t])=>{const R=D.rows.filter(x=>x.env===e&&x.sec===s);if(!R.length)return;h+=`<tr class="b21d-sec"><th colspan="3" scope="colgroup">${esc(t)}</th></tr>`;
@@ -46,6 +50,7 @@ function b21dDecider(oid,verdict){const a=S.ao[oid];if(!a)return;if(!editable())
   if(["Déposé","Attribué","Non retenu"].includes(a.statut))return toast("Dossier "+a.statut.toLowerCase()+" : décision figée.");
   const motif=String(B21D.motif[oid]||"").trim().slice(0,300);
   if(verdict!=="Go"&&!motif)return toast("Saisissez le motif (obligatoire pour « "+verdict+" »).");
+  if(verdict==="Go"){const GB=b21dGoBloc(oid);if(GB.bloc.length)return toast("Go impossible en l'état : "+GB.bloc.map(z=>z.t).join(" ; ")+".");}
   if(a.decision&&a.decision.verdict===verdict&&(a.decision.motif||"")===motif)return toast("Décision inchangée : rien n'est enregistré.");
   const k=oid+"|"+verdict;if(!B21D.conf||B21D.conf.k!==k||Date.now()-B21D.conf.t>6000){B21D.conf={k,t:Date.now()};render();return toast("Confirmez « "+verdict+" » pour "+socCourt(a.soc)+" : appuyez encore une fois. "+(verdict==="Go"?"La préparation de son dossier est lancée ; ":"")+"aucune autre société n'est modifiée.");}
   B21D.conf=null;const me=S.role.me||null,now=new Date().toISOString(),prev=a.decision;
@@ -55,13 +60,89 @@ function b21dDecider(oid,verdict){const a=S.ao[oid];if(!a)return;if(!editable())
   saveAO(oid);logJ(a.ref+" : décision "+verdict+" pour "+socCourt(a.soc)+(prev?" (remplace "+(prev.verdict||"?")+" du "+(prev.le?fmtIso(prev.le):"?")+")":"")+(motif?" — "+motif:""));
   if(verdict==="Go")prepDemarrer(oid,"Go (B2.1)");delete B21D.motif[oid];render();
   toast(verdict==="Go"?"Go enregistré pour "+socCourt(a.soc)+" : la préparation démarre ; les pièces restantes restent à traiter avant dépôt.":verdict==="No-Go"?"No-Go enregistré pour "+socCourt(a.soc)+" : ses pièces sont conservées.":"« À reprendre » enregistré pour "+socCourt(a.soc)+" : retiré de la préparation, pièces conservées, réversible par un nouveau Go.");}
+/* ===== b21d-7 : prérequis société (coffre / profil) distincts des pièces à préparer après le Go ===== */
+/* Go = participer et démarrer la préparation. Les pièces produites en Préparation (DH, CPS/RC signés, note moyens, AE, BPU,
+   récépissé de caution…) ne bloquent jamais le Go : « À préparer après Go · requis avant dépôt » ; les contrôles du dépôt restent.
+   Prérequis société : champs du profil requis (règle existante paramMiss du Paramétrage) et preuves du coffre exigées par le RC
+   (qualification, références, attestations, pouvoirs), lues par les règles B2.3 existantes. Non renseigné ≠ inexistant : « À vérifier ». */
+const B21D_PST={joint:["b21d-ok","Joint · en validité"],averif:["b21d-amb","À vérifier"],nonrens:["b21d-amb","Non renseigné · à vérifier"],invalide:["b21d-ko","Échu ou invalide"],
+  arens:["b21d-amb","À renseigner · bloque la préparation"],pinv:["b21d-ko","Format invalide"],prof:["b21d-ok","Renseigné"]};
+const B21D_VK={qc:"Qualification & classification",refs:"Attestations de bonne exécution",fis:"Attestation fiscale (marchés)",cnss:"Attestation CNSS (marchés)",rc:"RC / Modèle 9",pouvoirs:"PV & pouvoirs de signature"};
+/* champs du profil : métadonnées de PF_FIELDS ; libellés « manquants » de la règle existante paramMiss, rattachés à leur clé */
+const B21D_PF=(()=>{const F={};try{PF_FIELDS.forEach(([g,L])=>L.forEach(f=>{if(!f[2]||f[2]==="email"||f[2]==="num")F[f[0]]={lab:f[1],t:f[2]||"text"};}));}catch(e){}
+  const M={};try{const A=paramMiss({});Object.keys(F).forEach(k=>{const B=paramMiss({[k]:k==="ice"?"123456789012345":k==="rib"?"123456789012345678901234":"x"});const d=A.filter(x=>!B.includes(x));if(d.length===1)M[d[0]]=k;});}catch(e){}
+  return{F,M};})();
+function b21dProfMiss(sid){const P=profilOf(sid)||{};let L=[];try{L=paramMiss(P);}catch(e){L=[];}const out=[],seen=new Set();
+  L.forEach(l=>{if(l==="gérant"){out.push({k:"gerants",lab:"Gérant ou signataire",inv:false});return;}
+    const inv=/^(ICE|RIB) à \d+ chiffres$/.test(l),k=inv?(l.startsWith("ICE")?"ice":"rib"):B21D_PF.M[l];if(!k||seen.has(k))return;seen.add(k);out.push({k,lab:(B21D_PF.F[k]||{}).lab||l,inv});});
+  Object.keys(B21D.pf||{}).forEach(key=>{const[s2,k]=key.split("|");if(s2===sid&&!seen.has(k)&&k!=="gerants"&&B21D_PF.F[k]){seen.add(k);out.push({k,lab:B21D_PF.F[k].lab,inv:false,fait:true});}});
+  if(B21D.pf&&B21D.pf[sid+"|gerants"]&&!out.some(x=>x.k==="gerants"))out.push({k:"gerants",lab:"Gérant ou signataire",inv:false,fait:true});
+  return out;}
+function b21dPreK(st){return st==="dispo"?"joint":st==="bloquant"?"invalide":st==="manquant"?"nonrens":"averif";}
+/* preuves d'éligibilité ou de capacité pour l'AO (critères B2.3 non « attributaire ») pouvant bloquer le Go ; tout autre critère
+   « incompatible » (ex. certificat de signature électronique, nécessaire au dépôt) reste une vérification non bloquante */
+const B21D_ELIG=["Qualification & classification","Attestations de bonne exécution","Lignes de caution / crédit"];
+/* blocage du Go : seulement les règles existantes — preuve d'éligibilité exigée datée échue (compatEval B2.3 « incompatible ») et art. 27
+   (même société ou même signataire dans une autre offre active de la même consultation, comme parCompat) */
+function b21dGoBloc(oid){const a=S.ao[oid];if(!a)return{bloc:[],verif:[]};const sid=a.soc,bloc=[],verif=[];
+  try{const E=compatEval(oid,a,sid);(E.crits||[]).forEach(c=>{if(c.e==="ko"&&!c.attrib&&B21D_ELIG.includes(c.k))bloc.push({t:c.lab+" ("+socCourt(sid)+") : "+c.motif,src:c.src});else if(c.e==="ko")verif.push({t:c.lab+" : "+c.motif+" — à régler avant le dépôt ; ne bloque pas le Go",src:c.src});else if(c.e==="inc")verif.push({t:c.lab+" : "+c.motif,src:c.src});});}catch(e){verif.push({t:"Compatibilité B2.3 non calculable : à vérifier",src:""});}
+  try{const sibs=consultSibs(a).filter(([o])=>o!==oid),mine=sibs.flatMap(([o,b])=>aoMembers(b).filter(Boolean).map(m=>({o,b,m})));
+    if(mine.some(x=>x.m===sid))bloc.push({t:socCourt(sid)+" figure déjà dans une autre offre active de cette consultation (une seule offre par concurrent)",src:"décret 2-22-431, article « Groupements », § C"});
+    const sg=pKey(pfSig({...a,soc:sid},sid));for(const x of mine){const so=pKey(pfSig(x.b,x.m));if(sg&&sg===so){bloc.push({t:"Même signataire que l'offre de "+socCourt(x.m)+" ("+pfSig(x.b,x.m)+")",src:"article 27 du décret 2-22-431"});break;}}}catch(e){}
+  return{bloc,verif};}
+/* ---- saisie en ligne d'un champ du profil, enregistrée dans le coffre de LA société (societes/<sid>.profil) ---- */
+B21D.pf={};B21D.wq={};B21D.ouvF={};
+const b21dPfStored=(sid,k)=>{const p=((S.docs||{})[sid]||{}).profil||{};return p[k]==null?"":p[k];};
+function b21dPfNorm(k,v){v=String(v==null?"":v).trim();return k==="ice"||k==="rib"||k==="capital"?v.replace(/\s+/g,""):v;}
+function b21dPfValid(k,v){if(!v)return"Valeur vide : rien n'est enregistré.";if(v.length>200)return"200 caractères au plus.";
+  if(k==="mail"&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v))return"Adresse électronique invalide.";
+  if((k==="tel"||k==="fax")&&!/^\+?[\d\s.\-()]{9,20}$/.test(v))return"Numéro invalide (au moins 9 chiffres).";
+  if(k==="ice"&&!/^\d{15}$/.test(v))return"L'ICE compte 15 chiffres.";if(k==="rib"&&!/^\d{24}$/.test(v))return"Le RIB compte 24 chiffres.";
+  if(k==="capital"&&!/^\d+$/.test(v))return"Montant en dirhams, chiffres seulement.";return null;}
+function b21dPfOuvrir(sid,k){const key=sid+"|"+k;B21D.ouvF[key]=!B21D.ouvF[key];
+  if(B21D.ouvF[key]&&!B21D.pf[key]){const cur=k==="gerants"?null:b21dPfStored(sid,k);B21D.pf[key]=k==="gerants"?{v:{nom:"",qualite:"Gérant",signe:"unique"},st:"edit"}:{v:String(profilOf(sid)[k]||""),base:String(cur),saved:null,st:"edit"};}
+  render();if(B21D.ouvF[key])b21dFocus('#b21d-pf-'+CSS.escape(sid)+'-'+k+(k==="gerants"?"-nom":""));}
+function b21dPfEtat(F){return F.st==="saving"?"Enregistrement…":F.st==="ok"?"Enregistré ✓":F.st==="err"?"Échec de l'enregistrement : "+(F.msg||"erreur")+". Votre saisie est conservée.":F.st==="conflit"?"Modifiée ailleurs entre-temps : valeur enregistrée « "+F.cur+" ». Votre saisie est conservée.":F.st==="invalid"?F.msg:F.st==="lecture"?"Lecture seule : aucune modification possible.":"Enregistrement automatique à la sortie du champ ou après une pause.";}
+function b21dPfSave(sid,k,force){const key=sid+"|"+k,F=B21D.pf[key];if(!F)return;clearTimeout(F.t);
+  if(!editable()){F.st="lecture";return render();}
+  if(k==="gerants"){const g=F.v;if(!String(g.nom||"").trim()){F.st="invalid";F.msg="Indiquez le nom du gérant ou du signataire.";return render();}}
+  else{const v=b21dPfNorm(k,F.v),er=b21dPfValid(k,v);if(er){F.st="invalid";F.msg=er;return render();}if(v===F.saved&&!force)return;}
+  if(!S.db){F.st="err";F.msg="base indisponible";return render();}
+  F.st="saving";b21dPfPaint(key);const val=k==="gerants"?[{nom:String(F.v.nom).trim(),qualite:String(F.v.qualite||"").trim(),signe:F.v.signe||"unique"}]:b21dPfNorm(k,F.v);
+  B21D.wq[sid]=(B21D.wq[sid]||Promise.resolve()).then(async()=>{const ref=S.db.doc("societes/"+sid),g=await ref.get(),pr=g&&g.exists?((g.data()||{}).profil||{}):{};
+      if(!force){if(k==="gerants"){if((pr.gerants||[]).some(x=>x&&x.nom)){F.st="conflit";F.cur=(pr.gerants||[]).map(x=>x.nom).filter(Boolean).join(", ");return;}}
+        else{const cur=pr[k]==null?"":String(pr[k]);if(cur!==String(F.base==null?"":F.base)&&cur!==val){F.st="conflit";F.cur=cur;return;}}}
+      const maj=new Date().toISOString(),patch={profil:{[k]:val,maj}};if(g&&g.exists)await ref.update(patch);else await ref.set(patch);
+      const d=D0(sid);d.profil={...(d.profil||{}),[k]:val,maj};try{socApply(sid);}catch(e){}
+      if(k!=="gerants"){F.base=val;F.saved=val;}F.st="ok";F.cur=null;logJ((socCourt(sid)||sid)+" : profil mis à jour depuis la décision B2.1 ("+(k==="gerants"?"signataire":(B21D_PF.F[k]||{}).lab||k)+")");})
+    .catch(e=>{F.st="err";F.msg=(e&&e.code)||"erreur";}).finally(()=>render());}
+function b21dPfPaint(key){const F=B21D.pf[key],n=document.querySelector('[data-b21d-pff="'+CSS.escape(key)+'"] [data-b21d-pfst]');if(!F||!n)return;n.dataset.b21dPfst=F.st;n.innerHTML=`<span class="b21d-pill b21d-neu">Enregistrement…</span> `+esc(b21dPfEtat(F));}
+function b21dPfForm(sid,x){const key=sid+"|"+x.k,F=B21D.pf[key]||{st:"edit",v:""},ed=editable(),idb="b21d-pf-"+sid+"-"+x.k,etat=b21dPfEtat(F);
+  const cls=F.st==="ok"?"b21d-ok":F.st==="err"||F.st==="conflit"||F.st==="invalid"?"b21d-ko":"b21d-neu";
+  let h=`<div class="b21d-pff" data-b21d-pff="${esc(key)}">`;
+  if(x.k==="gerants")h+=`<div class="b21d-pfg"><label>Nom et prénom<input id="${esc(idb)}-nom" data-b21d-pfg="${esc(key)}|nom" value="${esc(F.v.nom||"")}" ${ed?"":"disabled"} autocomplete="off"></label><label>Qualité<input id="${esc(idb)}-qualite" data-b21d-pfg="${esc(key)}|qualite" value="${esc(F.v.qualite||"")}" ${ed?"":"disabled"}></label><label>Signature<select id="${esc(idb)}-signe" data-b21d-pfg="${esc(key)}|signe" ${ed?"":"disabled"}>${[["unique","Seul"],["séparée","Séparée"],["conjointe","Conjointe"]].map(([v,l])=>`<option value="${v}" ${F.v.signe===v?"selected":""}>${l}</option>`).join("")}</select></label></div>`;
+  else{const t=(B21D_PF.F[x.k]||{}).t;h+=`<label class="b21d-pfl">${esc(x.lab)}<input id="${esc(idb)}" data-b21d-pf="${esc(key)}" type="${t==="email"?"email":"text"}" inputmode="${x.k==="tel"||x.k==="fax"?"tel":x.k==="ice"||x.k==="rib"||x.k==="capital"?"numeric":"text"}" value="${esc(F.v)}" ${ed?"":"disabled"} autocomplete="off"></label>`;}
+  h+=`<p class="b21d-pfs" role="status" aria-live="polite" data-b21d-pfst="${esc(F.st)}"><span class="b21d-pill ${cls}">${esc(F.st==="ok"?"Enregistré ✓":F.st==="saving"?"Enregistrement…":F.st==="err"?"Échec":F.st==="conflit"?"Conflit":F.st==="invalid"?"À corriger":"Brouillon")}</span> ${esc(etat)}</p>`;
+  if(ed&&(F.st==="err"))h+=`<button type="button" class="b21d-btn" data-b21d-pfretry="${esc(key)}" data-act="${act(()=>b21dPfSave(sid,x.k))}">Réessayer</button>`;
+  if(ed&&F.st==="conflit")h+=`<div class="b21d-ma"><button type="button" class="b21d-btn" data-b21d-pfforce="${esc(key)}" data-act="${act(()=>b21dPfSave(sid,x.k,true))}">Remplacer par ma saisie</button><button type="button" class="b21d-btn" data-b21d-pfkeep="${esc(key)}" data-act="${act(()=>{delete B21D.pf[key];B21D.ouvF[key]=false;render();})}">Garder la valeur enregistrée</button></div>`;
+  if(ed&&x.k==="gerants"&&F.st!=="ok")h+=`<button type="button" class="b21d-btn" data-b21d-pfsave="${esc(key)}" data-act="${act(()=>b21dPfSave(sid,"gerants"))}">Enregistrer le signataire</button>`;
+  return h+`<p class="b21d-src">Enregistré dans le profil de ${esc(socCourt(sid))} (coffre de la société), visible dans le Paramétrage et la Préparation. Aucune autre société n'est modifiée.</p></div>`;}
+/* aller à la pièce précise du coffre de la société (rubrique dépliée, pièce mise en vue) */
+function b21dCoffrePiece(sid,k){const i=SOC.findIndex(z=>z.sid===sid);let ci=-1;try{ci=VAULT.findIndex(([c,ps])=>ps.some(p=>p.k===k));}catch(e){}
+  go(()=>{S.cur=i<0?0:i;S.soc=null;S.dept="coffre";S.cview="soc";S.filter="all";S.aoId=null;if(ci>=0)S.open["c"+ci]=true;});
+  setTimeout(()=>{const e=[...document.querySelectorAll(".piece .nm")].find(n=>n.textContent.trim()===k);if(e){const r=e.closest(".piece");r.scrollIntoView({block:"center"});r.classList.add("b21d-cible");const b=r.querySelector("button,label");if(b&&b.focus)b.focus({preventScroll:true});}},60);}
 function b21dPanneau(x,clos){const a=x.a,d=a.decision,ed=editable()&&!clos&&!["Déposé","Attribué","Non retenu"].includes(a.statut),H=(a.decisionHist||[]).slice().reverse();
   const cls=!d?"b21d-neu":d.verdict==="Go"?"b21d-ok":d.verdict==="No-Go"?"b21d-ko":"b21d-amb";
   let h=`<aside class="b21d-dec" aria-label="Votre décision pour ${esc(socCourt(x.sid))}"><h4>Votre décision</h4><p><span class="b21d-pill ${cls} b21d-big" data-b21d-verdict="${esc(d?d.verdict:"aucune")}">${esc(d?d.verdict:"Aucune décision")}</span></p><p class="b21d-src">${esc(b21dDecTxt(d))}</p>`;
   if(ed){const v=B21D.motif[x.oid]||"",c=B21D.conf&&B21D.conf.k.startsWith(x.oid+"|")?B21D.conf.k.split("|")[1]:null;
-    h+=`<div class="b21d-btns" role="group" aria-label="Décision">${["Go","No-Go","À reprendre"].map(V=>`<button type="button" class="b21d-db${c===V?" b21d-arm":""}" aria-pressed="${!!(d&&d.verdict===V)}" data-b21d-dec="${esc(V)}" data-act="${act(()=>b21dDecider(x.oid,V))}">${c===V?"Confirmer « "+V+" »":V}</button>`).join("")}</div>
+    const GB=b21dGoBloc(x.oid),gb=GB.bloc.length>0;
+    h+=`<div class="b21d-btns" role="group" aria-label="Décision">${["Go","No-Go","À reprendre"].map(V=>V==="Go"&&gb?`<button type="button" class="b21d-db" disabled aria-describedby="b21d-gb-${esc(x.oid)}" data-b21d-dec="Go">Go</button>`:`<button type="button" class="b21d-db${c===V?" b21d-arm":""}" aria-pressed="${!!(d&&d.verdict===V)}" data-b21d-dec="${esc(V)}" data-act="${act(()=>b21dDecider(x.oid,V))}">${c===V?"Confirmer « "+V+" »":V}</button>`).join("")}</div>`;
+    {const PM=b21dProfMiss(x.sid).filter(z=>!z.fait);if(PM.length)h+=`<div class="b21d-pm" data-b21d-prepbloc="${PM.length}"><b>Préparation bloquée (pas le Go)</b> : profil de ${esc(socCourt(x.sid))} à compléter — ${esc(PM.map(z=>z.lab+(z.inv?" (format invalide)":"")).join(", "))}. Corrigeable dans « Prérequis société » ; ce n'est pas une non-éligibilité.</div>`;}
+    if(gb)h+=`<div class="b21d-gb" id="b21d-gb-${esc(x.oid)}" data-b21d-gobloc="${GB.bloc.length}"><b>Go impossible en l'état (éligibilité)</b><ul>${GB.bloc.map(z=>`<li>${esc(z.t)}${z.src?`<small>Source : ${esc(z.src)}</small>`:""}</li>`).join("")}</ul></div>`;
+    if(GB.verif.length)h+=`<details class="b21d-gv" data-b21d-goverif="${GB.verif.length}"><summary>Vérifications d'éligibilité requises (${GB.verif.length})</summary><p class="b21d-src">Non renseigné n'est pas inexistant : ces points sont à établir (coffre, RC) ; ils ne bloquent pas le Go.</p><ul>${GB.verif.map(z=>`<li>${esc(z.t)}${z.src?`<small>Source : ${esc(z.src)}</small>`:""}</li>`).join("")}</ul></details>`;
+    h+=`
       <label class="b21d-lab">Motif <small>(obligatoire pour No-Go et À reprendre)</small><textarea rows="2" data-b21d-motif="${esc(x.oid)}" placeholder="Motif de votre décision">${esc(v)}</textarea></label>
-      <p class="b21d-src">Le Go lance la préparation même si des pièces restent à compléter : elles restent signalées et les contrôles avant dépôt s'appliquent. Aucun Go n'est proposé ni présélectionné.</p>`;}
+      <p class="b21d-src">Go = participer et démarrer la préparation, pas un dossier complet : les pièces à préparer après le Go restent signalées et les contrôles avant dépôt s'appliquent. Aucun Go n'est proposé ni présélectionné.</p>`;}
   else h+=`<p class="b21d-src">${clos?"Consultation clôturée : décision en lecture seule, aucune nouvelle soumission.":!editable()?"Lecture seule.":"Dossier "+esc(a.statut)+" : décision figée."}</p>`;
   if(H.length)h+=`<details class="b21d-hist"><summary>Historique des décisions (${H.length})</summary><ul>${H.map(z=>`<li>${esc(b21dDecTxt(z))}<small>remplacée le ${esc(fmtDT(z.remplaceLe))} par ${esc(b21dQui(z.remplacePar))}</small></li>`).join("")}</ul></details>`;
   return h+`</aside>`;}
@@ -69,11 +150,31 @@ function b21dDetDossier(e,clos){const x=e.x,D=e.D,a=x.a;
   /* b21d-6 : périmètre avant dépôt seulement ; ni chiffrage (B3.1 / Préparation) ni pièces après attribution (Résultat B4.2) */
   const FR=D.F?{ajour:["b21d-ok","Lecture à jour"],perimee:["b21d-ko","Note à actualiser"],inconnue:["b21d-amb","Fraîcheur non vérifiée"],absente:["b21d-amb","Aucune lecture"]}[D.F.k]:null;
   let h=`<header class="b21d-ch"><p class="b21d-src">Dossier séparé · ${esc(a.statut||"")} · ${esc(a.ref||x.oid)}</p>${FR?`<span class="b21d-pill ${FR[0]}" title="${esc(D.F.txt)}">${FR[1]}</span>`:""}</header><div class="b21d-body"><div class="b21d-main">`;
-  h+=D.rcOk?b21dTable(D,x.sid):`<p class="b21d-warn">Pièces du RC non relevées pour ce dossier : liste indisponible (aucune pièce supposée). <button type="button" class="b21d-lnk" data-act="${act(()=>b21dAller(x.oid,"MP-B2.2","note"))}">Ouvrir la lecture RC / CPS</button></p>`;
+  h+=b21dPrereqTable(D,x)+(D.rcOk?b21dPrepTable(D,x):`<p class="b21d-warn">Pièces du RC non relevées pour ce dossier : liste indisponible (aucune pièce supposée). <button type="button" class="b21d-lnk" data-act="${act(()=>b21dAller(x.oid,"MP-B2.2","note"))}">Ouvrir la lecture RC / CPS</button></p>`);
   const nAtt=D.rows.filter(z=>z.env==="att").length;
-  h+=`<p class="b21d-src" data-b21d-perim="1">Points restants : pièces de l'enveloppe 1 à réunir avant le dépôt. L'offre financière se prépare et se chiffre en Préparation${nAtt?` ; les ${nAtt} pièce${nAtt>1?"s":""} exigée${nAtt>1?"s":""} de l'attributaire sont dans la vue <button type="button" class="b21d-lnk" data-b21d-vres="1" data-act="${act(()=>b21dAller(x.oid,"MP-B4.2","res"))}">Résultat (B4.2)</button>`:""}.</p>`;
+  h+=`<p class="b21d-src" data-b21d-perim="1">Prérequis société : données et preuves propres à ${esc(socCourt(x.sid))} sans lesquelles l'équipe ne peut pas préparer correctement. Les pièces « À préparer après Go » sont produites en Préparation et restent exigées avant le dépôt (contrôles du dépôt inchangés)${nAtt?` ; les ${nAtt} pièce${nAtt>1?"s":""} exigée${nAtt>1?"s":""} de l'attributaire sont dans la vue <button type="button" class="b21d-lnk" data-b21d-vres="1" data-act="${act(()=>b21dAller(x.oid,"MP-B4.2","res"))}">Résultat (B4.2)</button>`:""}.</p>`;
   h+=b21dCompatDet(e.c,x.oid)+`<p class="b21d-src">Sources : pièces du RC lues (${esc(D.rcId)}), coffre et pièces de ${esc(socCourt(x.sid))}. ${D.F?esc(D.F.txt):""}</p></div>${b21dPanneau(x,clos)}</div>`;
   return h;}
+function b21dPrereqTable(D,x){const sid=x.sid,nm=socCourt(sid),ed=editable();
+  let h=`<section class="b21d-sct" data-b21d-prereq="${D.nPre}" aria-labelledby="b21d-pr-${esc(sid)}"><h4 id="b21d-pr-${esc(sid)}">Prérequis société à compléter <span class="b21d-pill ${D.nPre?"b21d-amb":"b21d-ok"}">${D.nPre?D.nPre+" en attente":"aucun en attente"}</span></h4>`;
+  h+=`<div class="b21d-tw"><table class="b21d-tab" aria-label="Prérequis de ${esc(nm)} : élément, statut, action"><caption class="b21d-sr">Prérequis société de ${esc(nm)} (profil et coffre)</caption><thead><tr><th scope="col">Élément</th><th scope="col">Statut</th><th scope="col">Action</th></tr></thead><tbody>`;
+  if(D.prof.length){h+=`<tr class="b21d-sec"><th colspan="3" scope="colgroup">Profil de la société (champs requis du Paramétrage)</th></tr>`;
+    D.prof.forEach(z=>{const key=sid+"|"+z.k,F=B21D.pf[key],o=!!B21D.ouvF[key],k=z.fait||(F&&F.st==="ok")?"prof":z.inv?"pinv":"arens",S2=B21D_PST[k];
+      h+=`<tr data-b21d-pk="${k}" data-b21d-pfk="${esc(z.k)}"><td><b>${esc(z.lab)}</b><small>${z.inv?"Valeur enregistrée au mauvais format":k==="prof"?"Renseigné depuis cette vue":"Non renseigné au profil : nécessaire pour préparer les pièces au nom de la société"}</small><small class="b21d-src">Source : Paramétrage des sociétés (profil de ${esc(nm)})</small></td><td><span class="b21d-pill ${S2[0]}">${S2[1]}</span></td>
+        <td>${ed?`<button type="button" class="b21d-act" aria-expanded="${o}" aria-controls="b21d-pfr-${esc(sid)}-${esc(z.k)}" data-b21d-saisir="${esc(key)}" data-act="${act(()=>b21dPfOuvrir(sid,z.k))}">${o?"Fermer":k==="prof"?"Modifier":"Saisir"}<small>profil ${esc(nm)}</small></button>`:`<span class="b21d-na">Lecture seule</span>`}</td></tr>`;
+      h+=`<tr class="b21d-pfrow" id="b21d-pfr-${esc(sid)}-${esc(z.k)}"${o?"":" hidden"}><td colspan="3">${o?b21dPfForm(sid,z):""}</td></tr>`;});}
+  if(D.pre.length){h+=`<tr class="b21d-sec"><th colspan="3" scope="colgroup">Preuves du coffre exigées par le RC</th></tr>`;
+    D.pre.forEach(z=>{const S2=B21D_PST[z.k]||B21D_PST.averif,lab=z.k==="nonrens"?"Joindre au coffre":z.k==="invalide"?"Mettre à jour":z.k==="joint"?"Ouvrir":"Vérifier";
+      h+=`<tr data-b21d-pk="${z.k}" data-b21d-std="${esc(z.std)}"><td><b>${esc(z.piece)}</b>${z.ctrl?`<small>${esc(z.ctrl)}</small>`:""}${z.k==="joint"?`<small>Justificatif joint et en validité ; son contenu n'est pas vérifié automatiquement</small>`:""}${z.src?`<small class="b21d-src">Source : ${esc(z.src)}</small>`:""}</td><td><span class="b21d-pill ${S2[0]}">${S2[1]}</span></td>
+        <td><button type="button" class="b21d-act" data-b21d-go="coffre" data-b21d-vk="${esc(z.vk||"")}" data-act="${act(()=>b21dCoffrePiece(sid,z.vk))}">${lab}<small>coffre ${esc(nm)}</small></button></td></tr>`;});}
+  if(!D.prof.length&&!D.pre.length)h+=`<tr><td colspan="3"><span class="b21d-na">Aucun prérequis société relevé pour ce dossier.</span></td></tr>`;
+  return h+`</tbody></table></div></section>`;}
+function b21dPrepTable(D,x){const sid=x.sid,nm=socCourt(sid),sec=[["e1","adm","Enveloppe 1 · Dossier administratif"],["e1","tec","Enveloppe 1 · Dossier technique"],["e1","aut","Enveloppe 1 · Autres pièces du RC"],["e2","fin","Enveloppe 2 · Offre financière"]];
+  let h=`<section class="b21d-sct" data-b21d-aprep-sec="${D.nPrep}" aria-labelledby="b21d-ap-${esc(sid)}"><h4 id="b21d-ap-${esc(sid)}">À préparer après Go · requis avant dépôt <span class="b21d-pill b21d-neu">${D.nPrep} pièce${D.nPrep>1?"s":""}</span></h4><p class="b21d-src">Produites en Préparation après le Go (signatures, cachets, déclarations, mémoire, acte d'engagement, bordereau, récépissé de caution…). Elles ne bloquent pas le Go ; elles restent contrôlées avant le dépôt.</p>`;
+  h+=`<div class="b21d-tw"><table class="b21d-tab" aria-label="Pièces de ${esc(nm)} à préparer : pièce, statut, action"><caption class="b21d-sr">Pièces à préparer après le Go pour ${esc(nm)}</caption><thead><tr><th scope="col">Pièce</th><th scope="col">Statut</th><th scope="col">Action</th></tr></thead><tbody>`;
+  sec.forEach(([e,s2,t])=>{const R2=D.prep.filter(z=>z.env===e&&z.sec===s2);if(!R2.length)return;h+=`<tr class="b21d-sec"><th colspan="3" scope="colgroup">${esc(t)}</th></tr>`;
+    R2.forEach(z=>{const S2=B21D_ST[z.k]||B21D_ST.prep2;h+=`<tr data-b21d-k="${z.k}"><td><b>${esc(z.piece)}</b>${z.ctrl&&z.k!=="prep2"?`<small>${esc(z.ctrl)}</small>`:""}${z.src?`<small class="b21d-src">Source : ${esc(z.src)}</small>`:""}</td><td><span class="b21d-pill ${S2[0]}">${S2[1]}</span></td><td>${z.k==="nonexige"?`<span class="b21d-na">—</span>`:`<button type="button" class="b21d-act" data-b21d-go="pieces" data-act="${act(()=>b21dAller(x.oid,"MP-B3.2","pieces"))}">Préparation<small>pièces B3.2</small></button>`}</td></tr>`;});});
+  return h+`</tbody></table></div></section>`;}
 /* b21d-6 : pièces exigées de l'attributaire → vue Résultat (B4.2) du même dossier et de sa société ; section conditionnelle :
    rien n'est supposé attribué, aucun résultat n'est modifié, rien n'est lancé ni écrit */
 function b21dPieceAtt(row){return row.st==="dispo"?{k:"pret",ctrl:row.ctrl}:{k:"aprod",ctrl:row.ctrl};}
@@ -123,7 +224,7 @@ function b21dCarteR(id,e,clos,open){const sid=e.sid,C=B21D_CMP[e.c.v]||B21D_CMP[
   let h=`<article class="b21d-card${e.x?"":" b21d-mini"}" ${at} data-b21d-carte="${esc(sid)}" data-b21d-compat="${esc(e.c.v)}" data-b21d-ouvert="${open?1:0}"><div class="b21d-sum">
     <h3 id="b21d-nm-${esc(sid)}">${esc(nm)}</h3><button type="button" class="b21d-btn b21d-tog" aria-expanded="${open}" aria-controls="${did}" data-b21d-tog="${esc(sid)}" data-act="${act(()=>b21dToggle(sid))}">${open?"Masquer les détails":"Afficher les détails"}<span class="b21d-sr"> de ${esc(nm)}</span></button>
     <div class="b21d-chips"><span class="b21d-pill ${e.x?"b21d-ok":"b21d-neu"}" data-b21d-aj="${e.x?1:0}">${e.x?"Ajoutée à cet AO":"Pas encore ajoutée à cet AO"}</span><span class="b21d-pill ${C[1]}" data-b21d-cv="1">Compatibilité RC : ${C[2]}</span>`
-    +(e.x?`<span class="b21d-pill ${r?"b21d-amb":"b21d-ok"}" data-b21d-reste="${r}">${r?r+" point"+(r>1?"s":"")+" restant"+(r>1?"s":"")+" avant dépôt":"Aucun point restant avant dépôt"}</span>`:`<span class="b21d-pill b21d-neu" data-b21d-reste="">Aucun dossier</span>`)
+    +(e.x?`<span class="b21d-pill ${r?"b21d-amb":"b21d-ok"}" data-b21d-reste="${r}">${r?r+" prérequis société":"Prérequis société : aucun en attente"}</span><span class="b21d-pill b21d-neu" data-b21d-aprep="${e.D.nPrep}">${e.D.nPrep} à préparer après Go</span>${(()=>{const n=b21dGoBloc(e.x.oid).bloc.length;return n?`<span class="b21d-pill b21d-ko" data-b21d-sgobloc="${n}">Go bloqué : ${n} raison${n>1?"s":""}</span>`:"";})()}`:`<span class="b21d-pill b21d-neu" data-b21d-reste="">Aucun dossier</span>`)
     +`<span class="b21d-pill ${dcls}" data-b21d-sdec="${esc(d?d.verdict:"aucune")}">${d?"Décision : "+esc(d.verdict)+(d.le?" · "+esc(fmtIso(d.le)):""):"Non décidée"}</span></div></div>`;
   h+=`<div class="b21d-det" id="${did}" role="region" aria-labelledby="b21d-nm-${esc(sid)}"${open?"":" hidden"}>${open?(e.x?b21dDetDossier(e,clos):b21dDetHors(id,e)):""}</div></article>`;
   return h;}
@@ -165,7 +266,11 @@ function b21dPlein(id){return typeof MPN!=="undefined"&&!!MPN.dos&&MPN.dos.id===
   const t=h.replace('<div class="mpn" data-mpn-dossier-vue=','<div class="mpn b31-full b21d-full" data-mpn-dossier-vue=');return t.indexOf("b21d-full")<0?h:t;}catch(e){return h;}};}
 {const _aoStepsB21D=aoSteps;aoSteps=function(id,a){const L=_aoStepsB21D(id,a),n=L.find(s=>s.k==="dec");if(n)n.body=()=>vDecisionB21(id,a);
   const r=L.find(s=>s.k==="res");if(r&&r.body){const b0=r.body;r.body=()=>{let x="";try{x=vApresAttribB21(id,a);}catch(e){x="";}return b0()+x;};}return L;};}
-document.getElementById("view").addEventListener("input",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.b21dMotif!=null)B21D.motif[t.dataset.b21dMotif]=t.value;});
+document.getElementById("view").addEventListener("input",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.b21dMotif!=null)B21D.motif[t.dataset.b21dMotif]=t.value;
+  if(t&&t.dataset&&t.dataset.b21dPf){const key=t.dataset.b21dPf,F=B21D.pf[key];if(!F)return;F.v=t.value;F.dirty=true;if(F.st!=="saving"){F.st="edit";}clearTimeout(F.t);const[sid,k]=key.split("|");F.t=setTimeout(()=>{if(document.activeElement!==t||b21dPfNorm(k,F.v)!==F.saved)b21dPfSave(sid,k);},1500);}
+  if(t&&t.dataset&&t.dataset.b21dPfg){const[sid,k,f]=t.dataset.b21dPfg.split("|"),F=B21D.pf[sid+"|"+k];if(F&&F.v&&typeof F.v==="object"){F.v[f]=t.value;F.dirty=true;}}});
+document.getElementById("view").addEventListener("change",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.b21dPfg){const[sid,k,f]=t.dataset.b21dPfg.split("|"),F=B21D.pf[sid+"|"+k];if(F&&F.v&&typeof F.v==="object")F.v[f]=t.value;}});
+document.getElementById("view").addEventListener("focusout",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.b21dPf){const[sid,k]=t.dataset.b21dPf.split("|"),F=B21D.pf[t.dataset.b21dPf];if(F&&F.dirty&&F.st!=="saving"&&F.st!=="ok"&&F.st!=="conflit")b21dPfSave(sid,k);}});
 const B21D_TOK=`--d-bg:#151B23;--d-card:#1B232E;--d-line:#2E3946;--d-ink:#EEE9DF;--d-mut:#A7ADB6;--d-okb:rgba(31,122,77,.22);--d-ok:#7FD1A6;--d-ambb:rgba(195,160,106,.2);--d-amb:#E3C48F;--d-kob:rgba(166,61,50,.25);--d-ko:#F0A49A;--d-neub:rgba(255,255,255,.08);--d-sec:rgba(195,160,106,.1)`;
 const B21D_CSS=`.b21d{--d-bg:#FBF8F2;--d-card:#FFFFFF;--d-line:#E6DFD2;--d-ink:#16171A;--d-mut:#6B6E75;--d-okb:#E9F4EE;--d-ok:#1F7A4D;--d-ambb:#FBF1DE;--d-amb:#8A551C;--d-kob:#FBEAE7;--d-ko:#A63D32;--d-neub:#F1F0EC;--d-sec:#F6EFE2;
   background:var(--d-bg);color:var(--d-ink);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px;font-size:13.5px;container:b21d/inline-size}
@@ -200,7 +305,13 @@ const B21D_CSS=`.b21d{--d-bg:#FBF8F2;--d-card:#FFFFFF;--d-line:#E6DFD2;--d-ink:#
 .b21d-vide{margin:0;padding:12px;border:1px dashed var(--d-line);border-radius:10px;color:var(--d-mut)}
 @container b21d (max-width:420px){.b21d-sum{grid-template-columns:minmax(0,1fr);grid-template-areas:"nm" "ch" "tog"}.b21d-tog{width:100%}.b21d-chips .b21d-pill{white-space:normal}}
 .b21d-res{margin-top:16px}.b21d-res h3{font-size:15px}
+.b21d-sct{display:flex;flex-direction:column;gap:6px;margin-top:4px}.b21d-sct h4{font-size:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.b21d-sct>.b21d-src{margin:0}
+.b21d-pff{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--d-line);border-radius:8px;background:var(--d-bg)}.b21d-pfl,.b21d-pfg label{display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:600}.b21d-pff input,.b21d-pff select{width:100%;max-width:420px;border:1px solid var(--d-line);border-radius:8px;padding:7px 9px;font-family:inherit;font-size:14px;background:var(--d-card);color:var(--d-ink)}
+.b21d-pfg{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}.b21d-pfs{margin:0;font-size:12.5px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.b21d-pfrow td{background:var(--d-sec)}
+.b21d-gv summary{cursor:pointer;font-size:12px;color:var(--d-amb)}.b21d-gv ul{margin:6px 0 0;padding-left:16px;font-size:12px}.b21d-gv small{display:block;color:var(--d-mut)}
+.b21d-pm{border:1px solid var(--d-amb);background:var(--d-ambb);border-radius:8px;padding:8px 10px;font-size:12.5px}
+.b21d-gb{border:1px solid var(--d-ko);background:var(--d-kob);border-radius:8px;padding:8px 10px;font-size:12.5px}.b21d-gb ul{margin:4px 0 0;padding-left:16px}.b21d-gb small{display:block;color:var(--d-mut)}.b21d-db[disabled]{opacity:.5;cursor:not-allowed}
 .b21d-noteb{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.b21d-noteb .b21d-src{margin:0;flex:1 1 260px}
 .b21d-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-@container b21d (max-width:560px){.b21d-tab th,.b21d-tab td{padding:6px 4px}.b21d-tab td:nth-child(2){width:84px}.b21d-tab td:nth-child(3){width:86px}.b21d-tab .b21d-pill{white-space:normal;font-size:11px;padding:2px 7px}.b21d-tab .b21d-act{padding:4px 6px;max-width:100%}.b21d-tab .b21d-act small{display:none}.b21d-tab{table-layout:fixed}.b21d-tab th:nth-child(2),.b21d-tab td:nth-child(2){width:84px}.b21d-tab th:nth-child(3),.b21d-tab td:nth-child(3){width:78px}.b21d-tab td{overflow-wrap:anywhere}}`;
+@container b21d (max-width:560px){.b21d-tab th,.b21d-tab td{padding:6px 4px}.b21d-tab td:nth-child(2){width:84px}.b21d-tab td:nth-child(3){width:86px}.b21d-tab .b21d-pill{white-space:normal;font-size:11px;padding:2px 7px}.b21d-tab .b21d-act{padding:4px 6px;max-width:100%}.b21d-tab .b21d-act small{display:none}.b21d-tab{table-layout:fixed}.b21d-tab th:nth-child(2),.b21d-tab td:nth-child(2){width:84px}.b21d-tab th:nth-child(3),.b21d-tab td:nth-child(3){width:78px}.b21d-tab td{overflow-wrap:anywhere}.b21d-tab th:nth-child(3),.b21d-tab td:nth-child(3){width:96px}.b21d-tab td:nth-child(3) .b21d-act{overflow-wrap:normal;word-break:keep-all;font-size:11.5px;padding:4px 6px}}`;
 function b21dCss(){if(document.getElementById("b21d-css"))return;const s=document.createElement("style");s.id="b21d-css";s.textContent=B21D_CSS;document.head.appendChild(s);}

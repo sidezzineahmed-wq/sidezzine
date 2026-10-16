@@ -1,0 +1,21 @@
+mph-1 · Accueil du département Marchés publics (maquette approuvée), chiffres réels
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Base live vérifiée avant modification et avant publication : 1792142052-501b (b21d-11, sha256 ff7b1501…), aucun changement concurrent.
+Version publiée : 313 · id 1792144336-85d9 · index 1 679 331 octets, sha256 acf773cb957df9e277810d326de816f8fb85ad5785eecdba655de220f34036e8
+Corps sha256 d01e8f88f4f987bd94027ae02c73ffb40e88e4ae923d113dd50da6d3517be48f ; corps = b21d-11 + 204 lignes ajoutées, aucune retirée ;
+index = squelette + corps (diff 0) ; 16 fichiers ; capacités et partage inchangés ; sans force.
+
+Module part_mph.js (affichage et navigation seulement ; aucune écriture). Remplace la vue « dept » de vMP (bloc Analyste AO / nomination retiré
+de cet accueil seulement) ; ajoute la vue « prio » (listes des compteurs). Services, bureaux, outils, dossiers : vues et routes MPN inchangées.
+
+Règles des compteurs (périmètre « ouvert » : dossier société a.soc, statut « À examiner » ou « En préparation », date limite non dépassée
+en heure de Casablanca — heure connue : instant exact ; heure inconnue : fin du jour, signalée ; date inconnue : gardé, « Date limite inconnue » ;
+dédoublonné par (base, société) ; filtre société appliqué partout) :
+- Décisions à prendre = dossiers ouverts « À examiner » sans décision ou avec « À réexaminer » (À reprendre). Unité : dossiers société.
+- Informations société manquantes = par société, union des données de « À compléter / vérifier » (b21d-11 : champs du profil non
+  renseignés, autres données des générateurs, preuves du coffre exigées par le RC non jointes) sur ses dossiers ouverts ; somme sur
+  les sociétés. Unité : donnée unique par société (RIB DH + AE = 1). RC non relevé : « non évalué », hors somme, signalé.
+- Dépôts à finaliser = dossiers ouverts « En préparation » (participation décidée, offre non déposée). Échus sans dépôt : hors compteur, listés.
+Dossiers prioritaires : dossiers ouverts, échéance la plus proche puis urgence (décision > données > autre), 5 lignes, « Voir tous ».
+
+Recette (fixtures, base simulée ; ajouts en mémoire seulement) : qa_mph 39/39 · qa_ergo 344/344 · qa_b21dec 87/87 · qa_b31 64/64.

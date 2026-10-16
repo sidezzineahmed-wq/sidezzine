@@ -1,0 +1,88 @@
+OK liste : les 9 sociétés actuelles du groupe, chacune une fois (avec ou sans dossier)
+OK plus de statut principal « Ajoutée / Non ajoutée » ; chaque société porte au moins un badge d'état
+OK filtres Toutes / Prêtes / À compléter / À vérifier / Non éligible : comptes dynamiques issus de l'évaluation réelle {'toutes': 9, 'pretes': 0, 'comp': 7, 'verif': 9, 'non': 0}
+OK plusieurs badges si nécessaire (ex. alwaad-ataib : ['Informations à compléter', 'Éligibilité à vérifier'])
+OK filtre « À compléter » : sociétés avec informations manquantes ; état sélectionné annoncé (aria-pressed, role=status)
+OK filtre vide (« Non éligible » sur ces fixtures) : message et « Tout afficher »
+OK recherche « sak » : SAKDAT seule, focus conservé dans le champ
+OK recherche sans résultat : message clair
+OK sélection : un seul panneau (ALWAAD), ligne marquée aria-current, focus sur le titre du panneau
+OK sélectionner, chercher, filtrer : aucune écriture, aucun dossier créé
+OK pièces à compléter repliées par défaut (nom, nombre de manques, « Afficher ») ; rien n'est rendu dedans [['dsh', '0', 0, 'false'], ['moyens', '0', 0, 'false'], ['ae', '0', 0, 'false']]
+OK champs sous la bonne pièce, d'après le générateur existant pfMissing : DH ['tel', 'mail', 'rib'], AE ['rib', 'banque']
+OK AE : montant HT, lot, rabais exclus de la décision (préparés en B3)
+OK « À compléter / vérifier » (ALWAAD · AO FX-DEC) : seules les pièces avec une donnée société manquante ou une preuve à vérifier ; résumé 4 pièces / 5 données uniques (RIB compté une fois) [['dsh', 'miss', '1|adm', "Destination : Enveloppe 1 › Dossier administratif › Déclaration sur l'honneur"], ['refs', 'proof', '1|tec', 'Destination : Enveloppe 1 › Dossier technique › Deux (2) attestations de référence minimum'], ['moyens', 'miss', '1|tec', 'Destination : Enveloppe 1 › Dossier technique › Note sur les moyens humains et techniques'], ['ae', 'miss', '2|fin', "Destination : Enveloppe 2 › Offre financière › Acte d'engagement"]] 4|5
+OK chemin réel du RC (plis + enveloppe de chaque pièce) : DH → Env. 1 administratif, note des moyens → Env. 1 technique, AE → Env. 2 offre financière [['1|adm', 'ENVELOPPE 1 · DOSSIER ADMINISTRATIF'], ['1|tec', 'ENVELOPPE 1 · DOSSIER TECHNIQUE'], ['2|fin', 'ENVELOPPE 2 · OFFRE FINANCIÈRE']]
+OK note des moyens : affichée seulement pour la donnée société manquante (références → renvoi vers la même pièce du coffre) ; lieu de correction = coffre ; besoins CPS : alerte « Exigences à préciser après lecture du CPS », aucune rédaction demandée
+OK plus rendus dans la Décision : récépissé de caution, BPU (B3), CPS/RC sans manque, pièces prêtes ['ae', 'dsh', 'moyens', 'refs']
+OK SAKDAT : aucune carte (rien de manquant) ; besoins CPS non établis → « Exigences à préciser », pas de « Rien à compléter » ; « Ouvrir Préparation »
+OK panneau : mention « ne signifie pas offre prête au dépôt » ; aucun tableau, chiffrage ni après attribution
+OK bande « Éligibilité pour cet AO » : statut, raison, source, action « Vérifier »
+OK saisie sous la DH : curseur stable, aucune écriture pendant la frappe
+OK pause : enregistré dans le profil d'ALWAAD (update du seul champ), « Enregistré ✓ » après réponse de la base
+OK RIB : une seule occurrence saisissable (l'AE renvoie à la DH) ; une seule écriture ; après confirmation de la base, DH et AE affichent « Renseigné dans le coffre ✓ » [['dsh', '1', True], ['ae', '1', True]]
+OK changer de société pendant la saisie : la valeur part dans le profil d'ALWAAD seulement, jamais chez SAKDAT
+OK échec pendant un changement de société : « Saisie non enregistrée » dans la liste, brouillon conservé, « Échec » + « Réessayer »
+OK « Réessayer » : enregistré
+OK modification concurrente : « Conflit », rien n'est écrasé sans choix explicite
+OK « Remplacer par ma saisie » : seul ce champ est remplacé
+OK valeur invalide : « À corriger », rien n'est écrit
+OK isolation : autres sociétés intactes ; chez ALWAAD et UP-MODULOR, seuls les champs saisis
+OK saisies : aucune décision, aucun dossier créé ni modifié
+OK après rechargement : informations relues de la base ; DH et AE d'ALWAAD complètes → retirées de « À compléter / vérifier »
+OK décision : aucun choix affiché avant « Prendre une décision »
+OK « Prendre une décision » : Participer / Ne pas participer / À réexaminer, aucun choix initial, confirmation désactivée, rien d'écrit
+OK choisir n'enregistre rien
+OK « Ne pas participer » sans motif : refusé
+OK « Participer » confirmé : enregistré comme Go (mapping inchangé en base) sur le seul dossier SAKDAT
+OK décision existante : date, auteur, motif ; « Modifier la décision » ; badge « Participer » dans la liste
+OK décisions des autres sociétés conservées
+OK société sans dossier : les trois choix disponibles, création annoncée, rien n'est créé ni écrit à l'ouverture
+OK « Participer » confirmé sans dossier : dossier indépendant créé (creerSib, sans finances ni pièces signées), puis participation enregistrée ([['set', 'ao/fx-dec~up-modulor'], ['set', 'ao/fx-dec~up-modulor']])
+OK sans dossier : ouvrir puis choisir « Ne pas participer » n'écrit et ne crée rien
+OK « Ne pas participer » sans motif : refusé, aucun dossier créé
+OK « Ne pas participer » confirmé : dossier indépendant créé puis No-Go enregistré (statut Abandonné, motif) [['set', 'ao/fx-dec~riyada-build'], ['set', 'ao/fx-dec~riyada-build']]
+OK aucune préparation lancée, aucun PU / offre / chiffrage ; badge « Ne pas participer » dans la liste
+OK « Modifier la décision » → « À réexaminer » : statut À examiner, décision précédente dans l'historique, aucune préparation
+OK « À réexaminer » sans dossier : dossier créé à la confirmation, statut À examiner, aucune préparation ni chiffrage
+OK cas fictif « Non éligible » sans dossier disponible (['signalsud-sahara', 'sahara-iaamar'])
+OK signalsud-sahara (non éligible) : « Participer » refusé, aucun dossier créé
+OK signalsud-sahara (non éligible) : « Ne pas participer » mémorisé (dossier hors offre, statut Abandonné, exclu des offres actives)
+OK signalsud-sahara : « Participer » sur ce dossier reste refusé par la règle d'éligibilité (aucun contournement)
+OK autres « Non éligible » éventuels : uniquement par la règle art. 27 existante, sourcée ([('signalsud-sahara', "Même signataire que l'offre de SAKDAT (Mahraoui El Mustapha) | article"), ('sahara-iaamar', "Même signataire que SAKDAT (Mahraoui El Mustapha) : interdit par l'art")])
+OK incompatibilité confirmée et sourcée : « Non éligible » (bande, badge, filtre) ; « Participer » refusé avec la raison, rien d'écrit
+OK consultation clôturée : décision en lecture seule, pas de « Prendre une décision »
+OK clôturée : confirmation directe refusée, décision existante conservée
+OK Décision : plus de changement libre de statut ; état du dossier affiché en lecture seule (Statut du dossier : En préparation · il suit les actions mét…) ; ancien bloc aoDecision en lecture
+OK ancien gestionnaire decide() : n'enregistre plus rien, ne change ni décision ni société (renvoi vers la décision B2.1)
+OK note des moyens avec les données société présentes : pas de carte ; besoins CPS non établis → alerte ; note rédigée par la Préparation et rien d'autre → « Rien à compléter ici » + « Ouvrir Préparation » (sans prétendre prêt au dépôt) (état simulé en mémoire)
+OK références manquantes : une seule carte preuve (Env. 1 technique, source RC repliable, correction au coffre d'ALWAAD) ; la note des moyens y renvoie (pas de doublon) {'k': 'miss', 'ref': 'refs', 'r': 'Attestations de bonne exécution', 'src': True, 'cor': True}
+OK « Vérifier au coffre » (carte preuve) : coffre d'ALWAAD, pièce références mise en vue
+OK replier une pièce pendant la saisie : la valeur est d'abord enregistrée (aucun brouillon perdu), curseur stable pendant la frappe
+OK « Aller au champ » (AE → DH) : ouvre la pièce et place le focus dans l'unique saisie du RIB
+OK en-tête sticky (nom, badges, « Prendre une décision ») : au clavier, ouvre le vrai bloc décision et place le focus sur le premier choix ; aucun choix ni écriture ; second appui ne referme rien
+OK couleurs et icônes : orange ✎ infos société, jaune ? éligibilité à vérifier, rouge ✕ incompatibilité, vert ✓ prouvée ; « Une société peut apparaître dans plusieurs filtres » {'comp': 'b21d-or|✎', 'verif': 'b21d-ye|?', 'non': 'b21d-ko|✕'}
+OK vue Décision : la note d'analyse n'est ni calculée ni rendue ; titre « Décision d'Ahmed »
+OK onglet « Note d'analyse » : vraie vue Note du même dossier
+OK retour à la Décision depuis la note
+OK onglet « Résultat » : vue B4.2 avec la section après attribution (b21d-6)
+OK B3.1 intact : chiffrage du dossier et prix fictifs inchangés
+OK dossier réel BG (base simulée) : 9 sociétés en lecture, décisions inchangées, aucune écriture réelle, aucune erreur []
+OK RC sans structure de plis lue : « Emplacement dans le pli à confirmer », aucune enveloppe supposée [['?', '? EMPLACEMENT DANS LE PLI À CONFIRMER']]
+OK exigences du RC inconnues : signalé, ni « Rien à compléter » ni pièce supposée
+OK société sans dossier : pas de lien Préparation (créée seulement à la confirmation), rien n'est créé en consultant
+OK rien n'est effacé : pièces du RC (12) et documents (caution, BPU, CPS/RC, note des moyens) toujours calculés et affichés dans la Préparation (B3.2)
+OK dernier manque de la DH confirmé par la base : la carte disparaît ; la saisie en cours dans l'AE garde focus, valeur et curseur ; aucune décision ni dossier créé (DH ['tel', 'mail', 'rib'], AE ['banque'], {'dh': False, 'f': True, 'v': 'BAN', 'c': 3, 'sum': '3|2'})
+OK dernière information de l'AE (Tab) : la carte disparaît, le focus n'est pas perdu ({'ae': False, 'body': False, 'id': 'b21d-ah'})
+OK 390 : sélecteur de sociétés puis panneau (bouton « ← Sociétés »), champs lisibles, aucun débordement ({'l': False, 'p': True, 'ov': 0, 'F': True, 'back': True})
+OK 390 : retour à la liste, focus sur la société
+OK 390 : société sélectionnée lisible (contraste 15.8)
+OK 390 : aucune erreur JavaScript []
+OK 390_sombre : sélecteur de sociétés puis panneau (bouton « ← Sociétés »), champs lisibles, aucun débordement ({'l': False, 'p': True, 'ov': 0, 'F': True, 'back': True})
+OK 390_sombre : retour à la liste, focus sur la société
+OK 390_sombre : société sélectionnée lisible (contraste 13.1)
+OK 390_sombre : aucune erreur JavaScript []
+OK 1440_sombre : liste et panneau côte à côte, champs lisibles, aucun débordement
+OK 1440_sombre : société sélectionnée lisible (contraste 13.1)
+OK 1440_sombre : aucune erreur JavaScript []
+87 / 87

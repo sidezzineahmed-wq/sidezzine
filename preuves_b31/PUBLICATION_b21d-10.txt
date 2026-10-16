@@ -1,0 +1,20 @@
+b21d-10 · Décision B2.1 : statut en lecture, caution neutre, note des moyens par la Préparation, saisie unique, accordéon, couleurs
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Base live vérifiée avant publication : 1792038269-754e, index = publication b21d-9 (sha256 3e4daac3…), seuls catalogue/collecteur avaient changé (conservés).
+Version publiée : 310 · id 1792140018-ab0f · index 1 633 252 octets, sha256 91090f156fb8432f9627ee34cd2f0d836935686396eb6da83bf72263f52bb2e3
+Corps sha256 3a723d3c91d9b42b6cb25775263b903716ce47014fa2faa66c004ea75da5675e ; index = squelette + corps (diff 0) ; 16 fichiers ; capacités et partage inchangés ; sans force.
+
+- Statut : plus de sélecteur libre (aoDecision devient un affichage) ; l'ancien bloc « Statut administratif » est retiré du bureau ; decide()
+  (aoDecision/aoAnalyse) n'écrit plus rien et renvoie à la décision B2.1. Statut affiché en lecture avec lien Préparation/Résultat. Résultat inchangé.
+- Récépissé de caution : « À obtenir en préparation » (neutre, non bloquant) ; la ligne de caution reste dans l'éligibilité.
+- Note des moyens : « Rédaction en préparation » ; seules les données société utilisées par moyensWord (signataire, références au coffre,
+  « Renseigner dans le coffre ») ; équipe et moyens matériels : « besoins à préciser par l'employé Préparation après lecture du CPS ».
+- Champs communs (RIB…) : une seule saisie (première pièce), les autres pièces renvoient (« Aller au champ ») ; après confirmation de la base,
+  « Renseigné dans le coffre ✓ » partout. Sortie de champ traitée hors rendu (corrige un rendu imbriqué qui pouvait perdre la saisie).
+- Pièces complètes en une ligne ; pièces à compléter repliables (nombre de manques, Afficher/Masquer ; replier enregistre d'abord).
+  En-tête sticky : nom, badges, « Prendre/Modifier la décision ↓ » (ouvre et focalise le vrai bloc) ; clôturée : lecture seule.
+- Couleurs + icônes : orange ✎ infos société, jaune ? à vérifier, rouge ✕ incompatibilité sourcée, vert ✓ prouvée ; mention
+  « Une société peut apparaître dans plusieurs filtres ».
+
+Recette ciblée (fixtures et base simulée ; aucune donnée réelle) : qa_b21dec 79/79
+Non-régression : qa_b31 64/64 · qa_qual 21/21 · qa_hist 17/17 · qa_pdf 9/9 · qa_b31_v6e 14/14 · qa_ergo 344/344

@@ -49,5 +49,14 @@ for A,B in [
 A9='{const pc=parCompat(id,a,sid);if(pc.st==="deja"||pc.st==="non")return toast(pc.why||"Offre impossible pour cette société sur ce marché.");}'
 assert out.count(A9)==1
 out=out.replace(A9,'{const pc=parCompat(id,a,sid);if(!(o.sansGo&&o.horsOffre)&&(pc.st==="deja"||pc.st==="non"))return toast(pc.why||"Offre impossible pour cette société sur ce marché.");}')
+# b21d-10 : l'ancien sélecteur libre de statut (aoDecision) devient un affichage ; l'ancien decide() (aoDecision / aoAnalyse) ne peut plus
+# enregistrer de décision ni changer la société d'un dossier hors des contrôles du bureau B2.1 (éligibilité, art. 27, clôture)
+import re as _re
+_m=_re.search(r'  o\+=`<div class="grp">Statut du dossier</div><div class="chips wrap" role="group" aria-label="Statut du dossier">\$\{\["À examiner".*?\.join\(""\)\}</div>`;\n',out)
+assert _m and out.count(_m.group(0))==1
+out=out.replace(_m.group(0),'  o+=`<div class="grp">Statut du dossier</div><p class="d" data-statut-lecture="1">${esc(a.statut||"")} — suit les actions métier (décision B2.1, dépôt, résultat) ; non modifiable ici.</p>`;\n')
+A10='function decide(id,verdict){const a=S.ao[id],'
+assert out.count(A10)==1
+out=out.replace(A10,'function decide(id,verdict){return toast("Décision : utilisez « Décision d\'Ahmed » (bureau B2.1), avec ses contrôles d\'éligibilité, d\'art. 27 et de clôture.");}\nfunction decideAncien(id,verdict){const a=S.ao[id],')
 open("page_b21.html","w",encoding="utf-8").write(out)
 print(hashlib.sha256(out.encode()).hexdigest(),len(out))

@@ -1,0 +1,23 @@
+b21d-11 · Décision B2.1 : « À compléter / vérifier » — seulement les manques et vérifications, rangés selon l'emplacement réel du RC
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Base live vérifiée avant modification et avant publication : 1792140485-3a47 (b21d-10b, sha256 aa6921cc…), aucun changement concurrent.
+Version publiée : 312 · id 1792142052-501b · index 1 640 832 octets, sha256 ff7b1501ab58b4b373bb8496195c8a375655b297c592e2f94c1b742cce196c44
+Corps sha256 51a2bc6a036842f2a61b49e52339697a5481c68f4bfb802b54f60321ba0d3c42 ; index = squelette + corps (diff 0) ; 16 fichiers ; capacités et partage inchangés ; sans force.
+
+- Titre « À compléter / vérifier » + société · AO ; résumé : pièces concernées et données société uniques (RIB commun compté une fois).
+- Cartes seulement pour : champs société manquants (générateurs DH/AE/PC, CPS/RC sans signataire, note des moyens sans signataire ou
+  sans références) et preuves du coffre exigées par le RC à vérifier (non renseignée ≠ inexistante ; échue = rouge).
+- Emplacement : b21dLoc lit S.rc[..].plis et l'env de la pièce (adm/tec/fin/ot) → « Enveloppe n · Dossier … » ; sans plis lus ou pièce
+  non classée : « Emplacement dans le pli à confirmer » (le repli générique plisOf n'est pas utilisé). Chaque carte : Destination
+  (pli) distincte de « À corriger dans : coffre de la société », source RC repliable, action réelle (Saisir / Vérifier au coffre).
+- Retirés de la Décision (toujours calculés et affichés en Préparation B3.2) : pièces prêtes, CPS/RC sans manque, BPU, récépissé de
+  caution, rédaction/signature. Besoins CPS non établis (note des moyens non rédigée, mémoire, planning) et pièces aux données non
+  déterminées : alerte « Exigences à préciser ». Aucun manque + exigences connues : « Rien à compléter ici » + « Ouvrir Préparation »
+  (dossier réel) ; sans dossier : rien n'est créé, Préparation après « Participer ». RC inconnu : signalé, rien supposé complet.
+- Preuves : plus de doublon (les preuves à vérifier sont des cartes ; la note des moyens renvoie à la carte des références) ;
+  le détail d'éligibilité garde les raisons sourcées et les preuves jointes.
+- Dernier manque confirmé par la base : la carte disparaît ; saisie en cours ailleurs conservée (focus, valeur, curseur) ; si le focus
+  était dans la carte retirée, il revient au titre (pas de perte au body). Aucun rendu imbriqué.
+
+Recette (fixtures, base simulée ; aucune donnée réelle) : qa_b21dec 87/87 · qa_b21d10_layout 12/12 (390, 615, 615 sombre, 768, 1440, 1440 sombre).
+Suites de non-régression larges non relancées (changement limité au module B2.1 ; dernière exécution complète : b21d-10).

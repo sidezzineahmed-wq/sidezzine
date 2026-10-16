@@ -22,6 +22,9 @@ with sync_playwright() as p:
         q.evaluate("()=>{const s='alwaad-ataib',v='123456789012345678901234';const d=D0(s);d.profil={...(d.profil||{}),rib:v};B21D.pf[s+'|rib']={v,saved:v,base:v,st:'ok',dirty:false};B21D.docF[s+'|dsh']=[...new Set([...(B21D.docF[s+'|dsh']||[]),'rib'])];if(document.activeElement)document.activeElement.blur();render();}")
         q.wait_for_timeout(300);B=q.evaluate(MES)
         ov=q.evaluate("()=>document.documentElement.scrollWidth-document.documentElement.clientWidth")
+        PCm=q.evaluate("()=>[...document.querySelectorAll('[data-b21d-panel] [data-b21d-dk=\"proof\"],[data-b21d-panel] [data-b21d-dk=\"miss\"]')].map(c=>{const C=c.getBoundingClientRect(),b=c.querySelector('.b21d-dch>.b21d-sb'),t=c.querySelector('[data-b21d-path]'),B=b.getBoundingClientRect(),T=t.getBoundingClientRect();return[c.dataset.b21dDoc,Math.round(B.right-C.right),Math.round(T.width),Math.round(C.height)]})")
+        q.locator('[data-b21d-acv]').screenshot(path=f"{OUT}/acv_{tag}.png")
+        chk(PCm and all(x[1]<=1 and x[2]>=150 for x in PCm),f"{tag} : cartes « À compléter / vérifier » (preuve et pièces) : bouton dans la carte, chemin Destination lisible {PCm}")
         q.locator('[data-b21d-doc="moyens"]').screenshot(path=f"{OUT}/moyens_{tag}.png");q.locator('[data-b21d-doc="dsh"]').screenshot(path=f"{OUT}/dh_rib_{tag}.png")
         kinds={x["kind"] for x in A+B}
         def bad(x):

@@ -5,7 +5,7 @@
    a.decision {verdict, le, qui, motif} ; jamais de Go automatique ni de présélection ; une décision remplacée est conservée
    (a.decisionHist) et tracée au journal ; la société d'un dossier n'est jamais changée ici. L'avis et la recommandation de
    l'Analyste restent dans la note d'analyse. Consultation clôturée : décision affichée en lecture, aucune nouvelle soumission. */
-const B21D={v:"b21d-10",motif:{},conf:null,ajout:null,ui:{id:null,open:null,f:"tout"},cat:{}};
+const B21D={v:"b21d-11",motif:{},conf:null,ajout:null,ui:{id:null,open:null,f:"tout"},cat:{}};
 const B21D_ST={prep:["b21d-neu","À préparer"],prep2:["b21d-neu","À préparer après Go · requis avant dépôt"],aprod:["b21d-amb","À produire si attribué"],pret:["b21d-ok","Prêt"],verif:["b21d-amb","À vérifier"],joindre:["b21d-ko","À joindre"],compl:["b21d-amb","À compléter"],nonexige:["b21d-neu","Non exigé"],attrib:["b21d-neu","Si attribué"]};
 const B21D_COFFRE=["qc","refs","fis","cnss","rc","pouvoirs"],B21D_FIN=["bpu","sdp"];   /* l'acte d'engagement se prépare dans les pièces (B3.2) */
 function b21dSibs(id,a){let L=[];try{L=b31Sibs(id,a);}catch(e){L=[{id,soc:a.soc,statut:a.statut}];}return L.map(s=>({oid:s.id,sid:s.soc,a:S.ao[s.id]})).filter(x=>x.a&&x.sid);}
@@ -101,7 +101,9 @@ function b21dPfSave(sid,k,force){const key=sid+"|"+k,F=B21D.pf[key];if(!F)return
       const maj=new Date().toISOString(),patch={profil:{[k]:val,maj}};if(g&&g.exists)await ref.update(patch);else await ref.set(patch);
       const d=D0(sid);d.profil={...(d.profil||{}),[k]:val,maj};try{socApply(sid);}catch(e){}
       if(k!=="gerants"){F.base=val;F.saved=val;}F.dirty=false;F.st="ok";F.cur=null;logJ((socCourt(sid)||sid)+" : profil mis à jour depuis la décision B2.1 ("+(k==="gerants"?"signataire":(B21D_PF.F[k]||{}).lab||k)+")");})
-    .catch(e=>{F.st="err";F.msg=(e&&e.code)||"erreur";}).finally(()=>b21dRenderSafe());}
+    .catch(e=>{F.st="err";F.msg=(e&&e.code)||"erreur";}).finally(()=>{const ae0=document.activeElement;b21dRenderSafe();
+      /* b21d-11 : si le rendu a retiré l'élément qui avait le focus (carte résolue), le focus revient au titre « À compléter / vérifier » */
+      if(ae0&&ae0!==document.body&&!document.contains(ae0)&&(!document.activeElement||document.activeElement===document.body)){const hh=document.getElementById("b21d-ah");if(hh)hh.focus({preventScroll:true});}});}
 /* aller à la pièce précise du coffre de la société (rubrique dépliée, pièce mise en vue) */
 function b21dCoffrePiece(sid,k){const i=SOC.findIndex(z=>z.sid===sid);let ci=-1;try{ci=VAULT.findIndex(([c,ps])=>ps.some(p=>p.k===k));}catch(e){}
   go(()=>{S.cur=i<0?0:i;S.soc=null;S.dept="coffre";S.cview="soc";S.filter="all";S.aoId=null;if(ci>=0)S.open["c"+ci]=true;});
@@ -147,9 +149,16 @@ function b21dElig(id,a,sid,X){const oid=X?X.oid:id,ac=X?X.a:a,non=[],ver=[],ok=[
   try{if(X){b21dGoBloc(X.oid).bloc.filter(z=>/décret|article/i.test(z.src||"")).forEach(z=>non.push({t:z.t,src:z.src}));}
     else{const pc=parCompat(id,a,sid);if((pc.st==="non"||pc.st==="deja")&&/article|décret/i.test(pc.why||""))non.push({t:pc.why,src:"décret 2-22-431"});}}catch(e){}
   return{k:non.length?"non":ver.length?"averif":"ok",non,ver,ok,E};}
+/* b21d-11 : emplacement réel d'une pièce dans le pli, uniquement d'après le RC lu (S.rc[..].plis et env de la pièce) ; sans plis lus
+   ou pièce non classée : « Emplacement dans le pli à confirmer » (le repli générique plisOf n'est pas utilisé ici) */
+const B21D_DOS={adm:"Dossier administratif",tec:"Dossier technique",fin:"Offre financière",ot:"Offre technique"};
+function b21dLoc(rcId,std,piece){const r=S.rc[rcId]||{},P=Array.isArray(r.pieces)?r.pieces:[],pl=Array.isArray(r.plis)&&r.plis.length?r.plis:null,inc={k:"?",lab:"Emplacement dans le pli à confirmer",ord:9999};
+  const p=P.find(x=>std&&x.std===std)||P.find(x=>x.t===piece);if(!p||!pl||!B21D_DOS[p.env])return inc;
+  const i=pl.findIndex(x=>Array.isArray(x.env)&&x.env.includes(p.env));if(i<0)return inc;const n=pl[i].n||i+1;
+  return{k:n+"|"+p.env,env:"Enveloppe "+n,dos:B21D_DOS[p.env],lab:"Enveloppe "+n+" · "+B21D_DOS[p.env],ord:i*10+pl[i].env.indexOf(p.env),d:p.d||""};}
 /* documents à produire (RC) et informations nécessaires, par document ; proofs = preuves du coffre exigées par le RC */
 function b21dDocs(id,a,sid,X){const oid=X?X.oid:id,ac=X?X.a:a,D=b21dCarteData(oid,ac,sid);let f0={};try{f0={...pfDefaults(ac,sid),...((ac.pieces||{})[sid]||{})};}catch(e){}
-  const docs=(D.prep||[]).map((z,i)=>{const gen=B21D_GEN[z.std],o={i,piece:z.piece,std:z.std,src:z.src,fields:[],autres:[],infos:[],fin:false,kind:"ready",note:"",etat:""};
+  const docs=(D.prep||[]).map((z,i)=>{const gen=B21D_GEN[z.std],o={i,piece:z.piece,std:z.std,src:z.src,fields:[],autres:[],infos:[],fin:false,kind:"ready",note:"",etat:"",loc:b21dLoc(D.rcId,z.std,z.piece)};
     if(z.k==="nonexige"){o.kind="nonexige";return o;}
     if(gen){let m=[];try{m=pfMissing(gen,ac,sid,f0).filter(x=>x!=="date");}catch(e){o.kind="verif";o.note="Contrôle des informations indisponible : vérification requise";return o;}
       m.forEach(l=>{if(b21dFin(l)){o.fin=true;return;}const k=B21D_FLD[l];if(k){if(!o.fields.some(f=>f.k===k))o.fields.push({k,lab:B21D_FLAB[k]||l,inv:/24 chiffres/.test(l)});}else o.autres.push({t:l,txt:"À compléter dans les chantiers de la société (pas de saisie ici)"});});
@@ -164,14 +173,14 @@ function b21dDocs(id,a,sid,X){const oid=X?X.oid:id,ac=X?X.a:a,D=b21dCarteData(oi
       if(!f0.sig)o.fields.push({k:"gerants",lab:B21D_FLAB.gerants});
       const RF=(D0(sid).references||[]);if(!RF.length)o.autres.push({t:"Références de la société (prestations déjà exécutées)",txt:"Aucune référence saisie au coffre",lab:"Renseigner dans le coffre",vk:"Attestations de bonne exécution"});
       else o.infos.push(RF.length+" référence"+(RF.length>1?"s":"")+" saisie"+(RF.length>1?"s":"")+" au coffre ✓");
-      o.infos.push("Équipe et moyens matériels : besoins à préciser par l'employé Préparation après lecture du CPS");o.prep=!!X;}
-    else if(z.std==="memoire"||z.std==="planning"){o.kind="redac";o.etat="Rédaction en préparation";o.infos.push("Rédigé par l'employé Préparation à partir du DCE ; besoins de la société à préciser après lecture du CPS");o.prep=!!X;}
+      o.infos.push("Équipe et moyens matériels : besoins à préciser par l'employé Préparation après lecture du CPS");o.prep=!!X;if(!NM)o.cps=true;}
+    else if(z.std==="memoire"||z.std==="planning"){o.kind="redac";o.etat="Rédaction en préparation";o.infos.push("Rédigé par l'employé Préparation à partir du DCE ; besoins de la société à préciser après lecture du CPS");o.prep=!!X;o.cps=true;}
     else{o.kind="verif";o.note="Informations nécessaires non déterminées automatiquement pour cette pièce : vérification requise";}
     const kd=sid+"|"+z.std;B21D.docF[kd]=Array.from(new Set([...(B21D.docF[kd]||[]),...o.fields.map(f=>f.k)]));
     (B21D.docF[kd]||[]).forEach(k=>{if(!o.fields.some(f=>f.k===k)&&B21D.pf[sid+"|"+k])o.fields.push({k,lab:B21D_FLAB[k]||k,fait:true});});
     if(o.kind==="redac"&&(o.fields.some(f=>!f.fait)||o.autres.length))o.todo=true;
     return o;});
-  const proofs=(D.pre||[]);return{D,docs,proofs,rcOk:D.rcOk,rcId:D.rcId};}
+  const proofs=(D.pre||[]).map(z=>Object.assign({},z,{loc:b21dLoc(D.rcId,z.std,z.piece)}));return{D,docs,proofs,rcOk:D.rcOk,rcId:D.rcId};}
 function b21dEval(id,a,sid,X){const el=b21dElig(id,a,sid,X),dc=b21dDocs(id,a,sid,X),miss=new Set();dc.docs.forEach(d=>d.fields.filter(f=>!f.fait).forEach(f=>miss.add(f.k)));
   const nAutres=dc.docs.reduce((n,d)=>n+d.autres.length,0),nVer=dc.docs.filter(d=>d.kind==="verif").length,info=miss.size+nAutres;
   const B=[];if(el.k==="non")B.push(["non","Non éligible","b21d-ko","✕"]);if(info)B.push(["comp","Informations à compléter","b21d-or","✎"]);if(el.k==="averif")B.push(["verif","Éligibilité à vérifier","b21d-ye","?"]);if(nVer)B.push(["verif","Documents à vérifier","b21d-ye","?"]);
@@ -254,7 +263,7 @@ function b21dDecSec(id,a,e){const sid=e.sid,X=e.X,d=X&&X.a.decision,ed=editable(
   if(H.length)h+=`<details class="b21d-hist"><summary>Historique des décisions (${H.length})</summary><ul>${H.map(z=>`<li>${esc(B21D_DV[z.verdict]||z.verdict||"?")} · ${esc(z.le?fmtIso(z.le):"?")} · ${esc(b21dQui(z.qui))}${z.motif?" · "+esc(z.motif):""}<small>remplacée le ${esc(fmtDT(z.remplaceLe))} par ${esc(b21dQui(z.remplacePar))}</small></li>`).join("")}</ul></details>`;
   return h+`</section>`;}
 /* ---- panneau d'une société ---- */
-function b21dPanel(id,a,e){const sid=e.sid,X=e.X,nm=socCourt(sid),el=e.el,ELP={ok:["b21d-ok","✓ Prouvée"],averif:["b21d-ye","? À vérifier"],non:["b21d-ko","✕ Non éligible"]}[el.k],OCC={premier:b21dOccPremier(e.sid,e.dc.docs)};
+function b21dPanel(id,a,e){const sid=e.sid,X=e.X,nm=socCourt(sid),el=e.el,ELP={ok:["b21d-ok","✓ Prouvée"],averif:["b21d-ye","? À vérifier"],non:["b21d-ko","✕ Non éligible"]}[el.k];
   const passe=b21dPasse(a),fig=X&&["Déposé","Attribué","Non retenu"].includes(X.a.statut),peut=editable()&&!passe&&!fig,dx=X&&X.a.decision;
   let h=`<section class="b21d-p" aria-labelledby="b21d-ph" data-b21d-panel="${esc(sid)}"><button type="button" class="b21d-back" data-b21d-back="1" data-act="${act(()=>{B21D.ui.mob="list";render();b21dFocus('[data-b21d-item="'+sid+'"]');})}">← Sociétés</button>
     <header class="b21d-pt" data-b21d-sticky="1"><span class="b21d-pic" aria-hidden="true">▦</span><div><h3 id="b21d-ph" tabindex="-1">${esc(nm)}</h3><p class="b21d-psb" data-b21d-psub="1">${e.B.length?e.B.map(b=>`<span class="b21d-pill ${b[2]}">${b[3]} ${esc(b[1])}</span>`).join(""):`<span class="b21d-pill b21d-neu">Aucun point relevé</span>`}${dx?`<span class="b21d-pill b21d-neu">Décision : ${esc(B21D_DV[dx.verdict]||dx.verdict)}</span>`:""}</p></div>
@@ -263,23 +272,37 @@ function b21dPanel(id,a,e){const sid=e.sid,X=e.X,nm=socCourt(sid),el=e.el,ELP={o
   h+=`<div class="b21d-eb b21d-eb-${el.k}" data-b21d-elig="${el.k}"><span class="b21d-ei" aria-hidden="true">⛨</span><div><p class="b21d-et"><b>Éligibilité pour cet AO</b> · <span class="b21d-pill ${ELP[0]}">${ELP[1]}</span></p><p class="b21d-src">${el.k==="ok"?"Preuves d'éligibilité exigées présentes et en validité (contenu non vérifié automatiquement).":esc(R[0]?R[0].t:"")+(R.length>1?" · + "+(R.length-1)+" autre"+(R.length>2?"s":"")+" point"+(R.length>2?"s":""):"")}${r0&&r0.src?" · Source : "+esc(r0.src):""}</p></div>`;
   if(r0)h+=`<button type="button" class="b21d-lnk" data-b21d-everif="1" data-act="${act(()=>vk&&VAULT.some(([c,ps])=>ps.some(p=>p.k===vk))?b21dCoffrePiece(sid,vk):b21dAller(X?X.oid:id,"MP-B2.3","note"))}">${vk?"Vérifier : "+esc(r0.lab||vk):"Voir les exigences (B2.3)"} →</button>`;
   h+=`</div>`;
-  const P=e.dc.proofs;if(P.length||R.length>1)h+=`<details class="b21d-pv" data-b21d-proofs="${P.length}"><summary>Preuves d'éligibilité du coffre (${P.length}) et raisons détaillées</summary><ul>${R.map(z=>`<li>${esc(z.t)}${z.src?`<small>Source : ${esc(z.src)}</small>`:""}</li>`).join("")}${P.map(z=>{const S2=B21D_PST[z.k]||B21D_PST.averif;return`<li data-b21d-pk="${z.k}" data-b21d-std="${esc(z.std)}"><b>${esc(z.piece)}</b> <span class="b21d-pill ${S2[0]}">${S2[1]}</span> <button type="button" class="b21d-lnk" data-b21d-go="coffre" data-act="${act(()=>b21dCoffrePiece(sid,z.vk))}">${z.k==="nonrens"?"Joindre au coffre":z.k==="invalide"?"Mettre à jour":z.k==="joint"?"Ouvrir":"Vérifier"}</button>${z.src?`<small>Source : ${esc(z.src)}</small>`:""}</li>`;}).join("")}</ul></details>`;
-  h+=`<div class="b21d-dd"><h4>Documents et informations nécessaires</h4><p class="b21d-src">Compléter les informations demandées pour préparer l'offre de ${esc(nm)}.</p>`;
-  if(!e.dc.rcOk)h+=`<p class="b21d-warn">Pièces du RC non relevées pour ce dossier : liste indisponible (aucune pièce supposée).</p>`;
-  e.dc.docs.forEach(d=>{const todo=d.fields.filter(f=>!f.fait).length+d.autres.length,fait=d.fields.filter(f=>f.fait).length;
-    if(d.kind==="nonexige")return;
-    const ligne=(dk,pill,cls,note,extra)=>`<div class="b21d-dl" data-b21d-doc="${esc(d.std||"")}" data-b21d-dk="${dk}"><span class="b21d-dic" aria-hidden="true">▤</span><b>${esc(d.piece)}</b><span class="b21d-pill ${cls}">${pill}</span>${note?`<small>${esc(note)}</small>`:""}${extra||""}</div>`;
-    const prepBtn=d.prep?`<button type="button" class="b21d-lnk" data-b21d-prepgo="1" data-act="${act(()=>b21dAller(X.oid,"MP-B3.2","pieces"))}">Ouvrir la préparation</button>`:"";
-    if(d.kind==="b3"){h+=ligne("b3","Préparation (B3)","b21d-neu",d.note);return;}
-    if(d.kind==="ext"){h+=ligne("ext",esc(d.etat),"b21d-neu",d.note);return;}
-    if(d.kind==="verif"){h+=ligne("verif","? Vérification requise","b21d-ye",d.note,d.vk?`<button type="button" class="b21d-lnk" data-act="${act(()=>b21dCoffrePiece(sid,d.vk))}">Voir le coffre</button>`:"");return;}
-    if(!todo&&(d.kind==="ready"||d.kind==="miss"||d.kind==="redac")){const pill=d.kind==="redac"?esc(d.etat):"✓ Prête à préparer",cls=d.kind==="redac"?"b21d-neu":"b21d-ok";
-      h+=ligne(d.kind==="redac"?"redac":"ready",pill,cls,[d.note,...(d.infos||[]),fait?fait+" information"+(fait>1?"s":"")+" renseignée"+(fait>1?"s":"")+" dans le coffre ✓":""].filter(Boolean).join(" · "),d.kind==="redac"?prepBtn:"");return;}
-    const o=b21dDocOpen(sid,d),cid="b21d-dc-"+sid+"-"+d.std;
-    h+=`<article class="b21d-dcard" data-b21d-doc="${esc(d.std||"")}" data-b21d-dk="miss" data-b21d-dopen="${o?1:0}"><div class="b21d-dch"><span class="b21d-dic" aria-hidden="true">▤</span><div><p><b>${esc(d.piece)}</b> <span class="b21d-pill b21d-or">✎ ${todo} information${todo>1?"s":""} société à compléter</span>${d.kind==="redac"?` <span class="b21d-pill b21d-neu">${esc(d.etat)}</span>`:""}</p><p class="b21d-src">${d.kind==="redac"?"Données de la société utilisées par l'employé Préparation pour rédiger cette pièce":"Informations manquantes pour la génération"}${d.src?" · Source : "+esc(d.src):""}</p></div>
+  /* b21d-11 : « À compléter / vérifier » : seules les pièces avec une donnée société manquante ou une preuve à vérifier, rangées
+     selon l'emplacement réel lu dans le RC (enveloppe · dossier) ; destination (pli) distincte du lieu de correction (coffre). Les pièces
+     sans donnée société à fournir ici (prêtes, CPS/RC, BPU, récépissé de caution, rédaction/signature) restent en Préparation. */
+  const P=e.dc.proofs,PJ=P.filter(z=>z.k==="joint"),PC=P.filter(z=>z.k!=="joint");
+  if(PJ.length||R.length>1)h+=`<details class="b21d-pv" data-b21d-proofs="${PJ.length}"><summary>Éligibilité : raisons détaillées${PJ.length?" et preuves jointes au coffre ("+PJ.length+")":""}</summary><ul>${R.map(z=>`<li>${esc(z.t)}${z.src?`<small>Source : ${esc(z.src)}</small>`:""}</li>`).join("")}${PJ.map(z=>{const S2=B21D_PST[z.k];return`<li data-b21d-pk="${z.k}" data-b21d-std="${esc(z.std)}"><b>${esc(z.piece)}</b> <span class="b21d-pill ${S2[0]}">${S2[1]}</span> <button type="button" class="b21d-lnk" data-b21d-go="coffre" data-act="${act(()=>b21dCoffrePiece(sid,z.vk))}">Ouvrir</button>${z.src?`<small>Source : ${esc(z.src)}</small>`:""}</li>`;}).join("")}</ul></details>`;
+  const nres=d=>d.fields.filter(f=>!b21dFRes(sid,f)).length+d.autres.length;
+  const DV=e.dc.docs.filter(d=>(d.kind==="miss"||d.kind==="redac"||d.kind==="ready")&&(nres(d)>0||b21dDocNonEnr(sid,d)));
+  const ALR=e.dc.docs.filter(d=>d.kind!=="nonexige"&&(d.cps||d.kind==="verif"));
+  const IT=[...DV.map(d=>({t:"doc",d,loc:d.loc})),...PC.map(z=>({t:"proof",z,loc:z.loc}))].sort((x,y)=>(x.loc.ord-y.loc.ord)||((x.d||x.z).i||0)-((y.d||y.z).i||0));
+  const OCC={premier:b21dOccPremier(sid,IT.filter(x=>x.t==="doc").map(x=>x.d))},PVK={};PC.forEach(z=>{if(z.vk&&!PVK[z.vk])PVK[z.vk]=z;});
+  const UQ=new Set();DV.forEach(d=>{d.fields.filter(f=>!b21dFRes(sid,f)).forEach(f=>UQ.add("f:"+f.k));d.autres.forEach(x=>UQ.add(x.vk?"v:"+x.vk:"t:"+x.t));});PC.forEach(z=>UQ.add(z.vk?"v:"+z.vk:"p:"+z.std));
+  const prepBtn=X?`<button type="button" class="b21d-sb" data-b21d-prepgo="1" data-act="${act(()=>b21dAller(X.oid,"MP-B3.2","pieces"))}">Ouvrir Préparation</button>`:`<span class="b21d-src" data-b21d-prepnone="1">Préparation disponible après « Participer » (dossier créé à la confirmation).</span>`;
+  h+=`<div class="b21d-dd" data-b21d-acv="1"><h4 id="b21d-ah" tabindex="-1">À compléter / vérifier</h4><p class="b21d-src">${esc(nm)} · AO ${esc(a.ref||"")}${X?"":" · aucun dossier pour cette société (rien n'est créé en consultant)"}</p>`;
+  if(!e.dc.rcOk)h+=`<p class="b21d-warn" data-b21d-rcinc="1">Exigences du RC non relevées pour ce dossier : impossible d'établir ce qui manque ; rien n'est supposé complet.</p>`;
+  else if(IT.length)h+=`<p class="b21d-sum" data-b21d-sum="${IT.length}|${UQ.size}" role="status"><b>${IT.length} pièce${IT.length>1?"s":""} concernée${IT.length>1?"s":""}</b> · ${UQ.size} donnée${UQ.size>1?"s":""} société à compléter ou vérifier <small>(une donnée commune à plusieurs pièces compte une fois)</small></p>`;
+  else h+=`<div class="b21d-rien" data-b21d-rien="${ALR.length?"partiel":"1"}"><p><b>${ALR.length?"Aucune donnée société manquante identifiée":"Rien à compléter ici"}</b>${ALR.length?" ; exigences encore à préciser ci-dessous.":"."} <small>Cela ne signifie ni offre prête au dépôt ni éligibilité vérifiée (voir le badge).</small></p>${prepBtn}</div>`;
+  let gk=null;IT.forEach(x=>{if(x.loc.k!==gk){if(gk!==null)h+=`</div>`;gk=x.loc.k;h+=`<div class="b21d-grp" data-b21d-loc="${esc(x.loc.k)}"><h5 class="b21d-gh">${x.loc.k==="?"?`<span class="b21d-pill b21d-ye">? ${esc(x.loc.lab)}</span>`:esc(x.loc.lab)}</h5>`;}
+    const chemin=(piece)=>`<p class="b21d-path" data-b21d-path="1">Destination : ${x.loc.k==="?"?"emplacement dans le pli à confirmer":esc(x.loc.env)+" › "+esc(x.loc.dos)} › <b>${esc(piece)}</b></p>`;
+    const rcs=(src,dd)=>src||dd?`<details class="b21d-rcs"><summary>Source RC</summary><p class="b21d-src">${esc(src||"")}${dd?" · "+esc(dd):""}</p></details>`:"";
+    if(x.t==="proof"){const z=x.z,S2=z.k==="invalide"?["b21d-ko","✕ Échu ou invalide"]:z.k==="nonrens"?["b21d-ye","? Non renseigné au coffre · à vérifier"]:["b21d-ye","? À vérifier"];
+      h+=`<article class="b21d-dcard b21d-pc" data-b21d-doc="${esc(z.std||"")}" data-b21d-dk="proof" data-b21d-pk="${esc(z.k)}"><div class="b21d-dch"><span class="b21d-dic" aria-hidden="true">⛨</span><div><p><b>${esc(z.piece)}</b> <span class="b21d-pill ${S2[0]}">${S2[1]}</span></p>${chemin(z.piece)}<p class="b21d-src">À corriger dans : coffre de ${esc(nm)}${z.vk?" › "+esc(z.vk):""} (preuve exigée par le RC)</p>${rcs(z.src,x.loc.d)}</div>
+        <button type="button" class="b21d-sb" data-b21d-renseigner="${esc(z.vk||"")}" data-act="${act(()=>b21dCoffrePiece(sid,z.vk))}">${z.k==="nonrens"?"Renseigner au coffre":z.k==="invalide"?"Mettre à jour au coffre":"Vérifier au coffre"}<span class="b21d-sr"> de ${esc(nm)}</span></button></div></article>`;return;}
+    const d=x.d,todo=nres(d),o=b21dDocOpen(sid,d),cid="b21d-dc-"+sid+"-"+d.std;
+    h+=`<article class="b21d-dcard" data-b21d-doc="${esc(d.std||"")}" data-b21d-dk="miss" data-b21d-dopen="${o?1:0}"><div class="b21d-dch"><span class="b21d-dic" aria-hidden="true">▤</span><div><p><b>${esc(d.piece)}</b> <span class="b21d-pill b21d-or">✎ ${todo} information${todo>1?"s":""} société à compléter</span></p>${chemin(d.piece)}</div>
       <button type="button" class="b21d-sb" aria-expanded="${o}" aria-controls="${esc(cid)}" data-b21d-dtog="${esc(d.std||"")}" data-act="${act(()=>b21dDocToggle(sid,d))}">${o?"Masquer":"Afficher"}<span class="b21d-sr"> les informations de ${esc(d.piece)}</span></button></div>
-      <div id="${esc(cid)}" ${o?"":"hidden"}>${o?`<div class="b21d-frs">${d.fields.map(f=>b21dFieldOcc(sid,f,d,OCC)).join("")}${d.autres.map(x=>`<div class="b21d-fr" data-b21d-autre="1"><span class="b21d-fi" aria-hidden="true">•</span><span class="b21d-fl">${esc(x.t)}</span><span class="b21d-src">${esc(x.txt||"")}</span><span class="b21d-fs">${x.vk?`<button type="button" class="b21d-sb" data-b21d-renseigner="${esc(x.vk)}" data-act="${act(()=>b21dCoffrePiece(sid,x.vk))}">${esc(x.lab||"Renseigner")}</button>`:""}</span></div>`).join("")}</div>
-        ${(d.infos||[]).length?`<p class="b21d-src b21d-sv">${(d.infos||[]).map(esc).join(" · ")} ${prepBtn}</p>`:""}${d.fields.length?`<p class="b21d-src b21d-sv">ⓘ Sauvegarde automatique dans le coffre de ${esc(nm)} ; une seule saisie sert toutes les pièces.${d.note?" "+esc(d.note):""}</p>`:""}`:""}</div></article>`;});
+      <div id="${esc(cid)}" ${o?"":"hidden"}>${o?`<p class="b21d-src b21d-cor">À corriger dans : coffre de ${esc(nm)} (profil de la société)${d.kind==="redac"?" ; la pièce est rédigée par l'employé Préparation":""}</p><div class="b21d-frs">${d.fields.map(f=>b21dFieldOcc(sid,f,d,OCC)).join("")}${d.autres.map(y=>{const pz=y.vk&&PVK[y.vk];
+          if(pz)return`<div class="b21d-fr" data-b21d-autre="1" data-b21d-aref="${esc(pz.std)}"><span class="b21d-fi" aria-hidden="true">•</span><span class="b21d-fl">${esc(y.t)}</span><span class="b21d-src">Même pièce du coffre que « ${esc(pz.piece)} » : une seule mise à jour</span><span class="b21d-fs"><button type="button" class="b21d-sb" data-act="${act(()=>b21dFocus('[data-b21d-dk="proof"][data-b21d-doc="'+pz.std+'"] [data-b21d-renseigner]'))}">Aller à la pièce</button></span></div>`;
+          return`<div class="b21d-fr" data-b21d-autre="1"><span class="b21d-fi" aria-hidden="true">•</span><span class="b21d-fl">${esc(y.t)}</span><span class="b21d-src">${esc(y.txt||"")}</span><span class="b21d-fs">${y.vk?`<button type="button" class="b21d-sb" data-b21d-renseigner="${esc(y.vk)}" data-act="${act(()=>b21dCoffrePiece(sid,y.vk))}">${esc(y.lab||"Renseigner")}</button>`:""}</span></div>`;}).join("")}</div>
+        ${d.fields.length?`<p class="b21d-src b21d-sv">ⓘ Sauvegarde automatique dans le coffre de ${esc(nm)} ; une seule saisie sert toutes les pièces.${d.note?" "+esc(d.note):""}</p>`:""}${rcs(d.src,d.loc.d)}`:""}</div></article>`;});
+  if(gk!==null)h+=`</div>`;
+  if(e.dc.rcOk&&ALR.length)h+=`<div class="b21d-alr" data-b21d-alr="${ALR.length}"><p><b>? Exigences à préciser</b></p><ul>${ALR.map(d=>`<li data-b21d-alrdoc="${esc(d.std||"")}"><b>${esc(d.piece)}</b> <small>(${d.loc.k==="?"?"emplacement dans le pli à confirmer":esc(d.loc.lab)})</small> : ${d.cps?"Exigences à préciser après lecture du CPS (par l'employé Préparation)":"données nécessaires non déterminées automatiquement, à vérifier en Préparation"}</li>`).join("")}</ul>${IT.length?prepBtn:""}</div>`;
   h+=`<p class="b21d-fn8">ⓘ Informations complètes ne signifie pas offre prête au dépôt : signatures, cachets et contrôles avant dépôt restent à faire.</p></div>`;
   h+=b21dDecSec(id,a,e);
   return h+`</section>`;}
@@ -315,8 +338,11 @@ document.getElementById("view").addEventListener("change",e=>{const t=e.target;i
 /* sortie de champ : traitée après la tâche en cours (jamais pendant un rendu qui remplace le champ) ; si le même champ a repris le focus
    (rendu qui le recrée), rien n'est enregistré ; l'affichage « Renseigné » attend que la saisie ne soit plus dans un autre champ */
 document.getElementById("view").addEventListener("focusout",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.b21dPf){const key=t.dataset.b21dPf,[sid,k]=key.split("|");
+  const card=t.closest("[data-b21d-doc]"),std=card&&card.dataset.b21dDoc;
   setTimeout(()=>{const F=B21D.pf[key],ae=document.activeElement;if(!F||(ae&&ae.dataset&&ae.dataset.b21dPf===key))return;
-    if(F.dirty&&F.st!=="saving"&&F.st!=="ok"&&F.st!=="conflit")b21dPfSave(sid,k);else if(F.st==="ok"&&!(ae&&ae.dataset&&(ae.dataset.b21dPf||ae.dataset.b21dPfg)))b21dRenderSafe();},0);}});
+    if(F.dirty&&F.st!=="saving"&&F.st!=="ok"&&F.st!=="conflit")b21dPfSave(sid,k);else if(F.st==="ok"&&!(ae&&ae.dataset&&(ae.dataset.b21dPf||ae.dataset.b21dPfg))){b21dRenderSafe();
+      /* b21d-11 : la carte du dernier manque résolu disparaît ; si le focus était dedans, il revient au titre « À compléter / vérifier » */
+      if(std&&!document.querySelector('[data-b21d-panel] [data-b21d-doc="'+std+'"]')&&(!document.activeElement||document.activeElement===document.body)){const hh=document.getElementById("b21d-ah");if(hh)hh.focus({preventScroll:true});}}},0);}});
 const B21D_TOK=`--d-bg:#151B23;--d-card:#1B232E;--d-line:#2E3946;--d-ink:#EEE9DF;--d-mut:#A7ADB6;--d-okb:rgba(31,122,77,.22);--d-ok:#7FD1A6;--d-ambb:rgba(195,160,106,.2);--d-amb:#E3C48F;--d-kob:rgba(166,61,50,.25);--d-ko:#F0A49A;--d-neub:rgba(255,255,255,.08);--d-sec:rgba(195,160,106,.1)`;
 const B21D_CSS=`.b21d{--d-bg:#FBF8F2;--d-card:#FFFFFF;--d-line:#E6DFD2;--d-ink:#16171A;--d-mut:#6B6E75;--d-okb:#E9F4EE;--d-ok:#1F7A4D;--d-ambb:#FBF1DE;--d-amb:#8A551C;--d-kob:#FBEAE7;--d-ko:#A63D32;--d-neub:#F1F0EC;--d-sec:#F6EFE2;
   background:var(--d-bg);color:var(--d-ink);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px;font-size:13.5px;container:b21d/inline-size}
@@ -395,6 +421,14 @@ const B21D_CSS=`.b21d{--d-bg:#FBF8F2;--d-card:#FFFFFF;--d-line:#E6DFD2;--d-ink:#
 .b21d-fs .b21d-sb{white-space:normal;text-align:center;max-width:100%}
 @container b21dc (max-width:520px){.b21d-fr[data-b21d-autre],.b21d-fr[data-b21d-fref],.b21d-fr[data-b21d-fres]{grid-template-columns:20px minmax(0,1fr)}
   .b21d-fr[data-b21d-autre]>.b21d-fs,.b21d-fr[data-b21d-fref]>.b21d-fs,.b21d-fr[data-b21d-fres]>.b21d-fs{grid-column:2;grid-row:3;justify-content:flex-start}}
+.b21d-sum{margin:0;font-size:13.5px}.b21d-sum small{color:var(--d-mut);font-size:12px}
+.b21d-grp{display:flex;flex-direction:column;gap:8px}.b21d-gh{margin:6px 0 0;font-size:13px;font-weight:700;letter-spacing:.02em;color:var(--d-mut);text-transform:uppercase}
+.b21d-path{margin:2px 0 0;font-size:12.5px;color:var(--d-mut);overflow-wrap:anywhere}.b21d-path b{color:var(--d-ink);font-weight:600}.b21d-cor{margin:0 0 6px}
+.b21d-rcs summary{cursor:pointer;font-size:12px;color:var(--d-acc)}.b21d-rcs p{margin:2px 0 0;font-size:12px}
+.b21d-rien{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;border:1px solid var(--d-line);border-radius:10px;padding:10px 12px;background:var(--d-sec)}.b21d-rien p{margin:0;flex:1 1 240px}.b21d-rien small{display:block;color:var(--d-mut)}
+.b21d-alr{border:1px solid var(--d-line);border-left:4px solid var(--d-ye);background:var(--d-yeb);color:var(--d-ink);border-radius:10px;padding:10px 12px;font-size:13px}.b21d-alr p{margin:0;color:var(--d-ye)}.b21d-alr ul{margin:6px 0 8px;padding-left:18px;display:flex;flex-direction:column;gap:4px}.b21d-alr small{color:var(--d-mut)}
+.b21d-pc .b21d-dch>.b21d-sb{white-space:normal;max-width:220px;text-align:center}
+@container b21dc (max-width:520px){.b21d-pc .b21d-dch>.b21d-sb{grid-column:1 / -1;justify-self:start;max-width:100%}}
 .b21d-noteb{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.b21d-noteb .b21d-src{margin:0;flex:1 1 260px}
 .b21d-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @container b21d (max-width:560px){.b21d-tab th,.b21d-tab td{padding:6px 4px}.b21d-tab td:nth-child(2){width:84px}.b21d-tab td:nth-child(3){width:86px}.b21d-tab .b21d-pill{white-space:normal;font-size:11px;padding:2px 7px}.b21d-tab .b21d-act{padding:4px 6px;max-width:100%}.b21d-tab .b21d-act small{display:none}.b21d-tab{table-layout:fixed}.b21d-tab th:nth-child(2),.b21d-tab td:nth-child(2){width:84px}.b21d-tab th:nth-child(3),.b21d-tab td:nth-child(3){width:78px}.b21d-tab td{overflow-wrap:anywhere}.b21d-tab th:nth-child(3),.b21d-tab td:nth-child(3){width:96px}.b21d-tab td:nth-child(3) .b21d-act{overflow-wrap:normal;word-break:keep-all;font-size:11.5px;padding:4px 6px}}`;

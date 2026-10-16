@@ -1,0 +1,12 @@
+b21d-10b · Correctif CSS ciblé : lignes d'information sous une pièce (références, renvoi « Aller au champ », RIB « Renseigné dans le coffre ✓ »)
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Base live vérifiée avant publication : 1792140018-ab0f (b21d-10, sha256 91090f15…), aucun changement concurrent ; diff du corps = 8 lignes CSS ajoutées seulement.
+Version publiée : 311 · id 1792140485-3a47 · index 1 634 234 octets, sha256 aa6921cc7125b00e76bbef14745c29e2ab00a8b95c2def57eea241c656aad551
+Corps sha256 5f8adb175eb03869698cb02e190aad8a9a0e167bb9ac54f7f95619ae2f70ee2b ; index = squelette + corps (diff 0) ; 16 fichiers ; capacités et partage inchangés ; sans force.
+
+Cause : sous 760 px la règle mobile plaçait le bouton en colonne 3 / ligne 1 ; la source (ou la valeur du RIB résolu) retombait en colonne 1 (20 px)
+→ 1 à 3 lettres par ligne. Correctif : la carte de pièce devient un conteneur (b21dc) ; libellé puis source/valeur sous le libellé (colonne 2) ;
+bouton à droite si la carte > 520 px, sinon sous la source ; boutons autorisés à revenir à la ligne. Aucune logique ni donnée modifiée.
+
+Recette : qa_b21d10_layout 6/6 (390, 615, 615 sombre, 768, 1440, 1440 sombre) ; le même test sur b21d-10 : 2/6 (défaut reproduit :
+source 20 px de large, ligne 274 px à 615). qa_b21dec 79/79 inchangé.

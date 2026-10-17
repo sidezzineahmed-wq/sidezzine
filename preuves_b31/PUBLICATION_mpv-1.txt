@@ -1,0 +1,19 @@
+mpv-1 · Bureau B1.1 « Veille des marchés » (maquette approuvée), données réelles du catalogue de la version ouverte
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw
+Base live : version 1792218163-0277 (index = mph-1, sha256 acf773cb… ; catalogues du collecteur du 17/10 06:18 UTC). Source intégrale lue
+(lecture de la page, 10 494 lignes) et comparée : seule différence avec la base locale = 2 lignes de fin du squelette. Aucune
+republication de l'ancien corps, sans force. Version publiée : 317 · id 1792251494-055a · index 1 733 899 octets,
+sha256 3bdc668cc588d7d427d12bde2ba74534ab49711287062e1f8c27cb2308f3372d ; corps sha256 86a5834b…0745b5 ; index = squelette + corps (diff 0).
+16 fichiers conservés (catalogue.json 4 445 083 o, catalogue_etat.json identique), capacités et partage inchangés.
+Corps : mph-1 + 243 lignes ; une ligne d'aiguillage de l'accueil étendue au bureau B1.1.
+
+Règles des 4 indicateurs (catalogue de la version ouverte ; clé PMMP organisme:numéro, jamais référence+acheteur) :
+- Consultations ouvertes = date limite non passée à l'heure du Maroc (heure connue : instant exact ; sans heure : jusqu'à la fin du jour ;
+  date inconnue : gardée et signalée). Clôturées : consultables via « Clôturées », hors compteur.
+- Pertinentes pour le groupe = ouvertes, score de veille scoreOf ≥ 60 et aucun blocage détecté (règle existante ; ni éligibilité ni Go).
+- Clôturent sous 7 jours = ouvertes dont la date limite est dans 0 à 7 jours (heure du Maroc).
+- DCE à récupérer = consultations suivies (regroupées par clé PMMP, plusieurs sociétés = 1) avec au moins un dossier ouvert et aucun
+  fichier DCE dans aucun dossier (dceEtat). Échues / clôturées listées à part, hors compteur.
+
+Recette (base simulée + copie locale en lecture des catalogues live ; ajouts en mémoire seulement) : qa_mpv 43/43 ;
+non-régression : qa_ergo 344/344 · qa_mph 39/39 · qa_b21dec 87/87.

@@ -147,7 +147,8 @@ function mphListe(){const E=mphEtat(),now=Date.now(),k=MPH.prio;let V=null;if(!E
   if(MPN.last!=="ao"&&!MPN.viaMenu){mpnAller({});MPN.sideOuvert=null;MPN.dos=null;}MPN.viaMenu=false;
   if(MPN.dos)mpnFermeDossier();
   if(MPN.demande!=null){const k=MPN.demande;MPN.demande=null;mpnDemande(k);}
-  mphCss();if(MPN.vue==="dept")return mphHome();if(MPN.vue==="prio"&&MPH.prio)return mphListe();if(MPN.vue==="prio")mpnAller({});
+  mphCss();if(MPN.vue==="dept")return mphHome();
+  if(MPN.vue==="bur"&&MPN.bur==="MP-B1.1"&&typeof mpvPage==="function")return mpvPage();   /* mpv-1 : page du bureau B1.1 Veille */if(MPN.vue==="prio"&&MPH.prio)return mphListe();if(MPN.vue==="prio")mpnAller({});
   if(MPN.vue==="dept")return mphHome();MPN.viaMenu=true;return v0();};})();
 /* barre latérale : « Départements » marqué comme rubrique parente quand on est dans Marchés publics (aucune autre modification du shell) */
 (()=>{const s0=sideHtml;sideHtml=function(){const h=s0();return S.dept==="ao"&&!S.soc?h.replace('data-side-tab="departements">','data-side-tab="departements" aria-current="true" class="mph-anc">'):h;};})();

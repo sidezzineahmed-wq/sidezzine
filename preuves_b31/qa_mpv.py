@@ -1,4 +1,4 @@
-"""Recette mpv-1 · bureau B1.1 Veille. Banc qa_b21dec (base simulée locale, écritures tracées dans __writes) + copie locale EN LECTURE
+"""Recette mpv-1/mpv-2 · bureau B1.1 Veille. Banc qa_b21dec (base simulée locale, écritures tracées dans __writes) + copie locale EN LECTURE
 du catalogue live (srv/catalogue*.json). Les seules modifications : base simulée, et ajouts en mémoire de la page de test (S.cat, S.ao)."""
 import os,json,re
 ICI0=os.path.dirname(os.path.abspath(__file__))
@@ -16,13 +16,15 @@ EXP="""()=>{const P=d=>{const p=new Intl.DateTimeFormat('en-US',{timeZone:'Afric
  return{ouv,pour,sept,clos,dce,n:seen.size};}"""
 KP="()=>Object.fromEntries([...document.querySelectorAll('[data-mpv-kpi]')].map(c=>[c.dataset.mpvKpi,c.dataset.mpvN]))"
 NL="()=>+document.getElementById('mpv-lt').innerText.split(' ')[0]"
+def SQ(t):
+    pg.fill("#mpv-q",t);pg.press("#mpv-q","Enter");pg.wait_for_timeout(450)
 with sync_playwright() as p:
     b=p.chromium.launch();ctx,pg,errs=demarrer(b,1440,1000);pg.wait_for_function(WAIT,timeout=30000);ev=lambda js,*a:pg.evaluate(js,*a);W=lambda:ev("()=>window.__writes.slice()");AK=lambda:ev("()=>Object.keys(S.ao).length")
     w0=len(W());k0=AK();ev(B11);pg.wait_for_timeout(600)
     # ===== A. composition et source =====
     T=pg.inner_text(".mpv")
     chk("Veille des marchés" in T and "Repérer les opportunités et récupérer les DCE à temps." in T and ev("()=>[...document.querySelectorAll('.mpv-fil li')].map(l=>l.innerText.trim()).slice(1)")==["Marchés publics","S1 Veille & qualification","B1.1 Veille"] and not re.search(r"PROPOSITION|DONNÉES D'EXEMPLE|AO EX-|Plateforme de veille",T),"titre, sous-titre, fil Marchés publics / S1 / B1.1 ; aucun contenu de maquette")
-    chk(ev("()=>[...document.querySelectorAll('[data-mpv-tab]')].map(t=>[t.innerText,t.getAttribute('role'),t.getAttribute('aria-selected')])")==[["Consultations","tab","true"],["DCE à récupérer","tab","false"],["Suivies","tab","false"]],"onglets Consultations / DCE à récupérer / Suivies")
+    chk(ev("()=>[...document.querySelectorAll('[data-mpv-tab]')].map(t=>[t.innerText.replace(/\s*\(\d+\)$/,''),t.getAttribute('role'),t.getAttribute('aria-selected')])")==[["Consultations","tab","true"],["DCE à récupérer","tab","false"],["Suivies","tab","false"]],"onglets Consultations / DCE à récupérer / Suivies")
     BD=ev("()=>{const d=document.querySelector('details.mpv-band');return{open:d.open,maj:(d.querySelector('[data-mpv-maj]')||{}).innerText||'',fr:(d.querySelector('[data-mpv-frais]')||{dataset:{}}).dataset.mpvFrais,ob:document.querySelector('.mpv-ob').getAttribute('href'),src:d.querySelector('.mpv-src').textContent,ant:!!d.querySelector('[data-mpv-err=anterieurs]'),cur:!!d.querySelector('[data-mpv-err=dernier]'),json:/[{}\\[\\]]/.test(d.querySelector('.mpv-src').textContent)}}")
     ET=json.load(open(os.path.join(SRV,"catalogue_etat.json"),encoding="utf-8"));fin=ET["listing"]["dernier_succes"]["fin"]
     exp_maj=ev("f=>{const P=casaParts(new Date(f));return'Actualisé le '+P.day+'/'+P.month+' à '+P.hour+':'+P.minute}",fin)
@@ -47,12 +49,12 @@ with sync_playwright() as p:
       S.cat.items.push(Object.assign({},src),mk('QA1','qa','QA/1','ACHETEUR QA',j,hm),mk('QA2','qa','QA/2','ACHETEUR QA',j,''),mk('QA3','qa','QA/3','ACHETEUR QA','',''),mk('QA4','qb','QA/3','ACHETEUR QA','2099-01-01','10:00'));catIndex();MPV.bk=null;render();}""")
     X2=ev(EXP);K2=ev(KP)
     chk(int(K2["ouv"])==X["ouv"]+3 and X2["ouv"]==int(K2["ouv"]) and X2["clos"]==X["clos"]+1,f"doublon exact (même organisme:numéro) compté une fois ; même référence + acheteur mais numéros différents comptés séparément ; heure du jour passée (1 min) = clôturée ; date du jour sans heure = ouverte ({K2['ouv']})")
-    pg.fill("#v_q","fictif QA");pg.wait_for_timeout(700)
+    SQ("fictif QA")
     Q=ev("()=>Object.fromEntries([...document.querySelectorAll('[data-mpv-row]')].map(r=>[r.dataset.mpvRow,r.querySelector('.mpv-dt').innerText.replace(/\\n/g,' | ')]))")
     chk({"qa:QA2","qa:QA3","qb:QA4"}<=set(Q) and "qa:QA1" not in Q and "heure non précisée" in Q["qa:QA2"] and "Aujourd'hui" in Q["qa:QA2"] and "Date limite inconnue" in Q["qa:QA3"] and "À vérifier" in Q["qa:QA3"],f"recherche par référence ; dates : heure non précisée, date inconnue explicite {Q}")
-    pg.click('[data-mpv-scope="clos"]');pg.wait_for_timeout(400)
+    pg.click('#mpv-ax-etat-clos');pg.wait_for_timeout(400)
     chk(ev("()=>[...document.querySelectorAll('[data-mpv-row]')].map(r=>r.dataset.mpvRow)")==["qa:QA1"] and "Clôturée" in pg.inner_text('[data-mpv-row="qa:QA1"]'),"filtre « Clôturées » : la consultation dont l'heure est passée y est, seulement là")
-    pg.click('[data-mpv-scope="clos"]');pg.wait_for_timeout(300)
+    pg.click('#mpv-ax-etat-ouv');pg.wait_for_timeout(300)
     ev("()=>{MPV.sel='qa:QA3';render();}");PA=ev("()=>document.querySelector('[data-mpv-panel]').innerText")
     chk("Inconnue (fiche détaillée pas encore lue)" in PA and "Date limite inconnue" in PA and "éligibilité à vérifier en Analyse" in PA and "Composition du DCE à vérifier" in PA,"fiche : estimation / caution / qualification inconnues ≠ 0 ; date inconnue ; pertinence ≠ éligibilité ; composition du DCE à vérifier (aucun inventaire supposé)")
     z=ev("()=>{const e=MPV.base.R.find(e=>e.x.cau===0&&!e.x._ferme);return e?e.k:null}")
@@ -61,9 +63,9 @@ with sync_playwright() as p:
     ev("()=>{S.cat.items.splice(window.__n0);catIndex();MPV.bk=null;S.vf.q='';vfSave();MPV.sel=null;render();}");pg.wait_for_timeout(300)
     # ===== D. recherche, filtres, tri, pages, sélection =====
     e0=ev("()=>{const e=MPV.base.R.filter(e=>!e.x._ferme)[123];return{k:e.k,ref:e.x.ref,mo:e.x.mo}}")
-    pg.fill("#v_q",e0["ref"]);pg.wait_for_timeout(700);chk(e0["k"] in ev("()=>[...document.querySelectorAll('[data-mpv-row]')].map(r=>r.dataset.mpvRow)") and ev("()=>document.activeElement.id")=="v_q","recherche par référence : annonce trouvée, focus conservé")
-    pg.fill("#v_q","");pg.wait_for_timeout(600)
-    pg.click('[data-fpill="ou"]');pg.wait_for_timeout(300);reg=ev("()=>Object.keys(S.cat.regions)[0]")
+    SQ(e0["ref"]);chk(e0["k"] in ev("()=>[...document.querySelectorAll('[data-mpv-row]')].map(r=>r.dataset.mpvRow)") and ev("()=>document.activeElement.id")=="mpv-q","recherche par référence : annonce trouvée, focus conservé")
+    SQ("")
+    reg=ev("()=>Object.keys(S.cat.regions)[0]")
     ev("r=>{S.vf.regs=[r];vfSave();S.vfOpen=false;render();}",reg);pg.wait_for_timeout(300)
     NR=ev("r=>MPV.base.R.filter(e=>!e.x._ferme&&e.x._regs.includes(r)).length",reg);MR=ev("r=>MPV.base.R.filter(e=>!e.x._ferme&&e.x._regs.includes(r)&&e.x._regs.length>1).length",reg)
     chk(ev(NL)==NR,f"filtre Région « {reg} » : {NR} annonces (dont {MR} multi-régions comptées dans chaque région concernée)")
@@ -78,32 +80,31 @@ with sync_playwright() as p:
     chk(ev("k=>[document.querySelector('[data-mpv-panel]').dataset.mpvPanel,document.querySelector('[data-mpv-sel=\"'+k+'\"]').getAttribute('aria-current'),document.activeElement.dataset.mpvSel]",r3)==[r3,"true",r3],"sélection : bonne annonce dans la fiche, ligne marquée, focus conservé sur la ligne (bureau)")
     PM=ev("k=>{const e=MPV.base.by.get(k);return[document.querySelector('[data-mpv-pmmp]').href,'https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseDetailsConsultation&refConsultation='+encodeURIComponent(e.x.r)+'&orgAcronyme='+encodeURIComponent(e.x.o)]}",r3)
     chk(PM[0]==PM[1],"« Voir sur PMMP » : URL réelle de cette consultation (numéro + organisme)")
-    pg.fill("#v_q","zzzz-introuvable");pg.wait_for_timeout(700)
+    SQ("zzzz-introuvable")
     chk(ev("()=>!!document.querySelector('[data-mpv-hors]')&&!!document.querySelector('[data-mpv-vide]')"),"sélection hors des résultats filtrés : conservée et signalée ; liste vide expliquée")
-    pg.fill("#v_q","");pg.wait_for_timeout(700)
+    SQ("")
     chk(ev("()=>[MPV.page,MPV.sel]")[1]==r3,"retour sans recherche : sélection conservée")
     # ===== D2. recherche B1.1 (mpv-1b) : champs visibles seulement, référence exacte par segments =====
     IND="""(q)=>{const tk=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);const Q=tk(q);
       const refm=/[\/\-]/.test(q)&&/\d/.test(q);return MPV.base.R.filter(e=>!e.x._ferme).filter(e=>{const x=e.x,R=tk(x.ref),A=[...R,...tk(x.obj),...tk(x.mo),...(x.lx||[]).flatMap(p=>[...tk(p),...tk(nice(p))])];
         if(refm){for(let i=0;i+Q.length<=R.length;i++)if(Q.every((w,j)=>R[i+j]===w))return true;return false;}
         return Q.every(w=>/^\d+$/.test(w)?A.includes(w):A.some(t=>t.startsWith(w)));}).map(e=>e.k).sort();}"""
-    LST="()=>{const f=S.vf,o=MPV.base.R.filter(e=>!e.x._ferme&&passF(e.x,f,'q')&&mpvQ(e.x,f));return o.map(e=>e.k).sort()}"
-    pg.click('[data-mpv-scope="tout"]');pg.wait_for_timeout(200);ev("()=>{S.vf.suivi='';S.vf.lim='';vfSave();render();}")
-    pg.fill("#v_q","75/CL/2026");pg.wait_for_timeout(700)
+    LST="()=>{const f=S.vf,o=MPV.base.R.filter(e=>mpvM(e,f,null));return o.map(e=>e.k).sort()}"
+    pg.click('#mpv-ax-etat-ouv');pg.wait_for_timeout(200);ev("()=>{S.vf.suivi='';S.vf.pert=false;S.vf.qmode='all';S.vf.lim='';vfSave();render();}")
+    SQ("75/CL/2026")
     E75=ev(IND,"75/CL/2026");L75=ev(LST);refs=ev("()=>[...document.querySelectorAll('[data-mpv-row] .mpv-ref')].map(r=>r.innerText)")
     loose=ev("()=>MPV.base.R.filter(e=>!e.x._ferme&&FACETS.q(e.x,{q:'75/CL/2026',exact:false})).length")
     chk(L75==E75 and ev(NL)==len(E75) and all(re.search(r"(^|[^0-9A-Za-z])75\s*/\s*CL\s*/\s*2026([^0-9A-Za-z]|$)",r,re.I) for r in refs) and not any(("SKTRA" in r or "81300" in r or "TNG" in r) for r in refs),f"« 75/CL/2026 » : {len(E75)} résultat(s), seulement des références contenant exactement 75/CL/2026 {refs} (l'ancienne recherche approchée en donnait {loose})")
-    pg.fill("#v_q","175/CL/2026");pg.wait_for_timeout(700);chk(ev(LST)==ev(IND,"175/CL/2026"),"« 175/CL/2026 » : segments exacts (75/CL/2026 n'y correspond pas)")
+    SQ("175/CL/2026");chk(ev(LST)==ev(IND,"175/CL/2026"),"« 175/CL/2026 » : segments exacts (75/CL/2026 n'y correspond pas)")
     for qq in ("travaux laayoune","fourniture bureau","Laâyoune"):
-        pg.fill("#v_q",qq);pg.wait_for_timeout(700);Lq=ev(LST);Eq=ev(IND,qq)
+        SQ(qq);Lq=ev(LST);Eq=ev(IND,qq)
         chk(Lq==Eq and ev(NL)==len(Eq) and len(Eq)>0,f"« {qq} » : tous les termes (ET) dans référence / objet / acheteur / lieux affichés, accents ignorés : {len(Eq)} résultat(s)")
     hid=ev("()=>{const e=MPV.base.R.find(e=>!e.x._ferme&&e.x.r&&!String(e.x.ref||'').includes(e.x.r)&&!(e.x.obj||'').includes(e.x.r));return e?e.x.r:null}")
     if hid:
-        pg.fill("#v_q",hid);pg.wait_for_timeout(700);chk(ev(LST)==ev(IND,hid),f"numéro PMMP interne non affiché ({hid}) : pas de correspondance cachée")
-    pg.click('[data-fpill="quoi"]');pg.wait_for_timeout(300);pg.fill("#v_q","") if False else None
-    ev("()=>{S.vf.q='travaux laayoune';vfSave();S.vfOpen='quoi';render();}");pg.wait_for_timeout(300)
-    VC=ev("()=>{const b=[...document.querySelectorAll('.fsheet .lmain')].find(x=>x.innerText.trim().startsWith('Travaux'));return b?+b.querySelector('.lnum').innerText:null}")
-    ev("()=>{S.vfOpen=false;render();}");ET=ev("ks=>ks.filter(k=>MPV.base.by.get(k).x.cat==='Travaux').length",ev(IND,"travaux laayoune"));chk(VC==ET,f"volet Activité : compteur « Travaux » = résultats de la même recherche en catégorie Travaux ({VC} = {ET})")
+        SQ(hid);chk(ev(LST)==ev(IND,hid),f"numéro PMMP interne non affiché ({hid}) : pas de correspondance cachée")
+    ev("()=>{S.vf.q='travaux laayoune';vfSave();render();}");pg.click('[data-mpv-qf="cat"]');pg.wait_for_timeout(300)
+    VC=ev("()=>{const b=[...document.querySelectorAll('[data-mpv-o^=\"cats:\"]')].find(x=>x.dataset.mpvO==='cats:Travaux');return b?+b.querySelector('.mpv-on').innerText:null}")
+    pg.click('#mpv-dwa');pg.wait_for_timeout(200);ET=ev("ks=>ks.filter(k=>MPV.base.by.get(k).x.cat==='Travaux').length",ev(IND,"travaux laayoune"));chk(VC==ET,f"tiroir, Catégorie principale : compteur « Travaux » = résultats de la même recherche en catégorie Travaux ({VC} = {ET})")
     ev("()=>{S.vf.q='';vfSave();render();}");pg.wait_for_timeout(300)
     chk(len(W())==w0 and AK()==k0,"sélection, filtres, recherche, tri, pages, onglets : aucune écriture, aucun dossier créé")
     # ===== E. suivre (confirmation explicite) =====

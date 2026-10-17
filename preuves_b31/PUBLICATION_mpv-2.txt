@@ -1,0 +1,12 @@
+mpv-2 · B1.1 Veille : barre de filtres intégrée + tiroir « Tous les filtres »
+Artifact : https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw — version 319 (id 1792280899-14b3), label « B1.1 Veille mpv-2 filtres », sans force.
+Avant publication : lecture live intégrale (read sans path) de 1792251830-5df2 (v318, mpv-1b) ; diff avec corps_mpv1b = 2 lignes de squelette seulement (aucune mise à jour concurrente).
+Diff mpv-1b → mpv-2 : ajout pur de 249 lignes (part_mpv2.js), 0 ligne retirée.
+Après publication : index.html relu, diff 0 avec corps_mpv2 (sha256 a2cccf33766a6deb…) ; 16 fichiers conservés (catalogues, historique, ir, revision) ; capacités/règles db reconduites.
+Recettes ciblées (base simulée + copie en lecture du catalogue live du 17/10) :
+  qa_mpv.py (liste/fiche/DCE/suivi, adaptée à la nouvelle barre) 50/50
+  qa_mpv2.py (filtres) 66/66
+  qa_mph.py (accueil Marchés publics) 39/39
+Écritures : aucune écriture métier ; seule « Enregistrer cette recherche » écrit veille/recherches, sur action explicite (base simulée).
+Désactivés et expliqués : mode de passation (non transmis au catalogue, lien PMMP), type d'acheteur (classification ancienne), type d'annonce (consultations seulement), comparaison de classes entre systèmes de qualification.
+Captures : logs_mpv2/mpv2_*.png (catalogue public PMMP, base simulée ; aucune donnée réelle de QA).

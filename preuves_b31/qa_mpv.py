@@ -82,6 +82,29 @@ with sync_playwright() as p:
     chk(ev("()=>!!document.querySelector('[data-mpv-hors]')&&!!document.querySelector('[data-mpv-vide]')"),"sélection hors des résultats filtrés : conservée et signalée ; liste vide expliquée")
     pg.fill("#v_q","");pg.wait_for_timeout(700)
     chk(ev("()=>[MPV.page,MPV.sel]")[1]==r3,"retour sans recherche : sélection conservée")
+    # ===== D2. recherche B1.1 (mpv-1b) : champs visibles seulement, référence exacte par segments =====
+    IND="""(q)=>{const tk=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);const Q=tk(q);
+      const refm=/[\/\-]/.test(q)&&/\d/.test(q);return MPV.base.R.filter(e=>!e.x._ferme).filter(e=>{const x=e.x,R=tk(x.ref),A=[...R,...tk(x.obj),...tk(x.mo),...(x.lx||[]).flatMap(p=>[...tk(p),...tk(nice(p))])];
+        if(refm){for(let i=0;i+Q.length<=R.length;i++)if(Q.every((w,j)=>R[i+j]===w))return true;return false;}
+        return Q.every(w=>/^\d+$/.test(w)?A.includes(w):A.some(t=>t.startsWith(w)));}).map(e=>e.k).sort();}"""
+    LST="()=>{const f=S.vf,o=MPV.base.R.filter(e=>!e.x._ferme&&passF(e.x,f,'q')&&mpvQ(e.x,f));return o.map(e=>e.k).sort()}"
+    pg.click('[data-mpv-scope="tout"]');pg.wait_for_timeout(200);ev("()=>{S.vf.suivi='';S.vf.lim='';vfSave();render();}")
+    pg.fill("#v_q","75/CL/2026");pg.wait_for_timeout(700)
+    E75=ev(IND,"75/CL/2026");L75=ev(LST);refs=ev("()=>[...document.querySelectorAll('[data-mpv-row] .mpv-ref')].map(r=>r.innerText)")
+    loose=ev("()=>MPV.base.R.filter(e=>!e.x._ferme&&FACETS.q(e.x,{q:'75/CL/2026',exact:false})).length")
+    chk(L75==E75 and ev(NL)==len(E75) and all(re.search(r"(^|[^0-9A-Za-z])75\s*/\s*CL\s*/\s*2026([^0-9A-Za-z]|$)",r,re.I) for r in refs) and not any(("SKTRA" in r or "81300" in r or "TNG" in r) for r in refs),f"« 75/CL/2026 » : {len(E75)} résultat(s), seulement des références contenant exactement 75/CL/2026 {refs} (l'ancienne recherche approchée en donnait {loose})")
+    pg.fill("#v_q","175/CL/2026");pg.wait_for_timeout(700);chk(ev(LST)==ev(IND,"175/CL/2026"),"« 175/CL/2026 » : segments exacts (75/CL/2026 n'y correspond pas)")
+    for qq in ("travaux laayoune","fourniture bureau","Laâyoune"):
+        pg.fill("#v_q",qq);pg.wait_for_timeout(700);Lq=ev(LST);Eq=ev(IND,qq)
+        chk(Lq==Eq and ev(NL)==len(Eq) and len(Eq)>0,f"« {qq} » : tous les termes (ET) dans référence / objet / acheteur / lieux affichés, accents ignorés : {len(Eq)} résultat(s)")
+    hid=ev("()=>{const e=MPV.base.R.find(e=>!e.x._ferme&&e.x.r&&!String(e.x.ref||'').includes(e.x.r)&&!(e.x.obj||'').includes(e.x.r));return e?e.x.r:null}")
+    if hid:
+        pg.fill("#v_q",hid);pg.wait_for_timeout(700);chk(ev(LST)==ev(IND,hid),f"numéro PMMP interne non affiché ({hid}) : pas de correspondance cachée")
+    pg.click('[data-fpill="quoi"]');pg.wait_for_timeout(300);pg.fill("#v_q","") if False else None
+    ev("()=>{S.vf.q='travaux laayoune';vfSave();S.vfOpen='quoi';render();}");pg.wait_for_timeout(300)
+    VC=ev("()=>{const b=[...document.querySelectorAll('.fsheet .lmain')].find(x=>x.innerText.trim().startsWith('Travaux'));return b?+b.querySelector('.lnum').innerText:null}")
+    ev("()=>{S.vfOpen=false;render();}");ET=ev("ks=>ks.filter(k=>MPV.base.by.get(k).x.cat==='Travaux').length",ev(IND,"travaux laayoune"));chk(VC==ET,f"volet Activité : compteur « Travaux » = résultats de la même recherche en catégorie Travaux ({VC} = {ET})")
+    ev("()=>{S.vf.q='';vfSave();render();}");pg.wait_for_timeout(300)
     chk(len(W())==w0 and AK()==k0,"sélection, filtres, recherche, tri, pages, onglets : aucune écriture, aucun dossier créé")
     # ===== E. suivre (confirmation explicite) =====
     nf=ev("()=>{const fm=followedMap();const e=MPV.base.R.find(e=>!e.x._ferme&&!fm[e.x.r+'/'+e.x.o]&&!S.ao['pmmp-'+e.x.r]);return e.k}")

@@ -1,0 +1,12 @@
+mpv-1b · Recherche du bureau B1.1 limitée aux champs visibles (correctif ciblé après QA réelle)
+Constat QA : « 75/CL/2026 » renvoyait 18 annonces (145/2026/SKTRA, AOOSM14/2026/81300, 89/INV/TNG/2026…). Cause : la recherche générique
+FACETS.q découpe en mots puis cherche chaque morceau comme sous-chaîne dans un texte incluant des champs non affichés (numéro PMMP, entité,
+domaines, pays). Correctif (B1.1 seulement ; FACETS.q et la recherche hors B1.1 inchangées) : mpvQ sur référence, objet, acheteur, lieux
+affichés, normalisation normV ; saisie de type référence (/ ou - et chiffre) = suite exacte de segments de la référence ; sinon tous les
+termes (ET), début de mot pour le texte, nombre exact pour les nombres ; volets de filtres comptés avec la même recherche.
+Base live lue intégralement : version 1792251494-055a (mpv-1, sha256 3bdc668c…, 10 736 lignes) = base locale (hors 2 lignes de fin du squelette).
+Version publiée : 318 · id 1792251830-5df2 · index 1 735 865 octets, sha256 f31a7bf8ad670ee17fb6cf6980aa65b625f93030f03a57fb21faab7668d17c71 ;
+index = squelette + corps (diff 0) ; 16 fichiers et catalogues conservés ; capacités et partage inchangés ; sans force ni republication ancienne.
+Recette ciblée : qa_mpv 50/50 (dont « 75/CL/2026 » → 1 résultat, la référence exacte ; « 175/CL/2026 » segments exacts ; « travaux laayoune »,
+« fourniture bureau », « Laâyoune » = recalcul indépendant ; numéro PMMP interne non trouvé ; compteurs du volet Activité alignés).
+Compteur DCE : 17 en réel contre 18 sur la base simulée (dossiers fictifs) ; aucune valeur forcée.

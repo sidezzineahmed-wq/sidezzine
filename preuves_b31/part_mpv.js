@@ -6,7 +6,7 @@
    dceDemander (demande enregistrée dans le dossier). Sélection, filtres, tri, pages, onglets : affichage seulement, aucune écriture.
    Écritures possibles UNIQUEMENT après confirmation explicite : « Suivre » (suivre) et « Demander le DCE » (dceDemander, puis relecture
    de la base avant d'afficher la demande comme enregistrée). */
-const MPV={v:"mpv-1",tab:"cons",scope:"tout",page:1,per:10,sel:null,mob:"list",conf:null,dem:{},suiv:{},lk:null,outil:null,base:null,bk:null};
+const MPV={v:"mpv-1b",tab:"cons",scope:"tout",page:1,per:10,sel:null,mob:"list",conf:null,dem:{},suiv:{},lk:null,outil:null,base:null,bk:null};
 try{if(!localStorage.getItem("eaios.vf.b11")){S.vf.sort="lim";vfSave();localStorage.setItem("eaios.vf.b11","1");}}catch(e){}
 const MPV_P={clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',warn:'<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18v.5"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
  doc:'<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>',people:'<circle cx="8.5" cy="8" r="3"/><circle cx="16.5" cy="8" r="3"/><path d="M3 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M13 14.5c1-.4 2.2-.5 3.5-.5 3 0 5 2 5 5"/>',
@@ -131,12 +131,24 @@ function mpvPanel(B,dm,inList){const e=MPV.sel&&B&&B.by.get(MPV.sel);if(!e)retur
   const A=S.ach&&ACHBY[achKey(x.mo)];
   h+=`<details class="mpv-hs"><summary>${mpvI("hist")}Historique et source${mpvI("chev","mpv-car")}</summary><div><p>${vProvDetail(x)}</p><p class="mpv-mut">Publiée le ${x.pub?esc(fmtIso(x.pub)):"date inconnue"} · catalogue de la version ouverte.</p>${A?`<p class="mpv-mut">${A.n} marché${A.n>1?"s":""} attribué${A.n>1?"s":""} en 24 mois par cet acheteur.</p><button type="button" class="mpv-lk" data-act="${act(()=>{S.achK=A.k;S.rub.ao="acheteurs";rubSave();render();window.scrollTo(0,0);})}">Voir la fiche de l'acheteur</button>`:`<p class="mpv-mut">${S.ach?"Aucun marché attribué par cet acheteur dans l'historique collecté.":"Historique des attributions non disponible."}</p>`}</div></details>`;
   return h+`</aside>`;}
+/* mpv-1b : recherche du bureau B1.1 sur les champs VISIBLES seulement (référence, objet, acheteur, lieux) ; jamais numéro PMMP interne,
+   entité, domaines, montants, URL. Normalisation existante normV (accents, casse, ponctuation). Saisie de type référence (contient / ou -
+   et un chiffre) : suite exacte de segments de la référence affichée (75/CL/2026 ≠ 175/CL/2026). Sinon : tous les termes (ET), début de mot
+   pour le texte, nombre entier exact pour les nombres. Expression exacte (option existante) : suite de mots contiguë. */
+const mpvTk=s=>normV(s).toLowerCase().split(/\s+/).filter(Boolean);
+function mpvTok(x){if(x._mpvT)return x._mpvT;const ref=mpvTk(x.ref||""),lx=(x.lx||[]).flatMap(p=>[...mpvTk(p),...mpvTk(nice(p))]);
+  const vis=[ref,mpvTk(x.obj||""),mpvTk(x.mo||""),lx];return x._mpvT={ref,vis,all:vis.flat()};}
+const mpvSeq=(T,Q)=>{if(!Q.length)return true;for(let i=0;i+Q.length<=T.length;i++){let ok=true;for(let j=0;j<Q.length;j++)if(T[i+j]!==Q[j]){ok=false;break;}if(ok)return true;}return false;};
+function mpvQ(x,f){const raw=String(f.q||"").trim();if(!raw)return true;const Q=mpvTk(raw);if(!Q.length)return true;const T=mpvTok(x);
+  if(/[\/\-]/.test(raw)&&/\d/.test(raw))return mpvSeq(T.ref,Q);
+  if(f.exact)return T.vis.some(v=>mpvSeq(v,Q));
+  return Q.every(q=>/^\d+$/.test(q)?T.all.includes(q):T.all.some(t=>t.startsWith(q)));}
 function mpvSortFn(k){const T=e=>e.x._inst!=null?e.x._inst:e.x.lim?Date.parse(e.x.lim+"T23:59:00Z"):Infinity;
   return{lim:(a,b)=>T(a)-T(b)||b.sc.s-a.sc.s,score:(a,b)=>b.sc.s-a.sc.s||T(a)-T(b),pub:(a,b)=>(b.x.pub||"").localeCompare(a.x.pub||""),estd:(a,b)=>(b.x.est||0)-(a.x.est||0),esta:(a,b)=>(a.x.est||9e15)-(b.x.est||9e15)}[k]||((a,b)=>T(a)-T(b));}
 function mpvCons(B,dm){const f=S.vf;S._fm=followedMap();
   if(!B)return`<div class="mpv-vide" data-mpv-etat="${S.catState}">${S.catState==="absent"?"Catalogue PMMP indisponible dans cette version : liste des consultations non affichée. Les consultations suivies restent dans l'onglet « Suivies ».":"Chargement du catalogue national…"}</div>`;
   const sc=MPV.scope,pool=B.R.filter(e=>sc==="clos"?e.x._ferme:!e.x._ferme&&(sc!=="pour"||(!e.sc.block&&e.sc.s>=60)));
-  const list=pool.filter(e=>passF(e.x,f,null)).sort(mpvSortFn(f.sort)),n=list.length,lk=JSON.stringify([f,sc]);if(lk!==MPV.lk){if(MPV.lk!==null)MPV.page=1;MPV.lk=lk;}
+  const list=pool.filter(e=>passF(e.x,f,"q")&&mpvQ(e.x,f)).sort(mpvSortFn(f.sort)),n=list.length,lk=JSON.stringify([f,sc]);if(lk!==MPV.lk){if(MPV.lk!==null)MPV.page=1;MPV.lk=lk;}
   const pages=Math.max(1,Math.ceil(n/MPV.per));MPV.page=Math.min(Math.max(1,MPV.page),pages);const i0=(MPV.page-1)*MPV.per,rows=list.slice(i0,i0+MPV.per);
   if(!MPV.sel||!B.by.get(MPV.sel))MPV.sel=rows[0]?rows[0].k:null;const inList=list.some(e=>e.k===MPV.sel);
   const car=mpvI("chev","mpv-car"),act0=vfActive(),secVal=k=>{const ks=SECKEYS[k],on=act0.filter(([key])=>ks.includes(key.split(":")[0]));return on.length?(on.length===1?on[0][1]:on[0][1]+" +"+(on.length-1)):null;};
@@ -146,7 +158,7 @@ function mpvCons(B,dm){const f=S.vf;S._fm=followedMap();
     <label class="mpv-sort"><span>Trier par :</span><select id="mpv-sort" data-mpv-sort="1">${[["lim","Échéance la plus proche"],["score","Pertinence pour le groupe"],["pub","Plus récentes"],["estd","Estimation décroissante"],["esta","Estimation croissante"]].map(([v,l])=>`<option value="${v}"${f.sort===v?" selected":""}>${esc(l)}</option>`).join("")}</select></label></div>`;
   h+=`<div class="mpv-chips" role="group" aria-label="Périmètre">${[["tout","Toutes les consultations"],["pour","Pertinentes pour le groupe"]].map(([k,l])=>`<button type="button" class="mpv-chip" data-mpv-scope="${k}" aria-pressed="${sc===k}" data-act="${act(()=>{MPV.scope=k;S.vf.view=k;vfSave();render();})}">${esc(l)}</button>`).join("")}<button type="button" class="mpv-chip" data-mpv-nonsuivi="1" aria-pressed="${f.suivi==="non"}" data-act="${act(()=>{S.vf.suivi=f.suivi==="non"?"":"non";vfSave();render();})}">Non suivies</button><button type="button" class="mpv-chip" data-mpv-scope="clos" aria-pressed="${sc==="clos"}" data-act="${act(()=>{MPV.scope=sc==="clos"?"tout":"clos";render();})}">Clôturées</button></div>`;
   if(act0.length)h+=`<div class="mpv-act" role="group" aria-label="Filtres actifs">${act0.map(([key,lab])=>`<button type="button" class="mpv-x" data-vfx="${esc(key)}" aria-label="Retirer le filtre ${esc(lab)}" data-act="${act(()=>vfClear(key))}">${esc(lab)}<span aria-hidden="true">×</span></button>`).join("")}<button type="button" class="mpv-lk" data-act="${act(()=>{S.vf={...VF0,view:f.view,sort:f.sort};vfSave();render();})}">Réinitialiser</button></div>`;
-  if(S.vfOpen==="mes")h+=savedSheet();else if(S.vfOpen&&S.vfOpen!=="tri")h+=pickerSheet(S.vfOpen,pool.map(e=>e.x),n);
+  if(S.vfOpen==="mes")h+=savedSheet();else if(S.vfOpen&&S.vfOpen!=="tri"){const q0=f.q;f.q="";try{h+=pickerSheet(S.vfOpen,pool.filter(e=>mpvQ(e.x,{q:q0,exact:f.exact})).map(e=>e.x),n).replace("La recherche porte sur la référence, l'objet, l'acheteur, l'entité, les lieux et les domaines.","Dans ce bureau, la recherche porte sur la référence, l'objet, l'acheteur et les lieux affichés ; une référence (avec / ou -) doit correspondre exactement.").replace("Saisissez les mots-clés dans le champ de recherche au-dessus des filtres.","Saisissez les mots-clés dans le champ de recherche au-dessus des filtres.");}finally{f.q=q0;}}   /* compteurs des volets = même recherche que la liste */
   const scl=sc==="clos"?"clôturées":sc==="pour"?"pertinentes pour le groupe":"ouvertes";
   h+=`<div class="mpv-grid" data-mob="${MPV.mob}"><section class="mpv-lst" aria-labelledby="mpv-lt"><div class="mpv-lh"><h2 id="mpv-lt" tabindex="-1">${n} consultation${n>1?"s":""} <small>${esc(scl)}${f.suivi==="non"?", non suivies":""}</small></h2><span class="mpv-mut" data-mpv-rng="${n?i0+1:0}-${i0+rows.length}/${n}">${n?(i0+1)+" – "+(i0+rows.length)+" sur "+n:"0 résultat"}</span></div>`;
   h+=n?`<ul class="mpv-rows">${rows.map(e=>mpvRow(e,dm,e.k===MPV.sel)).join("")}</ul>`:`<p class="mpv-vide" data-mpv-vide="1">Aucune consultation ne correspond${act0.length?" : retirez un filtre":""}${sc==="pour"?" ou passez sur « Toutes les consultations »":""}.</p>`;

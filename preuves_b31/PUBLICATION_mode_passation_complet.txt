@@ -28,3 +28,8 @@ ANOMALIE « EAIOS figé depuis le 17/10 06:18 » : CORRIGÉE
 
 TESTS : kit ingestion 26/26, kit 29/29 ; veille_enrichissement 14 + 3 (portail fictif : reprise, statuts, 403, 2 connexions) ;
 page allégée : qa_mpv3 31/31 (données finales), qa_mph 39/39, qa_b21dec 87/87, qa_mpv 50/50, qa_mpv2 66/66.
+
+PERSISTANCE VÉRIFIÉE PAR LE PASSAGE HORAIRE (sans intervention)
+- Passage 2026-10-18T04:14 UTC : EAIOS a9ef -> 1792297248-104d publié par la tâche horaire, erreurs [], vérification « index identique,
+  4 SHA-256 conformes ». Catalogue sha 525ac276… : mode 4 461 / 4 461 (100 %) — 4 214 sur offre de prix, 247 rabais/majoration ;
+  sources collecteur 2 642 / complément 1 819 ; classification 3 468 / 981 / 12 ; 0 irréductible.

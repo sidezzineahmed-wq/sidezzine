@@ -114,6 +114,14 @@ with sync_playwright() as p:
     ev("k=>{MPV.sel=k.slice(5);render();}",kV);pv=ev("()=>(document.querySelector('[data-mpv-panel] [data-mpv-vis]')||{dataset:{}}).dataset.mpvVis")
     ev("()=>{delete S.enr.fiches;render();}")
     chk(a0 and not a1 and a2 is True and pv=="non_lue",f"visite d'une ancienne lecture : exclue de « non indiquée », incluse seulement sur demande comme inconnue ; fiche « {pv} »")
+    # ===== F4. Disponibilité : un compteur par champ, visite non lue sur sa propre ligne =====
+    kV2=sorted(k for k in OUV if X[k]["det"] and not (X[k]["lots"] or X[k]["allot"]))[:3]
+    ev("ks=>{S.enr.fiches={inaccessibles:{},visite_non_lue:ks};render();}",kV2)
+    VF();pg.click("#mpv-tf");pg.wait_for_timeout(300);pg.click("#mpv-dn-dispo");pg.wait_for_timeout(200)
+    DI=ev("()=>Object.fromEntries([...document.querySelectorAll('[data-mpv-cov^=\"u-\"]')].map(l=>[l.dataset.mpvCov.slice(2),[+l.dataset.mpvN,l.innerText]]))")
+    old=ev("()=>document.getElementById('mpv-s-dispo').innerText.includes('Sans qualification / agrément / visite connus')");pg.click("#mpv-dwa");pg.wait_for_timeout(200)
+    nvis=ev("()=>MPV.base.R.filter(e=>MPV_UNK.vis(e.x)).length");ev("()=>{delete S.enr.fiches;render();}")
+    chk(sorted(DI)==sorted(["qual","ag","vis","tp","mts","cau","doms"]) and not old and DI["vis"][0]==nvis and DI["vis"][0]>=3 and "ancienne lecture" in DI["vis"][1],f"Disponibilité : un compteur par champ ; visite inconnue {DI['vis'][0]} sur sa propre ligne ({DI['vis'][1][:120]}) ; plus de libellé fusionné")
     # ===== G. puces, brouillon, recherche enregistrée =====
     VF(mts=["1-5"],tp="oui");CH=ev("()=>[...document.querySelectorAll('.mpv-r4 .mpv-x')].map(x=>x.innerText)");pg.click('.mpv-r4 [data-vfx="tp"]');pg.wait_for_timeout(300)
     chk(len(CH)==2 and ev("()=>[S.vf.tp,S.vf.mts.length]")==["",1] and kA in GOT(),"puces : retirer « TPE » rend l'annonce A (lot 1)")

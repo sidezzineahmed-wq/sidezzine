@@ -52,9 +52,17 @@ mpvDrawer=function(B){const d=MPV.dr,ks=mpvLotOn(d).filter(k=>k!=="qh"),sw=[];
   let h;try{h=_mpvDrawer4(B);}finally{sw.forEach(([x,q])=>{x.q=q;});}
   const L=mpvLotsAll();
   h=h.replace(/(<section id="mpv-s-cond"[\s\S]*?<\/div>)/,`$1<p class="mpv-mut" data-mpv-lotrule="1">Consultations alloties : estimation, caution, TPE / PME, qualification, agrément et visite sont lus <b>par lot</b> sur PMMP. Ces critères sont vérifiés sur un <b>même lot</b> (ex. estimation et réservation TPE du même lot) ; les critères généraux (lieu, catégorie, dates…) portent sur l'annonce.</p>`);
+  h=h.replace(/<li>Sans qualification \/ agrément \/ visite connus :[\s\S]*?<\/li>/,()=>mpvDispoLi(B.R));
   {const V=(S.enr&&S.enr.fiches&&S.enr.fiches.visite_non_lue)||[];if(V.length)h=h.replace(/(<section id="mpv-s-dispo"[\s\S]*?<ul class="mpv-dl2">)/,`$1<li data-mpv-cov="visnl"><b>Visite des lieux</b> : ${V.length} fiche${V.length>1?"s":""} lue${V.length>1?"s":""} par une ancienne version du collecteur (bloc visite non lu) : visite inconnue, jamais « non indiquée », jusqu'à la relecture.</li>`);}
   if(L){const c=L.couverture||{};h=h.replace(/(<section id="mpv-s-dispo"[\s\S]*?<ul class="mpv-dl2">)/,`$1<li data-mpv-cov="lots"><b>Détail par lot</b> : ${c.lues||0} consultation${(c.lues||0)>1?"s":""} alloties lues entièrement (${c.lots||0} lots)${c.partielles?` · ${c.partielles} lue${c.partielles>1?"s":""} partiellement`:""}${c.inaccessibles?` · ${c.inaccessibles} popup${c.inaccessibles>1?"s":""} inaccessible${c.inaccessibles>1?"s":""}`:""} · pas encore lues : ${c.non_lues||0}, sur ${c.alloties||0} alloties.</li>`);}
   return h;};
+/* Disponibilité : un compteur PAR CHAMP, chaque inconnu avec son motif (même moteur que les filtres) */
+const MPV_DISPO=[["qual","Qualification"],["ag","Agrément"],["vis","Visite des lieux"],["tp","Réservation TPE / PME"],["mts","Estimation"],["cau","Caution provisoire"],["doms","Domaine d'activité"]];
+function mpvDispoMotif(k,x){if(!x.det)return"fiche non lue";if(mpvAlloti(x)&&MPV_LK.includes(k)){const r=mpvLotsRec(x);if(!r)return"détail par lot non lu";
+    if(r.statut!=="lu")return"lots non lus (lecture partielle)";if(k==="tp"||k==="mts")return"non publiée sur PMMP pour un lot (bloc sans valeur)";}
+  if(k==="vis"&&mpvVisNL(x))return"non lue (ancienne lecture du collecteur, relecture en cours)";if(k==="tp"||k==="mts"||k==="cau")return"non publiée sur la fiche PMMP";return"non renseignée";}
+function mpvDispoLi(R){return MPV_DISPO.map(([k,l])=>{const m=new Map();let n=0;R.forEach(e=>{if(MPV_UNK[k](e.x)){n++;const w=mpvDispoMotif(k,e.x);m.set(w,(m.get(w)||0)+1);}});
+  return`<li data-mpv-cov="u-${k}" data-mpv-n="${n}"><b>${esc(l)}</b> : ${n?`${n} consultation${n>1?"s":""} sans valeur connue (${[...m.entries()].map(([w,c])=>esc(w)+" : "+c).join(" ; ")})`:"lue pour toutes les consultations (valeur publiée, ou non indiquée sur PMMP)"}.</li>`;}).join("");}
 /* liste : lots correspondants */
 const _mpvRow4=mpvRow;
 mpvRow=function(e,dm,sel){let h=_mpvRow4(e,dm,sel);const x=e.x;if(!mpvAlloti(x))return h;const f=S.vf,ks=mpvLotOn(f),st=mpvLotSt(x);let t="";

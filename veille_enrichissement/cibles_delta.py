@@ -47,8 +47,9 @@ def main(argv=None):
             out[k] = {**base, "besoin": "lots", "allot": allot}
             n["lots"] += 1
             continue
-        if not c.get("fiche") and f and "q_txt" not in (f.get("champs") or {}) and any(
-                not (r.get("s") and r.get("q")) for r in (f.get("champs") or {}).get("q") or []):
+        rec = f if f and (not c.get("fiche") or (f.get("lu_le") or "") > c["fiche"]["lu_le"]) else None  # version gardée à l'intégration
+        if rec and "q_txt" not in (rec.get("champs") or {}) and any(
+                not (r.get("s") and r.get("q")) for r in (rec.get("champs") or {}).get("q") or []):
             out[k] = {**base, "besoin": "fiche", "prio": 0, "motif": "qualification potentiellement tronquée (ancien parser)"}
             n["qualification"] += 1
     json.dump(out, open(a.sortie, "w", encoding="utf-8"), ensure_ascii=False)

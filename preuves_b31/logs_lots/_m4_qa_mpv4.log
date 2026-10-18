@@ -1,0 +1,23 @@
+OK estimation 1–5 M ET TPE : l'annonce 09/2026 (lot 1 = 3 M non réservé, lot 2 = 0,5 M réservé) N'EST PAS retenue ; 03/2026/CTMA retenue par ses lots 1 et 2, comptée une fois ; 108 annonces = recalcul Python
+OK estimation 1–5 M seule : annonce A retenue par son lot 1
+OK TPE seule : annonce A retenue par son lot 2
+OK qualification « Equipement » (lot 1) ET TPE (lot 2) : pas de correspondance fictive
+OK qualification seule : lot 1
+OK popup partiel (AO/CB/18/2026), non lu (AO/CB/20/2026), référence discordante (85/2026) : inconnus, retenus seulement sur demande et signalés (1517 sur 1625) ; sans inclusion 108
+OK catégorie (critère d'annonce) ET critères par lot : annonce B exclue par sa catégorie
+OK OU dans l'axe estimation (moins de 1 M OU 1–5 M) ET TPE : annonce A retenue par son lot 2 seulement
+OK lot à estimation 0 : « Non publiée ou 0 (non exploitable) », jamais compté comme montant
+OK tiroir sous « TPE » : compte « 1 à 5 M » = 108 (même lot, recalcul 108) ; règle par lot expliquée ; couverture : Détail par lot : 4 consultations alloties lues entièrement (7 lots) · 1 lue partiellement · pas encore lues : 
+OK fiche A : 2 lots détaillés, lot 2 signalé comme correspondant, valeurs « - » = non indiqué, provenance datée ; ligne : « Lot 2 correspondant »
+OK fiche : estimation 0 non exploitable, popup non lu = inconnu, lecture partielle signalée
+OK fiche inaccessible après essais ≠ pas encore lue (inaccessible / obsolete)
+OK secteur publié sans code (Laboratoires) filtrable par son libellé, Y / Y1 gardés ; classe Laboratoires du lot 1 ET qualification Y1 du lot 2 : pas de correspondance croisée
+OK puces : retirer « TPE » rend l'annonce A (lot 1)
+OK brouillon : compte avec « TPE » recalculé par lot, Annuler n'applique rien
+OK recherche enregistrée puis rechargée : même règle par lot
+OK données par lot absentes : aucune annonce allotie retenue sur un critère par lot
+OK aucune écriture métier, aucun dossier créé
+OK aucune erreur JavaScript []
+OK 390 px light : détail par lot sans débordement {'doc': 0, 'lots': 2}
+OK 1440 px dark : détail par lot sans débordement {'doc': 0, 'lots': 2}
+22 / 22

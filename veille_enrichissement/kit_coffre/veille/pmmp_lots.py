@@ -122,6 +122,8 @@ def lire_lots(h, masquer=True):
                 continue
             if k == "q":
                 v = _liste(_span(s, pfx, span))
+                if v:
+                    L["q_txt"] = v  # lignes publiées, gardées pour rejouer une correction du parser sans requête
                 v = [lire_qualification(x) for x in v] if v else None
             elif k == "ag":
                 v = _liste(_span(s, pfx, span)) or None

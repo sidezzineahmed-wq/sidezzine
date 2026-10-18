@@ -13,6 +13,8 @@ import unittest
 ICI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(ICI))
 import complement_fiches as CF  # noqa: E402
+import integrer_fiches as IF  # noqa: E402
+import integrer_fiches as IF  # noqa: E402
 
 KIT = os.environ.get("KIT_VEILLE", "")
 FX = os.path.join(KIT, "tests", "fixtures") if KIT else ""
@@ -113,6 +115,51 @@ class T(unittest.TestCase):
         VUS.clear()
         self.assertEqual(self.run_cf(cib), 0)
         self.assertEqual(VUS, [], "reprise : rien relu")
+
+    def test_integration_fusion_reparse_sans_requete(self):
+        cib = {"pmmp:o8p:1": {"ref": "SK04/2026/CFR", "besoin": "fiche"}, "pmmp:o4d:al2": {"ref": "14/2026/81800", "besoin": "lots", "allot": "2 Lots"},
+               "pmmp:o4d:al3": {"ref": "14/2026/81800", "besoin": "fiche"}}
+        self.assertEqual(self.run_cf(cib), 0)
+        VUS.clear()
+        coffre = {"pmmp:o4d:al2": {"id": "pmmp:o4d:al2", "lu_le": "2026-10-17T00:00:00+00:00", "run": "r", "sha256_html_tronque": "x", "champs": {"ref": "14/2026/81800", "allot": "2 Lots"}},
+                  "pmmp:o4d:al3": {"id": "pmmp:o4d:al3", "lu_le": "2099-01-01T00:00:00+00:00", "run": "futur", "sha256_html_tronque": "y", "champs": {"ref": "14/2026/81800"}}}
+        pf, out, comp = (os.path.join(self.d, n) for n in ("f.json", "o.json", "c.json"))
+        json.dump(coffre, open(pf, "w"))
+        self.assertEqual(IF.main(["--fiches", pf, "--dossier", self.d, "--kit", KIT, "--sortie", out, "--complement", comp]), 0)
+        F = json.load(open(out))
+        self.assertEqual(VUS, [], "intégration et re-analyse : aucune requête")
+        self.assertEqual(F["pmmp:o8p:1"]["champs"]["est"], 21446884.14)
+        self.assertEqual(F["pmmp:o4d:al2"]["lu_le"], "2026-10-17T00:00:00+00:00", "popup seul : la fiche du coffre est gardée")
+        self.assertEqual(F["pmmp:o4d:al2"]["lots"]["n"], 2)
+        self.assertEqual(F["pmmp:o4d:al3"]["run"], "futur", "une lecture du coffre plus récente n'est jamais remplacée")
+        self.assertEqual(F["pmmp:o4d:al3"]["lots"]["statut"], "lu", "mais le popup lu plus récemment y est rattaché")
+        self.assertEqual(json.load(open(comp))["fiches_inaccessibles"], {})
+
+    def test_integration_fusion_reparse_sans_perte(self):
+        cib = {"pmmp:o8p:1": {"ref": "SK04/2026/CFR", "besoin": "fiche"}, "pmmp:o4d:al2": {"ref": "14/2026/81800", "besoin": "lots", "allot": "2 Lots"},
+               "pmmp:o4d:al3": {"ref": "14/2026/81800", "besoin": "fiche"}}
+        self.assertEqual(self.run_cf(cib), 0)
+        VUS.clear()
+        coffre = {"pmmp:o4d:al2": {"id": "pmmp:o4d:al2", "lu_le": "2026-10-17T00:00:00+00:00", "run": "r", "sha256_html_tronque": "x", "champs": {"ref": "14/2026/81800", "allot": "2 Lots"}},
+                  "pmmp:o4d:al3": {"id": "pmmp:o4d:al3", "lu_le": "2099-01-01T00:00:00+00:00", "run": "futur", "sha256_html_tronque": "y", "champs": {"ref": "14/2026/81800"}}}
+        pf, out, comp = (os.path.join(self.d, n) for n in ("f.json", "o.json", "c.json"))
+        json.dump(coffre, open(pf, "w"))
+        # cache : ancienne analyse (parser précédent) d'une qualification que la re-analyse doit retrouver sans perte
+        pc = os.path.join(self.d, "cache", "o8p_1.json")
+        rc = json.load(open(pc))
+        rc["fiche"]["champs"]["q"] = [{"m": "Equipement", "s": "B.3", "sl": None, "q": None, "ql": None, "c": "2"}]
+        json.dump(rc, open(pc, "w"))
+        self.assertEqual(IF.main(["--fiches", pf, "--dossier", self.d, "--kit", KIT, "--sortie", out, "--complement", comp]), 0)
+        F = json.load(open(out))
+        self.assertEqual(VUS, [], "intégration et re-analyse : aucune requête")
+        self.assertEqual(len(F["pmmp:o8p:1"]["champs"]["q"]), 3)
+        self.assertEqual(len(F["pmmp:o8p:1"]["champs"]["q_txt"]), 3, "lignes publiées gardées")
+        self.assertEqual(F["pmmp:o4d:al2"]["lu_le"], "2026-10-17T00:00:00+00:00", "popup seul : la fiche du coffre est gardée")
+        self.assertEqual(F["pmmp:o4d:al2"]["lots"]["n"], 2)
+        self.assertEqual(F["pmmp:o4d:al3"]["run"], "futur", "une lecture du coffre plus récente n'est jamais remplacée")
+        self.assertEqual(F["pmmp:o4d:al3"]["lots"]["statut"], "lu", "mais le popup lu plus récemment y est rattaché")
+        self.assertTrue(IF.q_conserve([{"m": "Equipement", "s": "Y1", "c": "3"}], [{"m": "Equipement", "s": "Y", "q": "Y1", "c": "3"}]))
+        self.assertFalse(IF.q_conserve([{"m": "Laboratoires", "c": "4", "sl": "CONTROLE"}], [{"m": "Laboratoires", "c": "4"}]), "perte détectée")
 
     def test_identite_popup_et_conservation_fiche(self):
         cib = {"pmmp:o4d:faux": {"ref": "x", "besoin": "fiche"}, "pmmp:o4d:500lots": {"ref": "x", "besoin": "fiche"}}

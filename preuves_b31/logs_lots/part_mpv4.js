@@ -15,11 +15,16 @@ const mpvLotsAll=()=>(S.enr&&S.enr.lots)||null;
 const mpvAlloti=x=>!!(x.lots||x.allot);
 function mpvLotsRec(x){const L=mpvLotsAll(),r=L&&(L.par_id||{})["pmmp:"+x.o+":"+x.r];return r&&mpvNref(r.ref)===mpvNref(x.ref)&&(r.lots||[]).length?r:null;}
 function mpvLotSt(x){if(!mpvAlloti(x))return"non_alloti";const r=mpvLotsRec(x);if(r)return r.statut==="lu"?"lu":"partiel";const L=mpvLotsAll();if(L&&(L.inaccessibles||{})["pmmp:"+x.o+":"+x.r])return"inaccessible";return"non_lu";}
+/* secteur / qualification publiés SANS code (ex. Laboratoires « CONTROLE DE QUALITE ») : le libellé publié sert d'identifiant
+   d'affichage et de filtre (marqué _st/_qt) ; aucun code n'est inventé, le système reste distinct (aucune comparaison inter-systèmes). */
+function mpvQN(q){(q||[]).forEach(r=>{if(r&&r.s==null&&r.sl){r.s=r.sl;r.sl=null;r._st=1;}if(r&&r.q==null&&r.ql){r.q=r.ql;r.ql=null;r._qt=1;}});return q;}
+const mpvQNcat=()=>((S.cat&&S.cat.items)||[]).forEach(x=>mpvQN(x.q));
+const _catAppliquer4=catAppliquer;catAppliquer=function(L){_catAppliquer4(L);mpvQNcat();softRender();};mpvQNcat();
 /* unités d'évaluation (mémoïsées par annonce et version des données) */
 let mpvUC=new WeakMap(),mpvUV=null;
 function mpvUnits(x){const L=mpvLotsAll();if(mpvUV!==L){mpvUC=new WeakMap();mpvUV=L;}let U=mpvUC.get(x);if(U)return U;
   if(!mpvAlloti(x))U=[{_u:1,_lot:null,det:x.det,est:x.est,cau:x.cau,tp:x.tp,q:x.q||[],ag:x.ag,vis:x.vis}];
-  else{const r=mpvLotsRec(x);U=r?r.lots.map(l=>({_u:1,_lot:l.num,det:true,est:l.est==null?null:l.est,cau:l.cau==null?null:l.cau,tp:l.tp==null?null:l.tp,q:l.q||[],ag:(l.ag||[]).length?l.ag.join(" ; "):null,vis:l.vis||null})):[];
+  else{const r=mpvLotsRec(x);U=r?r.lots.map(l=>({_u:1,_lot:l.num,det:true,est:l.est==null?null:l.est,cau:l.cau==null?null:l.cau,tp:l.tp==null?null:l.tp,q:mpvQN(l.q||[]),ag:(l.ag||[]).length?l.ag.join(" ; "):null,vis:l.vis||null})):[];
     if(!r||r.statut!=="lu")U.push({_u:1,_lot:null,_inc:1,det:false,est:null,cau:null,tp:null,q:[],ag:null,vis:null});}
   mpvUC.set(x,U);return U;}
 /* moteur : critère d'unité inchangé (fonctions mpv-2) ; une annonce = ∃ unité satisfaisant tous les critères par lot actifs */

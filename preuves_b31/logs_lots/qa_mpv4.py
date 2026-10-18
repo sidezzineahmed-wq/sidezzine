@@ -95,6 +95,17 @@ with sync_playwright() as p:
         pv=ev("()=>{const d=document.createElement('div');d.innerHTML=vProvDetail(MPV.base.by.get(MPV.sel).x);return d.firstChild.dataset.vePro||d.firstChild.dataset.veProv}");ev("()=>{delete S.enr.fiches;}")
         pv2=ev("()=>{const d=document.createElement('div');d.innerHTML=vProvDetail(MPV.base.by.get(MPV.sel).x);return d.firstChild.dataset.veProv}")
         chk(pv=="inaccessible" and pv2 in ("sans","obsolete"),f"fiche inaccessible après essais ≠ pas encore lue ({pv} / {pv2})")
+    # ===== F2. qualification publiée sans code (Laboratoires) et avec code alphanumérique (Y / Y1), même lot =====
+    ql=[{"m":"Laboratoires","s":None,"sl":"CONTROLE DE QUALITE","q":None,"ql":"CONTROLE DES TRAVAUX DE BATIMENT","c":"4"}]
+    qy=[{"m":"Equipement","s":"Y","sl":"Amenagement des cours d'eau","q":"Y1","ql":"Travaux de recalibrage","c":"3"}]
+    L2=json.loads(json.dumps(LOTS));L2["par_id"][kA]["lots"][0]["q"]=ql;L2["par_id"][kA]["lots"][1]["q"]=qy;ev("L=>{S.enr.lots=L;render();}",L2)
+    VF(sects=["Laboratoires|CONTROLE DE QUALITE"]);G=GOT();a1=G.get(kA,{}).get("lots")
+    VF(qqual=["Equipement|Y|Y1"]);G=GOT();a2=G.get(kA,{}).get("lots")
+    VF(qcls=["Laboratoires|4"],qqual=["Equipement|Y|Y1"]);G=GOT();a3=kA in G
+    VF();pg.click("#mpv-tf");pg.wait_for_timeout(300);pg.click("#mpv-dn-cond");pg.wait_for_timeout(200);ev("()=>{MPV.dwOpen={qual:true};mpvDwRender();}");pg.wait_for_timeout(200)
+    opt=ev("()=>[...document.querySelectorAll('[data-mpv-o^=\"sects:\"]')].map(b=>b.dataset.mpvO)");pg.click("#mpv-dwa");pg.wait_for_timeout(200)
+    chk(a1==["1"] and a2==["2"] and not a3 and "sects:Laboratoires|CONTROLE DE QUALITE" in opt,f"secteur publié sans code (Laboratoires) filtrable par son libellé, Y / Y1 gardés ; classe Laboratoires du lot 1 ET qualification Y1 du lot 2 : pas de correspondance croisée")
+    ev("L=>{S.enr.lots=L;render();}",LOTS)
     # ===== G. puces, brouillon, recherche enregistrée =====
     VF(mts=["1-5"],tp="oui");CH=ev("()=>[...document.querySelectorAll('.mpv-r4 .mpv-x')].map(x=>x.innerText)");pg.click('.mpv-r4 [data-vfx="tp"]');pg.wait_for_timeout(300)
     chk(len(CH)==2 and ev("()=>[S.vf.tp,S.vf.mts.length]")==["",1] and kA in GOT(),"puces : retirer « TPE » rend l'annonce A (lot 1)")

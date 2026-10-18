@@ -500,6 +500,27 @@ class TestLots(unittest.TestCase):
         self.assertNotIn("cau", b)
         self.assertIn("q", b["ni"])
 
+    def test_qualification_lignes_officielles(self):
+        # lignes publiées relevées sur PMMP le 18/10/2026 (fiches et popups de lots) : aucun segment perdu
+        L = lire_qualification
+        self.assertEqual(L("Equipement / Y- Amenagement des cours d'eau et protection contre les innondations / "
+                           "Y1- Travaux de recalibrage et d'endiguement des cours et épis / Classe 3"),
+                         {"m": "Equipement", "s": "Y", "sl": "Amenagement des cours d'eau et protection contre les innondations",
+                          "q": "Y1", "ql": "Travaux de recalibrage et d'endiguement des cours et épis", "c": "3"})
+        self.assertEqual(L("Equipement / B- Travaux routiers et voirie urbaine / B.1- Travaux de terrassements routiers courants / Classe 2"),
+                         {"m": "Equipement", "s": "B", "sl": "Travaux routiers et voirie urbaine", "q": "B.1",
+                          "ql": "Travaux de terrassements routiers courants", "c": "2"})
+        self.assertEqual(L("Habitat / 2 Travaux De Voirie / 2.2 Sans objet. / Classe 4"),
+                         {"m": "Habitat", "s": "2", "sl": "Travaux De Voirie", "q": "2.2", "ql": "Sans objet.", "c": "4"})
+        self.assertEqual(L("Agriculture / Travaux de plantation et de réhabilitation des arbres fruitiers et arbustes / "
+                           "10.1.Travaux de plantation et de réhabilitation des arbres fruitiers et arbustes / Classe 5")["q"], "10.1")
+        self.assertEqual(L("Laboratoires / ETUDES GEOTECHNIQUES / ETUDES GEOTECHNIQUES DES BATIMENTS COURANTS / Classe 3"),
+                         {"m": "Laboratoires", "s": None, "sl": "ETUDES GEOTECHNIQUES", "q": None,
+                          "ql": "ETUDES GEOTECHNIQUES DES BATIMENTS COURANTS", "c": "3"}, "secteur et qualification sans code : texte gardé")
+        self.assertEqual(L("Laboratoires / Classe 1"), {"m": "Laboratoires", "s": None, "sl": None, "q": None, "ql": None, "c": "1"})
+        f = lire_fiche(fx("fiche_1041301_o8p_sans_contact.html"))
+        self.assertEqual(len(f["q_txt"]), len(f["q"]), "lignes publiées conservées pour un nouveau calcul sans requête")
+
     def test_libelle_seul_rien_de_publie(self):
         f = lire_fiche(fx("fiche_1046170_o4d_allotie_sans_contact.html"))
         self.assertEqual((f["allot"], f["reu"], f["proto"], f["est"], f["tp"], f["cau"]), ("2 Lots", None, None, None, None, None))

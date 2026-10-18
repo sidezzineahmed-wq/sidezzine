@@ -69,23 +69,41 @@ def libelle_seul(v):
     return isinstance(v, str) and bool(LIBELLES_SEULS.match(v))
 
 
+CODE_LETTRES = re.compile(r"^([A-Z]{1,3}\d*(?:\.\d+)*)\s*-\s*(.*)$")       # « B- … », « B.3- … », « Y1- … »
+CODE_CHIFFRES = re.compile(r"^(\d+(?:\.\d+)*)\.?(?:\s*-\s*|\s+|(?=[^\d\s.]))(.*)$")  # « 2 Travaux », « 2.2 Sans objet. », « 10.1.Travaux »
+
+
+def _code(p):
+    """(code, libellé) d'un segment ; code None si le segment n'est que du texte (ex. « ETUDES GEOTECHNIQUES »)."""
+    m = CODE_LETTRES.match(p) or CODE_CHIFFRES.match(p)
+    if m:
+        return m.group(1), m.group(2).strip() or None
+    return None, p.strip() or None
+
+
 def lire_qualification(ligne):
-    """« Equipement / B- Travaux routiers… / B.3- Ouvrages… / Classe 2 » -> {m,s,sl,q,ql,c}.
-    Les parties absentes restent None (rien n'est deviné)."""
-    parts = [p.strip() for p in ligne.split(" / ")]
+    """Ligne publiée « Système / Secteur / Qualification / Classe N » -> {m,s,sl,q,ql,c}, PAR POSITION :
+    1er segment (sans code) = système ; dernier « Classe … » = classe ; entre les deux, 1er = secteur, 2e = qualification
+    (segments suivants éventuels ajoutés au libellé de la qualification). Codes réels gardés tels que publiés
+    (« B », « B.3 », « Y », « Y1 », « 2.2 », « 10.1 ») ; un segment sans code garde son texte (libellé, code None).
+    Un seul segment : avec point = qualification, sinon secteur. Les parties absentes restent None (rien n'est deviné)."""
+    parts = [p.strip() for p in ligne.split(" / ") if p.strip()]
     out = {"m": None, "s": None, "sl": None, "q": None, "ql": None, "c": None}
-    if parts and not re.match(r"^[A-Z0-9.]+-", parts[0]) and not parts[0].lower().startswith("classe"):
+    if parts and re.match(r"(?i)^classe\s+(.+)$", parts[-1]):
+        out["c"] = re.match(r"(?i)^classe\s+(.+)$", parts.pop()).group(1).strip()
+    if parts and _code(parts[0])[0] is None and len(parts) >= 1 and (len(parts) > 1 or not parts[0].isupper()):
         out["m"] = parts.pop(0)
-    for p in parts:
-        mc = re.match(r"(?i)^classe\s+(.+)$", p)
-        mq = re.match(r"^([A-Z0-9]+(?:\.[A-Z0-9]+)+)\s*-\s*(.*)$", p)
-        ms = re.match(r"^([A-Z0-9]+)\s*-\s*(.*)$", p)
-        if mc:
-            out["c"] = mc.group(1).strip()
-        elif mq:
-            out["q"], out["ql"] = mq.group(1), mq.group(2).strip() or None
-        elif ms:
-            out["s"], out["sl"] = ms.group(1), ms.group(2).strip() or None
+    mid = [_code(p) for p in parts]
+    if len(mid) >= 2:
+        (out["s"], out["sl"]), (out["q"], out["ql"]) = mid[0], mid[1]
+        if len(mid) > 2:
+            out["ql"] = " / ".join(x for x in [out["ql"]] + [((c + " ") if c else "") + (l or "") for c, l in mid[2:]] if x)
+    elif mid:
+        c, l = mid[0]
+        if c and "." in c:
+            out["q"], out["ql"] = c, l
+        else:
+            out["s"], out["sl"] = c, l
     return out
 
 
@@ -119,7 +137,8 @@ def lire_fiche(h_tronque, masquer=True):
 
     non_alloti_visible = _panel_visible(h, "panelConsultationNonAlotti")
     cau = montant(_txt(h, "cautionProvisoire")) if non_alloti_visible else None
-    q = [lire_qualification(x) for x in _li(h, "qualification")]
+    q_txt = _li(h, "qualification")
+    q = [lire_qualification(x) for x in q_txt]
     ag_l = _li(h, "agrements")
     ag = " ; ".join(ag_l) if ag_l else None
     proto = _bloc_panel(h, "panelEchantillons")
@@ -136,7 +155,7 @@ def lire_fiche(h_tronque, masquer=True):
         "ref": _txt(h, "reference"), "obj": _txt(h, "objet"), "mo": mo, "acheteur_code": acheteur.split(" - ", 1)[0] if acheteur and " - " in acheteur else None,
         "type_annonce": _txt(h, "annonce"), "proc": proc, "mode_passation": (_txt(h, "modePassation") or "").lstrip("| ").strip() or None,
         "cat": _txt(h, "categoriePrincipale"), "lim": lim, "h": h_, "lieux_fiche": lieux,
-        "est": est, "tp": tp, "cau": cau, "q": q, "ag": ag, "vis": vis, "reu": reu, "var": var,
+        "est": est, "tp": tp, "cau": cau, "q": q, "q_txt": q_txt, "ag": ag, "vis": vis, "reu": reu, "var": var,
         "allot": allot, "dom": dom, "ouv": ouv, "dep": dep, "proto": proto,
     }
 

@@ -27,21 +27,67 @@ def lire(p, d=None):
         return d
 
 
+def q_conserve(ancien, nouveau):
+    """Vrai si chaque ligne de qualification ancienne retrouve TOUTES ses valeurs non nulles dans une même ligne nouvelle
+    (ex. ancien secteur « Y1 » = nouvelle qualification « Y1 » de la ligne Y / Y1) : un reparse ne perd rien."""
+    vals = lambda r: {str(v) for v in r.values() if v not in (None, "")}
+    return all(any(vals(o) <= vals(n) for n in nouveau or []) for o in ancien or [])
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--fiches", required=True)
     ap.add_argument("--dossier", required=True)
     ap.add_argument("--essais", type=int, default=3)
     ap.add_argument("--precedent-complement", help="fiches_complement.json actuel du kit (s'il existe)")
+    ap.add_argument("--kit", help="kit à jour : champs et lots RE-CALCULÉS depuis brut/ (HTML tronqué conservé, SHA vérifié), sans requête")
     ap.add_argument("--sortie", required=True)
     ap.add_argument("--complement", required=True)
     a = ap.parse_args(argv)
     F = lire(a.fiches, {}) or {}
     n = {"fiches_coffre": len(F), "fiche_ajoutee": 0, "fiche_remplacee_plus_recente": 0, "fiche_coffre_plus_recente_gardee": 0,
          "lots_rattaches": 0, "lots_sans_fiche_coffre": 0, "ref_differente_du_catalogue": 0}
+    if a.kit:
+        import gzip
+        import hashlib
+        import sys
+        sys.path.insert(0, a.kit)
+        from veille.pmmp_fiche import lire_fiche  # noqa
+        from veille.pmmp_lots import lire_popup  # noqa
+        n.update({"reparse_fiches": 0, "reparse_lots": 0, "reparse_sha_ko": 0, "reparse_change": 0})
+
+        def brut(o, r_, nom, sha):
+            p = os.path.join(a.dossier, "brut", f"{o}_{r_}_{nom}.html.gz")
+            if not os.path.exists(p):
+                return None
+            h = gzip.open(p, "rt", encoding="utf-8", newline="").read()
+            if hashlib.sha256(h.encode()).hexdigest() != sha:
+                n["reparse_sha_ko"] += 1
+                return None
+            return h
     for p in sorted(glob.glob(os.path.join(a.dossier, "cache", "*.json"))):
         r = lire(p)
         k, fi, lo = r["id"], r.get("fiche"), r.get("lots")
+        if a.kit:
+            o, r_ = k.split(":")[1:]
+            h = fi and brut(o, r_, "fiche", fi["sha256_html_tronque"])
+            if h:
+                ch = lire_fiche(h, masquer=True)
+                if not q_conserve(fi["champs"].get("q"), ch.get("q")):
+                    n.setdefault("reparse_q_garde_ancien", []).append(k)  # jamais de perte : l'ancienne lecture est gardée
+                    ch["q"] = fi["champs"].get("q")
+                n["reparse_change"] += ch != fi["champs"]
+                fi["champs"] = ch
+                n["reparse_fiches"] += 1
+            h = lo and brut(o, r_, "lots", lo["sha256_html_tronque"])
+            if h:
+                ancien_lots = lo
+                allot = (fi or {}).get("champs", {}).get("allot") or r.get("allot") or (F.get(k) or {}).get("champs", {}).get("allot")
+                res = lire_popup(h, o, r_, allot)
+                if res["statut"] in ("lu", "partiel") and len(res["lots"]) >= len(ancien_lots.get("lots") or []) and all(
+                        q_conserve(o.get("q"), nl.get("q")) for o, nl in zip(ancien_lots.get("lots") or [], res["lots"])):
+                    lo = {**{c: lo[c] for c in ("lu_le", "url", "sha256_html_tronque")}, **res}
+                    n["reparse_lots"] += 1
         doc = F.get(k)
         if fi:
             nouveau = {"id": k, "lu_le": fi["lu_le"], "run": "complement_eaios_" + fi["lu_le"][:10], "sha256_html_tronque": fi["sha256_html_tronque"],
@@ -52,6 +98,8 @@ def main(argv=None):
                 F[k] = doc = nouveau
                 n["fiche_ajoutee"] += 1
             elif fi["lu_le"] > (doc.get("lu_le") or ""):
+                if not q_conserve((doc.get("champs") or {}).get("q"), fi["champs"].get("q")):
+                    n.setdefault("relecture_q_differente", []).append(k)  # nouvelle lecture réelle : elle fait foi, l'écart est listé
                 if doc.get("lots"):
                     nouveau["lots"] = doc["lots"]
                 F[k] = doc = nouveau

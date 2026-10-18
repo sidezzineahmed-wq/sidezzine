@@ -1,0 +1,41 @@
+mpv-3 · B1.1 : Mode de passation (fiche PMMP) + classification PMMP Etat / CL / EEP de l'entité publique — 18/10/2026
+
+SOURCES OFFICIELLES (portail public, sans compte)
+- Formulaire : https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseAdvancedSearch&searchAnnCons=
+  * liste « Mode de passation » = select procedureType : ses valeurs sont les PROCÉDURES (1 AO ouvert, 50 AO ouvert simplifié…) ;
+    codes relevés et affichés comme « code procédure PMMP » (pas de second axe fictif).
+  * liste « Etat/CL/EEP » = select classification (1 Etat, 2 Collectivité locale, 3 Etablissement public), panneau masqué
+    tant que « Recherche dans une liste » n'est pas choisi. TActiveDropDownList : son rappel PRADO renvoie la liste officielle
+    des entités publiques de la classification. Relevé 17/10 23:55 UTC : 77 entités = 57 Etat + 16 CL + 4 EEP, partition exacte.
+  * contrôle : recherche filtrée (type_rechercheEntite=exact + classification), 17/10 23:58 UTC : 3 443 + 964 + 12 = 4 419
+    (= total non filtré) ; 964 CL et 12 EEP relevées intégralement : 0 annonce d'une autre classe. L'ancien constat « filtre
+    ignoré » (02/10) venait d'une recherche sans type_rechercheEntite=exact.
+- Fiche : élément ctl0_CONTENU_PAGE_idEntrepriseConsultationSummary_modePassation (« Procédure : Appel d'offres ouvert |
+  Sur offre de prix ») = mode de passation, DISTINCT de la procédure. Valeurs : « Sur offre de prix », « Au rabais / majoration ».
+  Déjà lu par le collecteur (fiches.json, mode_passation, lu_le) mais pas exporté jusqu'ici.
+- Requêtes faites pour ce travail : relevé/contrôle 18 (≥ 3 s), complément 157 fiches (≥ 4 s), arrêté proprement à 154 lues
+  (00:00-00:20 UTC) ; aucun 401/403 ; aucune authentification, aucun formulaire au nom d'une société.
+
+INTÉGRATION AU PIPELINE HORAIRE (aucune tâche planifiée modifiée)
+- Coffre https://claude.ai/artifact/KpoSRQoBC9Z16fTeVRGYRn version 331 (1792283162-18ce), sans force : kit = ingestion/enrichi_pmmp.py
+  (nouveau), ingestion/ingestion_catalogue.py (appel), ingestion/test_enrichi_pmmp.py (nouveau), referentiel/classification_entites.json
+  (nouveau), LISEZ-MOI.md ; manifest.json mis à jour (empreintes vérifiées après relecture). Données du coffre inchangées.
+- Le passage horaire existant recharge ce kit, exécute « unittest discover -s ingestion » (23 tests dont 5 nouveaux) et
+  ingestion_catalogue.py avec --fiches et --details-precedents (déjà passés) : catalogue_details.json reçoit « pmmp_enrichi ».
+- Essai sur données réelles (coffre 00:19 UTC + EAIOS) : catalogue.json, catalogue_etat.json, catalogue_hors_listing.json
+  identiques octet pour octet à l'ancien kit ; catalogue_details.json identique hors « pmmp_enrichi ».
+
+EAIOS https://claude.ai/artifact/AUczkckGChVg7tbN1SWuQw version 320 (1792283316-932f), sans force
+- Avant : lecture live intégrale (v319 = mpv-2 + squelette, aucune concurrence). Page : ajout pur de part_mpv3.js.
+- Fichiers : seul catalogue_details.json modifié (+ pmmp_enrichi, lié au sha du catalogue live 666ecb6f…) ; 16 fichiers,
+  partage et capacités conservés ; aucun nouveau fichier.
+- Après : index.html relu = corps_mpv3 (écart 0) ; catalogue_details.json relu = fichier préparé (sha 0f48f12d…).
+
+COUVERTURE AU MOMENT DE LA PUBLICATION (catalogue live, 4 410 consultations)
+- Classification Etat/CL/EEP : 4 410 / 4 410 (3 423 Etat, 975 CL, 12 EEP ; 0 entité inconnue).
+- Mode de passation : 2 732 / 4 410 (62,0 %) : 2 573 « Sur offre de prix », 159 « Au rabais / majoration » ; 1 678 non renseignés
+  (fiche non lue), jamais remplis par défaut ; 0 référence discordante.
+
+TESTS
+- veille_enrichissement/tests : 14/14 (extraits réels PMMP) ; kit : tests 29/29, ingestion 23/23.
+- qa_mpv3.py 28/28 ; qa_mpv2.py 66/66 ; qa_mpv.py 50/50 (build publié). Aucune écriture métier.

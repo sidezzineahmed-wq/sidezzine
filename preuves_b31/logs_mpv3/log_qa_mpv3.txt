@@ -1,0 +1,29 @@
+OK enrichissement joint : partition officielle exacte (57 Etat / 16 CL / 4 EEP entités ; totaux filtrés 3443+964+12 = 4419) ; mode connu 2732/4410
+OK chaque mode : valeur PMMP brute, date de lecture réelle, source ; aucune valeur de mode n'est une procédure
+OK plus aucun bloc « non disponible » pour mode / classification
+OK comptes du tiroir = recalcul Python sur les consultations ouvertes {'mpass:Sur offre de prix': 2573, 'mpass:Au rabais / majoration': 159, 'tach:1': 3421, 'tach:2': 975, 'tach:3': 12}
+OK brouillon CL OU EEP : 987 (rien appliqué) ; compte « Au rabais » recalculé sous ce brouillon (6)
+OK appliqué : (CL OU EEP) ET « Au rabais » = 6 ; 3 puces, « Tous les filtres · 3 »
+OK ET avec région Marrakech-Safi et Travaux : 82
+OK avec les 3 axes (Toutes × Non suivies × Pertinentes) : 660
+OK inconnus : « Sur offre de prix » 2573 ; + 1676 non renseignés seulement sur demande, comptés à part (jamais classés « Sur offre de prix » par défaut)
+OK « Au rabais » n'inclut aucune fiche inconnue
+OK référence lue ≠ référence du catalogue : jointure refusée (inconnu)
+OK fiche 04/CNDP/2026 : procédure « Appel d'offres ouvert » (code 1) ≠ mode « Sur offre de prix » (lu le 2026-10-02T21:10:05+00:00) ; classification 1 de l'entité, provenance affichée
+OK fiche sans lecture : mode « Non renseigné » (Non renseigné (fiche PMMP non lue ou référence modifiée))
+OK classe 2 : les 958 annonces ouvertes renvoyées par la recherche officielle PMMP filtrée sont toutes dans le filtre EAIOS (975) ; aucune annonce d'une autre classe
+OK classe 3 : les 12 annonces ouvertes renvoyées par la recherche officielle PMMP filtrée sont toutes dans le filtre EAIOS (12) ; aucune annonce d'une autre classe
+OK puce retirée seule
+OK Échap : brouillon abandonné
+OK Réinitialiser : brouillon vidé, rien appliqué
+OK recherche enregistrée (action explicite) : classification, mode et inclusion des inconnus conservés
+OK ancienne recherche sans ces critères : migrée sans avertissement inutile
+OK enrichissement absent : filtres désactivés et expliqués, puce « non appliqué », aucun résultat inventé
+OK clavier : Espace coche l'option, le focus reste sur elle
+OK lecture seule : filtrage identique
+OK aucune écriture métier, aucun dossier créé
+OK aucune erreur JavaScript []
+OK 390 px light : bloc mode / classification sans débordement, « Appliquer » visible {'ov': 0, 'ok': True, 'doc': 0}
+OK 768 px dark : bloc mode / classification sans débordement, « Appliquer » visible {'ov': 0, 'ok': True, 'doc': 0}
+OK 1440 px light : bloc mode / classification sans débordement, « Appliquer » visible {'ov': 0, 'ok': True, 'doc': 0}
+28 / 28

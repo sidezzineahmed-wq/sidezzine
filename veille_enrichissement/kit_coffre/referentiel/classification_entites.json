@@ -1,0 +1,526 @@
+{
+ "version": 1,
+ "debut": "2026-10-17T23:55:50+00:00",
+ "fin": "2026-10-17T23:58:53+00:00",
+ "url": "https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseAdvancedSearch&searchAnnCons=",
+ "fenetre_recherche": {
+  "dateMiseEnLigneStart": "17/10/2026",
+  "dateMiseEnLigneEnd": "17/04/2027",
+  "dateMiseEnLigneCalculeStart": "17/04/2026",
+  "dateMiseEnLigneCalculeEnd": "17/10/2026",
+  "annonceType": "3",
+  "classification": "0",
+  "categorie": "0",
+  "procedureType": "0",
+  "organismesNames": "0",
+  "_libelles": {
+   "dateMiseEnLigneStart/End": "Date limite de remise des plis : entre / et",
+   "dateMiseEnLigneCalculeStart/End": "Date de mise en ligne : entre / et"
+  }
+ },
+ "methode": "rappel PRADO de la liste « Etat/CL/EEP » (classification) -> liste officielle organismesNames ; contrôle par la recherche avancée filtrée (type_rechercheEntite=exact)",
+ "valeurs": {
+  "1": "Etat",
+  "2": "Collectivité locale",
+  "3": "Etablissement public"
+ },
+ "par_entite": {
+  "a1a": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ordonnateur de paramètrage"
+  },
+  "a1t": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "CHEF DU GOUVERNEMENT"
+  },
+  "a1z": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION de GRAND CASABLANCA"
+  },
+  "a2a": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'amenagement du territoire, de l'eau et de l'environnement - l'environnement"
+  },
+  "a2z": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "CONSEIL SUPERIEUR DU POUVOIR JUDICIAIRE"
+  },
+  "b1d": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION de LAAYOUNE-BOUJDOUR"
+  },
+  "b5j": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Administration de la defense nationale"
+  },
+  "c1a": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "INSTITUTION DU MÉDIATEUR DU ROYAUME"
+  },
+  "controleur": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "COMPTABLE DE L'ETAT"
+  },
+  "d0q": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION de TAZA AL HOCEIMA"
+  },
+  "d2f": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère des affaires etrangeres et de la cooperation"
+  },
+  "d2q": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'Artisanat"
+  },
+  "d4q": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'Energie, des Mines, de l'Eau et de L'Environnement"
+  },
+  "d8e": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Haut commissariat aux anciens resistants et anciens membres de l’armee de liberation"
+  },
+  "d8t": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "MINISTERE DE LA JEUNESSE ET DES SPORTS"
+  },
+  "e3r": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Délégation Interministérielle aux Droits de l’Homme"
+  },
+  "e5w": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION de FES - MEKNES"
+  },
+  "e6v": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Secretariat d'etat aupres du ministre de l'education nationale, charge de l'alphabetisation et de l'education non formelle"
+  },
+  "f4g": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère des habous et des affaires islamiques"
+  },
+  "f8y": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION de ORIENTAL"
+  },
+  "f9f": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION de SOUS-MASSA-DRAA"
+  },
+  "g0u": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Secrétariat Géneral du Gouvernement"
+  },
+  "g3h": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'interieur"
+  },
+  "g7n": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Haut commissariat au plan"
+  },
+  "g8e": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'Economie et des Finances"
+  },
+  "h5j": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Délégation Générale à l'Administration Pénitentiaire et à la Réinsertion"
+  },
+  "h5r": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION de CHAOUIA-OUARDIGHA"
+  },
+  "i1t": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION de GHARB-CHRARDA BNI HSSAIN"
+  },
+  "i4i": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de la modernisation des secteurs publics"
+  },
+  "i6g": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère Chargé de la Communauté Marocaine Résident à l'Etranger"
+  },
+  "j0w": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION de MARRAKECH - SAFI"
+  },
+  "j1h": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère charge des relations avec le parlement"
+  },
+  "j4k": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'interieur - direction generale de la surete nationale"
+  },
+  "j8k": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'Habitat, de l'Urbanisme et du de l'Aménagement de l'Espace"
+  },
+  "k2q": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère Délegué auprés du Ministère de l'Energie, des Mines et de l'Environnement chargé de l'Eau"
+  },
+  "l1f": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION de TANGER-TETOUAN"
+  },
+  "l5b": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "COUR ROYALE"
+  },
+  "m1i": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "TESTPDCP"
+  },
+  "m1w": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'Industrie, du Commerce, de l'Investissment et de l'Economie Numérique"
+  },
+  "m5w": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'interieur - direction de la surveillance du territoire"
+  },
+  "m8x": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION DE GUELMIM - OUED NOUN"
+  },
+  "n2a": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Chambre des Conseillers"
+  },
+  "o3f": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère du Tourisme et de l'Artisanat"
+  },
+  "o4d": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'emploi et de la formation professionnelle - l'emploi"
+  },
+  "o8p": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "MINISTERE DE L'EQUIPEMENT ET DES TRANSPORTS"
+  },
+  "p1v": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "Région Doukkala-Abda"
+  },
+  "p2q": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "PRESIDENCE DU MINISTERE PUBLIC"
+  },
+  "p8x": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'education nationale, de l'enseignement superieur, de la formation des cadres et de la recherche scientifique - l'education nationale"
+  },
+  "q0x": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION de MEKNES-TAFILALET"
+  },
+  "q1s": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'agriculture et de la peche maritime"
+  },
+  "q3m": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'Equipement et du Transport (Département du Transport) Direction des Affaires Administ"
+  },
+  "q9t": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de la sante"
+  },
+  "r8t": {
+   "code": "3",
+   "libelle": "Etablissement public",
+   "entite": "HAUTE AUTORITE DE LA COMMUNICATION AUDIOVISUELLE"
+  },
+  "s3d": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de la Jeunesse et des Sports"
+  },
+  "s3z": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION de RABAT SALE KENITRA"
+  },
+  "s5z": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de la culture"
+  },
+  "t5y": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de la justice"
+  },
+  "u6i": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'agriculture, du developpement rural et des peches maritimes - la peche maritime"
+  },
+  "u9g": {
+   "code": "3",
+   "libelle": "Etablissement public",
+   "entite": "Fondation Mohammed VI de Promotion des Œuvres Sociales de l’Education-Formation"
+  },
+  "v1g": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère du commerce exterieur"
+  },
+  "v5b": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "CONSEIL CONSTITUTIONNEL"
+  },
+  "w5x": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'Intérieur- Direction Générales des Collectivités Locales"
+  },
+  "w6x": {
+   "code": "3",
+   "libelle": "Etablissement public",
+   "entite": "CAISSE DE DÉPÔT ET DE GESTION"
+  },
+  "w7t": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "AGENCE NATIONALE DES EAUX ET FORETS"
+  },
+  "w8x": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Fondation Hassan II pour les Marocains Résidents à l'Etranger"
+  },
+  "w9x": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'Intérieur - Direction Générale de la Protection Civile"
+  },
+  "x6c": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de la communication"
+  },
+  "x8h": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION de OUED EDDAHAB"
+  },
+  "y5l": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère du Développement Social, de la Famille et de la Solidarite - le developpement social"
+  },
+  "y6u": {
+   "code": "3",
+   "libelle": "Etablissement public",
+   "entite": "CHAMBRE DES REPRESENTANTS"
+  },
+  "y9i": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Domaine des Postes, des Télécommunications et des Nouvelles Technologies"
+  },
+  "z0h": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère delegue aupres du premier ministre charge des affaires economiques et generales"
+  },
+  "z5e": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Conseil Economique, Social et Environnemental"
+  },
+  "z6n": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "COUR DES COMPTES"
+  },
+  "z7r": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'Education Nationale et de la formation professionnelle - Département de la formation professionnelle"
+  },
+  "z7x": {
+   "code": "1",
+   "libelle": "Etat",
+   "entite": "Ministère de l'education nationale, de l'enseignement superieur, de la formation des cadres et de la recherche scientifique - l'enseignement superieur, la formation des cadres et la recherche scientifique"
+  },
+  "z9k": {
+   "code": "2",
+   "libelle": "Collectivité locale",
+   "entite": "REGION de TADLA-AZILL"
+  }
+ },
+ "controle_listes": {
+  "entites_toutes": 77,
+  "par_classification": {
+   "1": 57,
+   "2": 16,
+   "3": 4
+  },
+  "ambigues": [],
+  "sans_classification": [],
+  "partition_exacte": true
+ },
+ "controle_recherche": {
+  "totaux": {
+   "toutes": {
+    "total": 4419,
+    "source": "sonde_rech.py (recherche non filtrée, même session de relevé)"
+   },
+   "1": {
+    "total": 3443
+   },
+   "2": {
+    "total": 964,
+    "ids_lus": 964,
+    "incoherents": []
+   },
+   "3": {
+    "total": 12,
+    "ids_lus": 12,
+    "incoherents": []
+   }
+  },
+  "somme_classes": 4419,
+  "partition_totaux": true
+ },
+ "procedures_formulaire": {
+  "champ": "ctl0$CONTENU_PAGE$AdvancedSearch$procedureType",
+  "libelle_formulaire": "Mode de passation",
+  "codes": {
+   "Appel à manifestation d'intérêt": "37",
+   "Appel d'offres avec préselection - Phase 1": "34",
+   "Appel d'offres avec préselection - Phase 2": "35",
+   "Appel d'offres ouvert": "1",
+   "Appel d'offres ouvert simplifié": "50",
+   "Appel d'offres restreint": "2",
+   "Appel d’offres avec préqualification – Partenariat Public-Privé – Phase 1": "58",
+   "Appel d’offres avec préqualification – Partenariat Public-Privé – Phase 2": "59",
+   "Appel d’offres avec présélection – Partenariat Public-Privé – Phase 1": "56",
+   "Appel d’offres avec présélection – Partenariat Public-Privé – Phase 2": "57",
+   "Concours - Phase 2": "47",
+   "Concours Architectural": "40",
+   "Concours Phase 1": "4",
+   "Consultation architecturale négociée avec publicité préalable - Phase 1": "44",
+   "Consultation architecturale négociée avec publicité préalable - Phase 2": "45",
+   "Consultation architecturale négociée sans publicité préalable": "46",
+   "Consultation architecturale ouverte": "39",
+   "Consultation architecturale ouverte simplifiée": "52",
+   "Consultation architecturale restreinte": "51",
+   "Demande de Cotation Ouverte - Banques Multilatérales de Développement": "60",
+   "Demande de Cotation Restreinte - Banques Multilatérales de Développement": "61",
+   "Dialogue compétitif - Phase 1": "53",
+   "Dialogue compétitif - Phase 2": "54",
+   "Dialogue compétitif - Phase 3": "55",
+   "Enchère électronique inversée": "38",
+   "Marché négocié avec publicité préalable - Phase 1": "42",
+   "Marché négocié avec publicité préalable - Phase 2": "43",
+   "Marché négocié sans publicité préalable": "9"
+  }
+ },
+ "requetes": [
+  {
+   "m": "GET",
+   "url": "https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseAdvancedSearch&searchAnnCons=",
+   "code": 200,
+   "octets": 105244
+  },
+  {
+   "m": "POST",
+   "url": "https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseAdvancedSearch&searchAnnCons=",
+   "code": 200,
+   "octets": 254733
+  },
+  {
+   "m": "POST",
+   "url": "https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseAdvancedSearch&searchAnnCons=",
+   "code": 200,
+   "octets": 282112
+  },
+  {
+   "m": "POST",
+   "url": "https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseAdvancedSearch&searchAnnCons=",
+   "code": 200,
+   "octets": 281958
+  },
+  {
+   "m": "POST",
+   "url": "https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseAdvancedSearch&searchAnnCons=",
+   "code": 200,
+   "octets": 8240353
+  },
+  {
+   "m": "POST",
+   "url": "https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseAdvancedSearch&searchAnnCons=",
+   "code": 200,
+   "octets": 7620491
+  },
+  {
+   "m": "POST",
+   "url": "https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseAdvancedSearch&searchAnnCons=",
+   "code": 200,
+   "octets": 362182
+  }
+ ]
+}

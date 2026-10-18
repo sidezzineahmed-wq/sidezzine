@@ -1,0 +1,66 @@
+{
+ "coffre_relu": {
+  "manifest_cree_le": "2026-10-18T21:16:24+00:00",
+  "fichiers": 40
+ },
+ "referentiels_relus_gardes": [
+  "fiches_complement.json"
+ ],
+ "integration": [
+  {
+   "dossier": "compl_fiches",
+   "fiches_coffre": 5023,
+   "fiche_ajoutee": 0,
+   "fiche_remplacee_plus_recente": 0,
+   "fiche_coffre_plus_recente_gardee": 47,
+   "lots_rattaches": 0,
+   "lots_sans_fiche_coffre": 0,
+   "ref_differente_du_catalogue": 0,
+   "reparse_fiches": 1873,
+   "reparse_lots": 374,
+   "reparse_sha_ko": 0,
+   "reparse_change": 1873,
+   "meme_lecture_reanalysee": 1826,
+   "fiches_sortie": 5023,
+   "fiches_inaccessibles": 0,
+   "lots_inaccessibles": 0,
+   "fiches_avec_lots": 374
+  },
+  {
+   "dossier": "compl_vis",
+   "fiches_coffre": 5023,
+   "fiche_ajoutee": 0,
+   "fiche_remplacee_plus_recente": 1488,
+   "fiche_coffre_plus_recente_gardee": 16,
+   "lots_rattaches": 120,
+   "lots_sans_fiche_coffre": 0,
+   "ref_differente_du_catalogue": 0,
+   "reparse_fiches": 1551,
+   "reparse_lots": 122,
+   "reparse_sha_ko": 0,
+   "reparse_change": 1551,
+   "meme_lecture_reanalysee": 47,
+   "relecture_q_differente": [
+    "pmmp:j0w:1045798",
+    "pmmp:j0w:1045835",
+    "pmmp:z7x:1046651"
+   ],
+   "fiches_sortie": 5023,
+   "fiches_inaccessibles": 0,
+   "lots_inaccessibles": 0,
+   "fiches_avec_lots": 374
+  }
+ ],
+ "catalogue_valide": {
+  "maj": "2026-10-18T20:18:31+00:00",
+  "n": 4475,
+  "n_details_avant": 4475,
+  "n_details": 4475,
+  "n_avant": 4475
+ },
+ "changes": [
+  "stock/catalogue_valide.json",
+  "stock/etat/fiches.json"
+ ],
+ "retires": []
+}

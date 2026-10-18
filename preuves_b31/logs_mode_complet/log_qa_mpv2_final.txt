@@ -1,0 +1,67 @@
+OK barre : ligne 1 recherche + 4 modes + Rechercher ; ligne 2 Lieu / Catégorie / Date limite / Acheteur + « Tous les filtres » (aucun critère) ; ligne 3 État × Suivi × Pertinentes + tri ; ancien périmètre exclusif retiré
+OK aucun contenu de maquette (badge MAQUETTE, date d'exemple, « Approchée ET »)
+OK mode all « travaux laayoune » : 33 résultat(s) = recalcul indépendant (ET / OU / contigu ; accents, casse, ponctuation ignorés)
+OK mode any « travaux laayoune » : 2024 résultat(s) = recalcul indépendant (ET / OU / contigu ; accents, casse, ponctuation ignorés)
+OK mode phrase « fourniture de bureau » : 10 résultat(s) = recalcul indépendant (ET / OU / contigu ; accents, casse, ponctuation ignorés)
+OK mode all « Laâyoune » : 138 résultat(s) = recalcul indépendant (ET / OU / contigu ; accents, casse, ponctuation ignorés)
+OK mode all « FOURNITURE, bureau! » : 42 résultat(s) = recalcul indépendant (ET / OU / contigu ; accents, casse, ponctuation ignorés)
+OK Référence exacte « 75/CL/2026 » : 1 résultat(s), segments entiers ['75/CL/2026']
+OK Tous les mots + saisie de type référence : même résultat, mode réellement appliqué annoncé
+OK « 175/CL/2026 » ≠ « 75/CL/2026 »
+OK numéro PMMP interne non affiché (1028037) : aucune correspondance cachée (ni UUID ni URL)
+OK saisie sans Entrée ni « Rechercher » : rien n'est appliqué
+OK bouton « Rechercher » : applique, focus conservé dans le champ
+OK État × Suivi × Pertinentes : 18 combinaisons = recalcul indépendant []
+OK axes cliqués : aucun n'efface l'autre (aria-checked) ; ils ne comptent pas comme filtres ; le tri non plus
+OK « Lieu d'exécution » ouvre UN tiroir (dialogue modal) sur Localisation, focus dans la navigation ; 9 sections ; pied Réinitialiser / Annuler / Appliquer ['Réinitialiser', 'Annuler', 'Appliquer les filtres']
+OK choix dans le tiroir : brouillon seulement, rien appliqué
+OK Échap : brouillon abandonné, focus rendu au filtre rapide d'origine
+OK Annuler : idem
+OK Appliquer : liste = compte annoncé dans le pied (387) = recalcul (387) ; filtre rapide, « Tous les filtres · 1 » et puce synchronisés ; page 1 ; focus rendu
+OK Localisation : région → provinces (BENI MELLAL) : 155 résultat(s) ; libellé « provinces » seulement pour les lieux
+OK puce retirée seule (province), la région reste ; focus sur « Tout effacer »
+OK « Tout effacer » : tous les critères retirés, focus sur « Tous les filtres »
+OK Catégories : principale distincte des domaines ; « Afficher les sous-domaines » (jamais « provinces ») ; 3 niveaux ; multisélection : 0 résultat(s)
+OK recherche dans la liste des acheteurs
+OK Acheteur public « SOCIETE REGIONALE MULTISERVICES MARRAKEC » : 101 = compte affiché dans le tiroir
+OK mpv-3 : mode de passation et classification Etat / CL / EEP actifs (données PMMP jointes), plus de bloc « non disponible »
+OK Procédure « Appel d'offres ouvert »
+OK filtre Référence exacte (tiroir) = même moteur que le mode Référence exacte
+OK Conditions : aucun « null » ; « Secteur non renseigné (Laboratoires) » explicite ; qualification de l'annonce ≠ de la société
+OK classe source illisible signalée comme telle (jamais transformée en lettre inventée)
+OK système → secteur non renseigné → classe 1 reliés sur une même ligne : 9 (non relié : 9) ; puces sans « null »
+OK classes par système, aucune comparaison inter-systèmes
+OK TPE/PME : 570 réservées ; + 1519 non renseignées incluses sur demande, comptées et signalées à part (liste, puce) ; jamais confondues avec « Non »
+OK « Non réservées » n'inclut pas les fiches inconnues
+OK inclusion désactivée tant qu'aucun choix n'est fait (pas de critère fantôme)
+OK Agrément « non indiqué » : 3070 fiches lues seulement ; fiches non lues ajoutées seulement sur demande (4318)
+OK Estimation ≥ 1 M DH : 1321 ; + estimations inconnues sur demande : 2841 (inconnu ≠ 0)
+OK domaine inconnu inclus sur demande, compté
+OK Estimation TTC min / max
+OK min > max signalé
+OK estimation « non publiée ou 0 » distincte d'inconnue
+OK caution 0 DH selon PMMP : 199 (jamais déduite d'une fiche non lue)
+OK caution non indiquée (fiche lue) ≠ inconnue
+OK allotissement
+OK mise en ligne depuis 7 jours, jour de Casablanca (2026-10-18) : 1415
+OK date limite et date de mise en ligne : filtres distincts
+OK mise en ligne depuis le 2026-10-15 : 676, puce dédiée
+OK date limite sous 7 jours
+OK Réinitialiser : brouillon seulement, rien appliqué avant « Appliquer »
+OK « Enregistrer cette recherche » : action explicite, une écriture (veille/recherches, base simulée) [['set', 'veille/recherches']]
+OK recherche enregistrée chargée dans le brouillon seulement
+OK appliquée explicitement, sans nouvelle écriture
+OK migration : expression exacte → mode, « pour le groupe » → case Pertinentes, filtres conservés ; classe globale et type d'acheteur retirés AVEC avertissement ['abc', 'phrase', True, '', 0, ['X'], 'score', 'ouv', 0]
+OK migration appliquée aussi aux recherches enregistrées anciennes
+OK changement de mode sans texte : critères identiques, page conservée
+OK critères changés → page 1 ; fiche sélectionnée conservée
+OK 10 lignes au plus dans le DOM ; options du tiroir absentes tant qu'il est fermé
+OK piège de focus : Tab après « Appliquer » revient au début du tiroir (mpv-dwx), Maj+Tab y retourne (mpv-dwok) ; un seul dialogue
+OK Échap ferme sans appliquer, focus sur « Tous les filtres »
+OK recherche, filtres, tiroir, pages, sélection : aucune écriture métier, aucun dossier créé (seule la recherche enregistrée, explicitement)
+OK aucune erreur JavaScript []
+OK 390 px clair : barre sans débordement ; tiroir plein écran (390 px), pied « Appliquer » visible, fond clair {'pw': 390, 'fb': 860, 'vh': 860, 'ov': 0, 'bg': 'rgb(255, 255, 255)', 'ok': True}
+OK 615 px sombre : barre sans débordement ; tiroir plein écran (615 px), pied « Appliquer » visible, fond sombre {'pw': 615, 'fb': 860, 'vh': 860, 'ov': 0, 'bg': 'rgb(27, 29, 33)', 'ok': True}
+OK 768 px clair : barre sans débordement ; tiroir latéral (707 px), pied « Appliquer » visible, fond clair {'pw': 707, 'fb': 860, 'vh': 860, 'ov': 0, 'bg': 'rgb(255, 255, 255)', 'ok': True}
+OK 1440 px sombre : barre sans débordement ; tiroir latéral (1040 px), pied « Appliquer » visible, fond sombre {'pw': 1040, 'fb': 860, 'vh': 860, 'ov': 0, 'bg': 'rgb(27, 29, 33)', 'ok': True}
+66 / 66

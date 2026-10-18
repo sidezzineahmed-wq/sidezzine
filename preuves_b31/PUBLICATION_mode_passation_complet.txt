@@ -1,0 +1,30 @@
+Mode de passation (fiche PMMP, élément modePassation) — complément COMPLET — 18/10/2026 (heure de Casablanca = UTC+1)
+
+COLLECTE (portail public, sans compte)
+- Cibles exactes au départ : 1 678 annonces du catalogue live sans mode (2 732 / 4 410 connues).
+- Reprise des 154 lectures du point d'arrêt précédent + toutes les lectures existantes (collecteur, publication) : rien de connu relu.
+- Session 01:02:30 -> 03:27:55 UTC : 1 678 / 1 678 lues ; 0 échec, 0 inaccessible, 0 champ absent, 0 référence discordante,
+  aucun 401/403/429. Débit : 2 connexions max, départs espacés >= 4 s (+ gigue), <= 15 req/min ; pause minutes 10-22 de chaque
+  heure (passage horaire). Chaque lecture : id pmmp:<org>:<ref>, URL refConsultation+orgAcronyme, lu_le, sha256 du HTML tronqué
+  (contacts coupés avant analyse).
+- Catalogue final (live 03:19 UTC, 4 461 annonces, dont 53 nouvelles depuis le départ, déjà lues par le collecteur) :
+  0 inconnue restante.
+
+BILAN BRUT (EAIOS v325 1792294319-a9ef, catalogue sha ea7e2eff…)
+- Connues 4 461 / 4 461 (100 %) : « Sur offre de prix » 4 214 ; « Au rabais / majoration » 247 ; autres valeurs 0.
+- Sources : collecteur horaire 2 632 ; complément EAIOS 1 829. Inaccessibles 0 ; champ absent 0 ; irréductibles 0.
+- Classification Etat/CL/EEP : 3 468 / 981 / 12 (100 %).
+
+DURABILITÉ (pipeline horaire inchangé : même tâche, fréquence, permissions)
+- Coffre v336 (1792294191-8d8f) : stock/kit/referentiel/mode_passation_complement.json (1 832 lectures, sha 028c7f74…),
+  chargé par défaut par ingestion_catalogue.py -> enrichi_pmmp.py à chaque passage ; plus la reprise depuis details précédents.
+
+ANOMALIE « EAIOS figé depuis le 17/10 06:18 » : CORRIGÉE
+- Cause (statuts Drive du passage horaire) : « la page EAIOS (1,79 Mo) ne peut pas être relue intégralement dans ce passage ;
+  l'outil l'exige avant toute republication » -> ingestion prête mais jamais publiée.
+- Correction : index.html allégé à 4 158 octets ; script et styles en fichiers annexes app/eaios.js, app/eaios.css (même artefact,
+  non republiés par le passage, donc conservés). 16 -> 18 fichiers.
+- Preuve : passages 01:13 (5b21 -> bf27), 02:15 (-> 2377) et 03:14 (-> fcde) publiés sans erreur, avec pmmp_enrichi conservé.
+
+TESTS : kit ingestion 26/26, kit 29/29 ; veille_enrichissement 14 + 3 (portail fictif : reprise, statuts, 403, 2 connexions) ;
+page allégée : qa_mpv3 31/31 (données finales), qa_mph 39/39, qa_b21dec 87/87, qa_mpv 50/50, qa_mpv2 66/66.

@@ -1,0 +1,17 @@
+{
+ "annonces": 4461,
+ "statuts": {
+  "connu": 4461
+ },
+ "valeurs": {
+  "Au rabais / majoration": 247,
+  "Sur offre de prix": 4214
+ },
+ "sources": {
+  "complement_eaios": 1829,
+  "collecteur": 2632
+ },
+ "pct": 100.0,
+ "irreductibles": [],
+ "n_irreductibles": 0
+}

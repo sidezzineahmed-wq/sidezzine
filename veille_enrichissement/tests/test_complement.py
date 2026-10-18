@@ -16,6 +16,9 @@ import exporter_complement as EX  # noqa: E402
 KIT = os.environ.get("KIT_VEILLE", "")
 FICHE = open(os.path.join(ICI, "fixtures", "fiche_1041301_o8p_sans_contact.html"), encoding="utf-8").read()
 VUS = []
+T0 = []
+ACTIFS = [0, 0]
+import time as _t
 
 
 class H(http.server.BaseHTTPRequestHandler):
@@ -27,6 +30,17 @@ class H(http.server.BaseHTTPRequestHandler):
         q = parse_qs(urlparse(self.path).query)
         r, o = q["refConsultation"][0], q["orgAcronyme"][0]
         VUS.append(r)
+        T0.append(_t.monotonic())
+        ACTIFS[0] += 1
+        ACTIFS[1] = max(ACTIFS[1], ACTIFS[0])
+        try:
+            self._rep(r)
+        finally:
+            ACTIFS[0] -= 1
+
+    def _rep(self, r):
+        if r.startswith("lent"):
+            _t.sleep(1.5)
         if r == "403":
             self.send_response(403); self.end_headers(); return
         if r == "500":
@@ -61,7 +75,7 @@ class T(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.d, True)
         VUS.clear()
 
-    def run_cc(self, cibles, essais=1):
+    def run_cc(self, cibles, essais=1, paralleles=1):
         p = os.path.join(self.d, "cibles.json")
         json.dump(cibles, open(p, "w"))
         import veille.client as C
@@ -73,7 +87,7 @@ class T(unittest.TestCase):
             s.delai_min = 0.0
         C.ClientPMMP.__init__ = rapide
         try:
-            return CC.main(["--kit", KIT, "--cibles", p, "--dossier", self.d, "--delai", "2", "--essais", str(essais), "--pause-debut", "99", "--pause-fin", "99"])
+            return CC.main(["--kit", KIT, "--cibles", p, "--dossier", self.d, "--delai", "2", "--essais", str(essais), "--pause-debut", "99", "--pause-fin", "99", "--paralleles", str(paralleles)])
         finally:
             C.ClientPMMP.__init__ = orig
 
@@ -112,6 +126,21 @@ class T(unittest.TestCase):
         self.assertEqual(json.load(open(out))["par_id"], {}, "1 échec sur 3 essais : rien exporté")
         self.assertEqual(self.run_cc({"pmmp:o8p:403": {"ref": "x"}}, essais=3), 3)
         self.assertIn("403", json.load(open(os.path.join(self.d, "etat.json")))["arret"])
+
+    def test_deux_connexions_departs_espaces_un_seul_ecrivain(self):
+        T0.clear(); ACTIFS[1] = 0
+        cib = {f"pmmp:o8p:lent{i}": {"ref": f"REF-lent{i}"} for i in range(5)}
+        t = _t.monotonic()
+        self.assertEqual(self.run_cc(cib, essais=1, paralleles=2), 0)
+        ecarts = [b - a for a, b in zip(T0, T0[1:])]
+        self.assertEqual(len(T0), 5)
+        self.assertGreaterEqual(min(ecarts), 1.95, f"départs espacés >= délai {ecarts}")
+        self.assertLessEqual(ACTIFS[1], 2, "au plus 2 connexions")
+        self.assertEqual(len(os.listdir(os.path.join(self.d, "cache"))), 5)
+        self.assertFalse(any(f.endswith(".tmp") for f in os.listdir(os.path.join(self.d, "cache"))))
+        VUS.clear()
+        self.assertEqual(self.run_cc(cib, essais=1, paralleles=2), 0)
+        self.assertEqual(VUS, [], "reprise : rien relu")
 
 
 if __name__ == "__main__":

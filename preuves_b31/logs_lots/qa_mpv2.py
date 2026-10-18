@@ -21,6 +21,9 @@ def INDX(o,extra):  # extra : corps JS d'un prédicat sur x
     return ev("o=>{const f="+IND+";o.extra=new Function('x',o.ex);return f(o);}",{**o,"ex":extra})
 with sync_playwright() as p:
     b=p.chromium.launch();ctx,pg,errs=demarrer(b,1440,1000);pg.wait_for_function(WAIT,timeout=30000);ev=lambda js,*a:pg.evaluate(js,*a);W=lambda:ev("()=>window.__writes.slice()");AK=lambda:ev("()=>Object.keys(S.ao).length")
+    # moteur AU NIVEAU ANNONCE : le détail par lot (et la liste des visites non lues) est retiré EN MÉMOIRE ; la règle par lot
+    # (même lot, inconnus, comptes) est vérifiée contre Python par qa_mpv4.py
+    pg.wait_for_function("()=>S.enrState==='ok'",timeout=30000);pg.evaluate("()=>{S.enr.lots=null;delete S.enr.fiches;render();}")
     def SQ(t,mode=None):
         if mode:pg.select_option("#mpv-qm",mode);pg.wait_for_timeout(250)
         pg.fill("#mpv-q",t);pg.press("#mpv-q","Enter");pg.wait_for_timeout(450)
@@ -35,7 +38,7 @@ with sync_playwright() as p:
     # ===== A. barre : 3 lignes =====
     BAR=ev("""()=>{const r=s=>!!document.querySelector(s);return{r1:r('.mpv-r1 #mpv-q')&&r('.mpv-r1 #mpv-qm')&&r('.mpv-r1 #mpv-go'),qm:[...document.querySelectorAll('#mpv-qm option')].map(o=>o.textContent),
       qf:[...document.querySelectorAll('.mpv-r2 .mpv-qfl>span')].map(s=>s.textContent),tf:document.getElementById('mpv-tf').innerText.trim(),ax:[...document.querySelectorAll('.mpv-r3 [data-mpv-ax]')].map(b=>b.dataset.mpvAx),
-      pert:r('.mpv-r3 #mpv-pert'),sort:r('.mpv-r3 #mpv-sort'),scope:r('[data-mpv-scope]'),old:r('#v_q')||r('[data-fpill]'),txt:document.querySelector('.mpv').innerText}}""")
+      pert:r('.mpv-r3 #mpv-pert'),sort:r('.mpv-r3 #mpv-sort'),scope:r('[data-mpv-scope]'),old:r('#v_q')||r('[data-fpill]'),txt:(()=>{const c=document.querySelector('.mpv').cloneNode(true);c.querySelectorAll('.mpv-grid').forEach(g=>g.remove());document.body.appendChild(c);const t=c.innerText;c.remove();return t})()}}""")  # hors liste/fiche : les vraies dates du catalogue n'y sont pas testées
     chk(BAR["r1"] and BAR["qm"]==["Tous les mots","Au moins un mot","Expression exacte","Référence exacte"] and BAR["qf"]==["Lieu d'exécution","Catégorie & domaine","Date limite","Acheteur public"] and BAR["tf"]=="Tous les filtres"
         and BAR["ax"]==["etat:ouv","etat:clos","etat:tout","suivi:","suivi:oui","suivi:non"] and BAR["pert"] and BAR["sort"] and not BAR["scope"] and not BAR["old"],"barre : ligne 1 recherche + 4 modes + Rechercher ; ligne 2 Lieu / Catégorie / Date limite / Acheteur + « Tous les filtres » (aucun critère) ; ligne 3 État × Suivi × Pertinentes + tri ; ancien périmètre exclusif retiré")
     chk(not re.search(r"MAQUETTE|Demande enregistrée avec succès|26/10/20|Approchée ET",BAR["txt"]) and "Filtres appliqués" in BAR["txt"],"aucun contenu de maquette (badge MAQUETTE, date d'exemple, « Approchée ET »)")
@@ -112,14 +115,16 @@ with sync_playwright() as p:
     VF(ref="75/CL/2026");chk(ev(NL)==e75,"filtre Référence exacte (tiroir) = même moteur que le mode Référence exacte")
     # ===== G. qualification reliée, libellés sans null =====
     VF();OPEN();pg.click("#mpv-dn-cond");pg.wait_for_timeout(250);pg.click("#mpv-acc-qual");pg.wait_for_timeout(300);QT=pg.inner_text("#mpv-s-cond")
-    chk(not re.search(r"\bnull\b|undefined",QT) and "Secteur non renseigné (Laboratoires)" in QT and "Système" in QT and "Qualification exigée par l'annonce (pas celle d'une société)" in QT,"Conditions : aucun « null » ; « Secteur non renseigné (Laboratoires) » explicite ; qualification de l'annonce ≠ de la société")
+    sansSect=ev("()=>MPV.base.R.some(e=>!e.x._ferme&&(e.x.q||[]).some(q=>q.m==='Laboratoires'&&q.s==null))")
+    chk(not re.search(r"\bnull\b|undefined",QT) and ("Secteur non renseigné (Laboratoires)" in QT)==sansSect and "Système" in QT and "Qualification exigée par l'annonce (pas celle d'une société)" in QT,"Conditions : aucun « null » ; « Secteur non renseigné (Laboratoires) » explicite ; qualification de l'annonce ≠ de la société")
     chk(("Classe illisible" in QT) == ev("()=>MPV.base.R.some(e=>!e.x._ferme&&(e.x.q||[]).some(q=>q.c&&!/^\\d+$/.test(q.c)&&q.c!=='S'))") and not re.search(r"Classe [A-Z]{2,}",QT),"classe source illisible signalée comme telle (jamais transformée en lettre inventée)")
-    DO("qsys","Laboratoires");sk="Laboratoires|null";DO("sects",sk);
+    DO("qsys","Laboratoires");sk=ev("()=>{const b=[...document.querySelectorAll('[data-mpv-o^=\"sects:Laboratoires|\"]')];return b.length?b[0].dataset.mpvO.slice(6):null}");DO("sects",sk);
+    sv=sk.split("|",1)[1];sv=None if sv=="null" else sv
     cl=ev("()=>{const b=[...document.querySelectorAll('[data-mpv-o^=\"qcls:Laboratoires|\"]')];return b.length?b[0].dataset.mpvO.slice(5):null}")
     DO("qcls",cl);APPLY()
-    c_=cl.split("|")[1];eQ=INDX({},f"return (x.q||[]).some(q=>(q.m||'')==='Laboratoires'&&q.s==null&&(q.c||'')==={json.dumps(c_)})")
-    eLoose=INDX({},f"const Q=x.q||[];return Q.some(q=>q.m==='Laboratoires'&&q.s==null)&&Q.some(q=>q.m==='Laboratoires'&&(q.c||'')==={json.dumps(c_)})")
-    chk(ev(NL)==eQ and eQ<=eLoose and not re.search(r"null",pg.inner_text(".mpv-r4")),f"système → secteur non renseigné → classe {c_} reliés sur une même ligne : {eQ} (non relié : {eLoose}) ; puces sans « null »")
+    c_=cl.split("|")[1];eQ=INDX({},f"return (x.q||[]).some(q=>(q.m||'')==='Laboratoires'&&(q.s==null?null:q.s)==={json.dumps(sv)}&&(q.c||'')==={json.dumps(c_)})")
+    eLoose=INDX({},f"const Q=x.q||[];return Q.some(q=>q.m==='Laboratoires'&&(q.s==null?null:q.s)==={json.dumps(sv)})&&Q.some(q=>q.m==='Laboratoires'&&(q.c||'')==={json.dumps(c_)})")
+    chk(ev(NL)==eQ and eQ<=eLoose and not re.search(r"null",pg.inner_text(".mpv-r4")),f"système → secteur « {sv} » → classe {c_} reliés sur une même ligne : {eQ} (non relié : {eLoose}) ; puces sans « null »")
     chk(ev("()=>S.vf.qcls.every(k=>k.startsWith('Laboratoires|'))") and "comparaison de classes entre systèmes" in QT,"classes par système, aucune comparaison inter-systèmes")
     # ===== H. inconnus on/off et comptes =====
     VF(tp="oui");a=ev(NL);eT=INDX({},"return x.tp===true");uT=INDX({},"return x.tp==null")
@@ -131,7 +136,7 @@ with sync_playwright() as p:
     VF(tp="non");chk(ev(NL)==INDX({},"return x.tp===false"),"« Non réservées » n'inclut pas les fiches inconnues")
     VF();OPEN();pg.click("#mpv-dn-cond");pg.wait_for_timeout(200);pg.click("#mpv-acc-tp");pg.wait_for_timeout(250)
     chk(ev("()=>document.getElementById('mpv-inc-tp').disabled") and "s'applique quand un choix est fait" in ev("()=>document.querySelector('[data-mpv-inc=tp]').textContent"),"inclusion désactivée tant qu'aucun choix n'est fait (pas de critère fantôme)");pg.click("#mpv-dwa");pg.wait_for_timeout(200)
-    VF(ag="sans");eA=INDX({},"return x.det&&!x.ag");VF(ag="sans",inc=["ag"]);eA2=INDX({},"return !x.det||!x.ag")
+    VF(ag="sans");eA=INDX({},"return x.det&&!x.ag&&!(x.lots||x.allot)");VF(ag="sans",inc=["ag"]);eA2=INDX({},"return !x.det||!x.ag")
     chk(eA<eA2 and ev(NL)==eA2,f"Agrément « non indiqué » : {eA} fiches lues seulement ; fiches non lues ajoutées seulement sur demande ({eA2})")
     VF(estMin="1");eM1=INDX({},"return x.est>=1e6");VF(estMin="1",inc=["mts"]);eM2=INDX({},"return x.est>=1e6||x.est==null")
     chk(ev(NL)==eM2 and eM1<eM2,f"Estimation ≥ 1 M DH : {eM1} ; + estimations inconnues sur demande : {eM2} (inconnu ≠ 0)")

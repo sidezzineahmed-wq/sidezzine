@@ -86,6 +86,18 @@ with sync_playwright() as p:
     dis=ev("()=>[!!document.querySelector('[data-mpv-dis=enr]'),document.querySelectorAll('[data-mpv-o^=\"tach:\"]').length]");pg.click("#mpv-dwa");pg.wait_for_timeout(200)
     ev("()=>{S.enr=window.__enr;S.enrState='ok';render();}")
     chk(nA==ev("()=>MPV.base.R.filter(e=>!e.x._ferme).length") and any("non appliqué" in c for c in ch) and dis==[True,0],"enrichissement absent : filtres désactivés et expliqués, puce « non appliqué », aucun résultat inventé")
+    # ===== G2. page légère, statuts de lecture, couverture détaillée =====
+    PG=ev("""async()=>{const r=await fetch('index.html');const t=await r.text();return{n:t.length,js:!!document.querySelector('script[src^="app/eaios.js"]'),css:!!document.querySelector('link[href^="app/eaios.css"]'),inl:document.querySelectorAll('script:not([src])').length}}""")
+    chk(PG["n"]<20000 and PG["js"] and PG["css"],f"index.html allégé ({PG['n']} octets) : script et styles servis en fichiers annexes du même artefact (relecture intégrale possible par le passage horaire)")
+    VF();ku=sorted(k for k in OUV if not mp(X[k]))[:2]
+    ev("ks=>{const M=S.enr.mode_passation;M.absents=M.absents||{};M.inaccessibles=M.inaccessibles||{};const x0=MPV.base.by.get(ks[0].slice(5)).x;M.absents[ks[0]]={ref:x0.ref,lu_le:'2026-10-18T01:00:00+00:00',source:'complement_eaios'};M.inaccessibles[ks[1]]={tentatives:3,dernier_echec:'2026-10-18T01:05:00+00:00'};}",ku)
+    ev("k=>{MPV.sel=k.slice(5);render();}",ku[0]);t0=ev("()=>[document.querySelector('[data-mpv-panel] [data-mpv-mp]').dataset.mpvMpst,document.querySelector('[data-mpv-panel] [data-mpv-mp]').innerText]")
+    ev("k=>{MPV.sel=k.slice(5);render();}",ku[1]);t1=ev("()=>[document.querySelector('[data-mpv-panel] [data-mpv-mp]').dataset.mpvMpst,document.querySelector('[data-mpv-panel] [data-mpv-mp]').innerText]")
+    VF(mpass=["Sur offre de prix"]);nA=ev(NL)
+    chk(t0[0]=="absent" and "champ vide sur la fiche PMMP" in t0[1] and t1[0]=="inaccessible" and "inaccessible après 3 essais" in t1[1] and nA==exp(lambda x:mp(x)=="Sur offre de prix"),f"fiche lue sans mode et fiche inaccessible : signalées comme telles, jamais une valeur ({t0[1][:60]} / {t1[1][:60]})")
+    ev("ks=>{const M=S.enr.mode_passation;delete M.absents[ks[0]];delete M.inaccessibles[ks[1]];}",ku)
+    VF();pg.click("#mpv-tf");pg.wait_for_timeout(300);pg.click("#mpv-dn-dispo");pg.wait_for_timeout(200);cv=ev("()=>document.querySelector('[data-mpv-cov=mpass]').innerText");pg.click("#mpv-dwa");pg.wait_for_timeout(200)
+    c=M["couverture"];chk(f"Connu pour {c['connues']} consultations sur {c['annonces']}" in cv and "fiche lue sans mode" in cv and "pas encore lue" in cv,f"Disponibilité : couverture réelle détaillée ({cv[:140]})")
     # ===== H. clavier, droits, écritures =====
     VF();pg.click("#mpv-tf");pg.wait_for_timeout(300);pg.click("#mpv-dn-ach");pg.wait_for_timeout(200);pg.focus('[data-mpv-o="mpass:Au rabais / majoration"]');pg.keyboard.press("Space");pg.wait_for_timeout(250)
     chk(ev("()=>[MPV.dr.mpass,document.activeElement.dataset.mpvO]")==[["Au rabais / majoration"],"mpass:Au rabais / majoration"],"clavier : Espace coche l'option, le focus reste sur elle");pg.click("#mpv-dwa");pg.wait_for_timeout(200)

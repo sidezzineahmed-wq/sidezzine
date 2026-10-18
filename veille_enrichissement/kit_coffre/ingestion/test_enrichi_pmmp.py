@@ -113,5 +113,48 @@ class Pipeline(unittest.TestCase):
         self.assertEqual(L("o2", "ingestion_rapport.json")["etat"], "inchange", "idempotent : mêmes octets")
 
 
+class Complement(unittest.TestCase):
+    """referentiel/mode_passation_complement.json : lectures du complément EAIOS, conservées par le kit à chaque passage."""
+
+    def comp(self, **recs):
+        return {"version": 1, "par_id": recs}
+
+    def test_lu_absent_inaccessible_jamais_de_valeur_inventee(self):
+        items = [it(1, "g3h"), it(2, "g3h"), it(3, "g3h"), it(4, "g3h")]
+        C = self.comp(**{"pmmp:g3h:1": {"statut": "lu", "v": "Au rabais / majoration", "ref": "1/2026", "lu_le": "2026-10-18T01:00:00+00:00", "url": "u1"},
+                         "pmmp:g3h:2": {"statut": "champ_absent", "v": None, "ref": "2/2026", "lu_le": "2026-10-18T01:01:00+00:00", "url": "u2"},
+                         "pmmp:g3h:3": {"statut": "inaccessible", "tentatives": 3, "dernier_echec": "2026-10-18T01:02:00+00:00", "raison": "HTTP 500"}})
+        e = enrichir(items, {}, REF, None, C)["mode_passation"]
+        self.assertEqual(e["par_id"]["pmmp:g3h:1"]["source"], "complement_eaios")
+        self.assertNotIn("pmmp:g3h:2", e["par_id"])
+        self.assertNotIn("pmmp:g3h:3", e["par_id"])
+        cv = e["couverture"]
+        self.assertEqual((cv["connues"], cv["champ_absent"], cv["inaccessibles"], cv["non_lues"]), (1, 1, 1, 1))
+        self.assertEqual(e["inaccessibles"]["pmmp:g3h:3"]["tentatives"], 3)
+
+    def test_lecture_plus_recente_gagne_sur_absent_et_inaccessible(self):
+        items = [it(2, "g3h"), it(3, "g3h")]
+        C = self.comp(**{"pmmp:g3h:2": {"statut": "champ_absent", "ref": "2/2026", "lu_le": "2026-10-18T01:01:00+00:00"},
+                         "pmmp:g3h:3": {"statut": "inaccessible", "tentatives": 3}})
+        e1 = enrichir(items, {}, REF, None, C)
+        F = {"pmmp:g3h:2": fiche("2/2026", "Sur offre de prix", "2026-10-18T05:00:00+00:00"),
+             "pmmp:g3h:3": fiche("3/2026", "Sur offre de prix", "2026-10-18T05:00:00+00:00")}
+        e2 = enrichir(items, F, REF, e1, C)["mode_passation"]
+        self.assertEqual((e2["couverture"]["connues"], e2["couverture"]["champ_absent"], e2["couverture"]["inaccessibles"]), (2, 0, 0))
+
+    def test_cli_charge_le_complement_du_kit_par_defaut_et_le_conserve(self):
+        d = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, d, True)
+        j = lambda n, v: (json.dump(v, open(os.path.join(d, n), "w")), os.path.join(d, n))[1]
+        its = [it(100 + i, "g3h") for i in range(20)] + [it(1, "j0w")]
+        C = self.comp(**{"pmmp:j0w:1": {"statut": "lu", "v": "Au rabais / majoration", "ref": "1/2026", "lu_le": "2026-10-18T01:00:00+00:00", "url": "u"}})
+        base = ["--catalogue-valide", j("v.json", cat(its, total=len(its))), "--statut", j("s.json", statut(len(its))), "--aujourdhui", AUJ,
+                "--precedent", j("p.json", cat([it(100 + i, "g3h") for i in range(20)])), "--complement-mode", j("c.json", C)]
+        self.assertEqual(I.main(base + ["--sortie", os.path.join(d, "o1")]), 0)
+        e = json.load(open(os.path.join(d, "o1", "catalogue_details.json")))["pmmp_enrichi"]["mode_passation"]
+        self.assertEqual(e["par_id"]["pmmp:j0w:1"]["v"], "Au rabais / majoration")
+        self.assertTrue(os.path.basename(I.COMPLEMENT_MODE) == "mode_passation_complement.json")
+
+
 if __name__ == "__main__":
     unittest.main()

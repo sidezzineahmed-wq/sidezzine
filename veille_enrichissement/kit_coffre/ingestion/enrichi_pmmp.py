@@ -24,18 +24,46 @@ def _plus_recent(a, b):
     return b if a is None or (b.get("lu_le") or "") > (a.get("lu_le") or "") else a
 
 
-def enrichir(items, fiches=None, referentiel=None, precedent=None):
+def enrichir(items, fiches=None, referentiel=None, precedent=None, complement=None):
     """items : consultations du catalogue publié ; fiches : fiches.json du collecteur ; referentiel : relevé officiel de
-    classification ; precedent : « pmmp_enrichi » de la publication précédente (ou None)."""
+    classification ; precedent : « pmmp_enrichi » de la publication précédente (ou None) ; complement :
+    referentiel/mode_passation_complement.json du kit (lectures du complément EAIOS : statut lu / champ_absent / inaccessible).
+    Une valeur n'existe QUE si une lecture réelle l'a vue ; « champ absent » (fiche lue, élément vide) et « inaccessible »
+    (fiche illisible après essais bornés) sont comptés à part et ne donnent jamais de valeur."""
     precedent = precedent or {}
-    par_id = {k: dict(v) for k, v in ((precedent.get("mode_passation") or {}).get("par_id") or {}).items() if v.get("v")}
+    pm = precedent.get("mode_passation") or {}
+    par_id = {k: dict(v) for k, v in (pm.get("par_id") or {}).items() if v.get("v")}
+    absents = {k: dict(v) for k, v in (pm.get("absents") or {}).items()}
+    inacc = {k: dict(v) for k, v in (pm.get("inaccessibles") or {}).items()}
+
+    def lecture(k, rec, vide):
+        if vide:
+            absents[k] = _plus_recent(absents.get(k), rec)
+        else:
+            par_id[k] = _plus_recent(par_id.get(k), rec)
+            inacc.pop(k, None)
+
     for k, f in sorted((fiches or {}).items()):
         ch = (f or {}).get("champs") or {}
-        if ch.get("mode_passation") and f.get("lu_le"):
-            par_id[k] = _plus_recent(par_id.get(k), {"v": ch["mode_passation"], "ref": ch.get("ref"), "lu_le": f["lu_le"],
-                                                      "run": f.get("run"), "source": "collecteur"})
+        if f and f.get("lu_le") and "mode_passation" in ch:
+            lecture(k, {"v": ch.get("mode_passation"), "ref": ch.get("ref"), "lu_le": f["lu_le"], "run": f.get("run"), "source": "collecteur"},
+                    not ch.get("mode_passation"))
+    for k, c in sorted(((complement or {}).get("par_id") or {}).items()):
+        if c.get("statut") in ("lu", "champ_absent") and c.get("lu_le"):
+            lecture(k, {"v": c.get("v"), "ref": c.get("ref"), "lu_le": c["lu_le"], "url": c.get("url"), "source": "complement_eaios"},
+                    c["statut"] == "champ_absent" or not c.get("v"))
+        elif c.get("statut") == "inaccessible" and k not in par_id:
+            inacc[k] = {k2: c.get(k2) for k2 in ("tentatives", "dernier_echec", "raison", "url") if c.get(k2) is not None}
+    for k in list(absents):  # une valeur lue plus récemment l'emporte sur un « champ absent » plus ancien
+        if k in par_id and (par_id[k].get("lu_le") or "") >= (absents[k].get("lu_le") or ""):
+            absents.pop(k)
+    for k in list(inacc):
+        if k in par_id or k in absents:
+            inacc.pop(k)
     cles = {f"pmmp:{x['o']}:{x['r']}": x for x in items}
     connues, valeurs, discord = 0, {}, []
+    n_abs = sum(1 for k, x in cles.items() if k not in par_id and k in absents and _nref(absents[k].get("ref")) == _nref(x.get("ref")))
+    n_inacc = sum(1 for k in cles if k not in par_id and k not in absents and k in inacc)
     for k, x in cles.items():
         v = par_id.get(k)
         if not v:
@@ -70,7 +98,11 @@ def enrichir(items, fiches=None, referentiel=None, precedent=None):
                               "regle": "lecture réelle datée par annonce, la plus récente gagne ; utilisée seulement si la référence lue "
                                        "concorde avec le catalogue ; sans lecture = non renseigné",
                               "par_id": {k: par_id[k] for k in sorted(par_id)},
+                              "absents": {k: absents[k] for k in sorted(absents)},
+                              "inaccessibles": {k: inacc[k] for k in sorted(inacc)},
                               "couverture": {"annonces": len(items), "connues": connues, "inconnues": len(items) - connues,
+                                             "champ_absent": n_abs, "inaccessibles": n_inacc,
+                                             "non_lues": len(items) - connues - n_abs - n_inacc - len(discord),
                                              "pct": round(100 * connues / len(items), 1) if items else 0.0,
                                              "valeurs": dict(sorted(valeurs.items())), "reference_discordante": sorted(discord),
                                              "lues_hors_catalogue_conservees": sum(1 for k in par_id if k not in cles)}}}

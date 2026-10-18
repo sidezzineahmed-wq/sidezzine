@@ -64,7 +64,7 @@ function mpvLotHtml(l,on){const v=(k,val)=>val!=null&&val!==""?esc(val):`<span c
   return`<li class="mpv-lot${on?" on":""}" data-mpv-lot="${esc(l.num||"")}"${on?' aria-current="true"':""}><b>Lot ${esc(l.num||"?")}${on?" · correspond aux filtres":""}</b>${l.intitule?` <span>${esc(l.intitule)}</span>`:""}
    <dl class="mpv-kv"><dt>Estimation</dt><dd data-mpv-lest="${l.est==null?"":l.est}">${l.est!=null?esc(mpvMt(l.est,"TTC"))+(l.est_libelle?` <small class="mpv-mut">${esc(l.est_libelle)}</small>`:""):v("est",null)}</dd>
    <dt>Caution provisoire</dt><dd>${l.cau!=null?esc(l.cau===0?"0 DH selon PMMP, à vérifier dans le DCE":dh(l.cau)):v("cau",null)}</dd>
-   <dt>Réservé TPE / PME</dt><dd data-mpv-ltp="${l.tp==null?"":l.tp}">${l.tp==null?v("tp",null):l.tp?"Oui":"Non"}</dd><dt>Qualification</dt><dd>${q}</dd>
+   <dt>Réservé TPE / PME</dt><dd data-mpv-ltp="${l.tp==null?"":l.tp}">${l.tp==null?v("tp",null):l.tp?"Oui":"Non"}</dd><dt class="mpv-lqd">Qualification</dt><dd class="mpv-lqd">${q}</dd>
    <dt>Agréments</dt><dd>${(l.ag||[]).length?esc(l.ag.join(" ; ")):v("ag",null)}</dd><dt>Visite des lieux</dt><dd>${v("vis",l.vis)}</dd>
    <dt>Réunion</dt><dd>${v("reu",l.reu)}</dd><dt>Échantillons / prospectus</dt><dd>${v("proto",l.proto)}</dd><dt>Variante</dt><dd>${l.var==null?v("var",null):l.var?"Oui":"Non"}</dd>${l.env?`<dt>Environnement</dt><dd>${esc(l.env)}</dd>`:""}${l.cat?`<dt>Catégorie</dt><dd>${esc(l.cat)}</dd>`:""}</dl></li>`;}
 const _mpvPanel4=mpvPanel;
@@ -80,7 +80,7 @@ mpvPanel=function(B,dm,inList){let h=_mpvPanel4(B,dm,inList);const e=MPV.sel&&B&
   else s+=`<p class="mpv-mut" data-mpv-lotnl="1">${st==="inaccessible"?"Popup « Détail des lots » inaccessible après essais bornés : valeurs par lot inconnues.":"Détail des lots pas encore lu par le collecteur : estimation, caution, TPE / PME et conditions par lot inconnues (jamais déduites)."}</p>`;
   s+=`</section>`;
   return h.replace(/(<h3 class="mpv-h3">Pourquoi cette consultation \?<\/h3>)/,s+"$1");};
-const MPV4_CSS=`.mpv-lotm{color:var(--accent,#2457c5);font-weight:600}.mpv-lots{margin:12px 0}.mpv-lotl{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:8px}.mpv-lot{border:1px solid var(--line,#d8dde6);border-radius:8px;padding:8px 10px}.mpv-lot.on{border-color:var(--accent,#2457c5);box-shadow:0 0 0 1px var(--accent,#2457c5) inset}.mpv-lot>b{display:block;margin-bottom:4px}.mpv-lq{margin:0;padding-left:16px}.mpv-lot .mpv-kv{margin:0}`;
+const MPV4_CSS=`.mpv-lotm{color:var(--accent,#2457c5);font-weight:600}.mpv-lots{margin:12px 0}.mpv-lotl{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:8px}.mpv-lot{border:1px solid var(--line,#d8dde6);border-radius:8px;padding:8px 10px}.mpv-lot.on{border-color:var(--accent,#2457c5);box-shadow:0 0 0 1px var(--accent,#2457c5) inset}.mpv-lot>b{display:block;margin-bottom:4px}.mpv-lq{margin:0;padding-left:16px}.mpv-lot .mpv-kv{margin:0;grid-template-columns:minmax(0,9.5em) minmax(0,1fr)}.mpv-lot .mpv-kv .mpv-lqd{grid-column:1/-1}.mpv-lot .mpv-kv dd.mpv-lqd{margin:-2px 0 2px}`;
 const _mpvPage4=mpvPage;
 mpvPage=function(){if(!document.getElementById("mpv4-css")){const s=document.createElement("style");s.id="mpv4-css";s.textContent=MPV4_CSS;document.head.appendChild(s);}return _mpvPage4();};
 /* provenance : fiche inaccessible après essais bornés (pmmp_enrichi.fiches) distincte de « pas encore lue » */

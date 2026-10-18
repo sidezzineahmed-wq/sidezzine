@@ -69,7 +69,7 @@ def libelle_seul(v):
     return isinstance(v, str) and bool(LIBELLES_SEULS.match(v))
 
 
-CODE_LETTRES = re.compile(r"^([A-Z]{1,3}\d*(?:\.\d+)*)\s*-\s*(.*)$")       # « B- … », « B.3- … », « Y1- … »
+CODE_LETTRES = re.compile(r"^([A-Z]\d*(?:\.\d+)*)\s*-\s*(.*)$")  # « B- … », « B.3- … », « Y1- … » (jamais un mot : « RECHERCHE-DEVELOPPEMENT »)
 CODE_CHIFFRES = re.compile(r"^(\d+(?:\.\d+)*)\.?(?:\s*-\s*|\s+|(?=[^\d\s.]))(.*)$")  # « 2 Travaux », « 2.2 Sans objet. », « 10.1.Travaux »
 
 

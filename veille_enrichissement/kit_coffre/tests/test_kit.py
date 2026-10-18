@@ -517,6 +517,8 @@ class TestLots(unittest.TestCase):
         self.assertEqual(L("Laboratoires / ETUDES GEOTECHNIQUES / ETUDES GEOTECHNIQUES DES BATIMENTS COURANTS / Classe 3"),
                          {"m": "Laboratoires", "s": None, "sl": "ETUDES GEOTECHNIQUES", "q": None,
                           "ql": "ETUDES GEOTECHNIQUES DES BATIMENTS COURANTS", "c": "3"}, "secteur et qualification sans code : texte gardé")
+        self.assertEqual(L("Laboratoires / RECHERCHE-DEVELOPPEMENT / RECHERCHE-DEVELOPPEMENT EN HYDRAULIQUE ET MARITIME / Classe 1")["sl"],
+                         "RECHERCHE-DEVELOPPEMENT", "un mot avec tiret n'est pas un code")
         self.assertEqual(L("Laboratoires / Classe 1"), {"m": "Laboratoires", "s": None, "sl": None, "q": None, "ql": None, "c": "1"})
         f = lire_fiche(fx("fiche_1041301_o8p_sans_contact.html"))
         self.assertEqual(len(f["q_txt"]), len(f["q"]), "lignes publiées conservées pour un nouveau calcul sans requête")

@@ -97,6 +97,13 @@ def main(argv=None):
             if doc is None:
                 F[k] = doc = nouveau
                 n["fiche_ajoutee"] += 1
+            elif fi["lu_le"] == doc.get("lu_le") and fi["sha256_html_tronque"] == doc.get("sha256_html_tronque"):
+                # même lecture (même date, même HTML) : seuls les champs re-analysés par le parser à jour changent
+                if not q_conserve((doc.get("champs") or {}).get("q"), fi["champs"].get("q")):
+                    n.setdefault("reanalyse_q_garde_ancien", []).append(k)
+                    fi["champs"]["q"] = (doc.get("champs") or {}).get("q")
+                doc["champs"] = fi["champs"]
+                n["meme_lecture_reanalysee"] = n.get("meme_lecture_reanalysee", 0) + 1
             elif fi["lu_le"] > (doc.get("lu_le") or ""):
                 if not q_conserve((doc.get("champs") or {}).get("q"), fi["champs"].get("q")):
                     n.setdefault("relecture_q_differente", []).append(k)  # nouvelle lecture réelle : elle fait foi, l'écart est listé

@@ -178,5 +178,16 @@ class Lots(unittest.TestCase):
         self.assertEqual(enrichir(items[1:], {}, None, e, None)["lots"]["par_id"].get("pmmp:o1:1"), None, "annonce retirée : élaguée")
 
 
+class VisiteNonLue(unittest.TestCase):
+    def test_ancienne_lecture_visite_inconnue(self):
+        items = [it("1", "o1", "A"), it("2", "o1", "B"), it("3", "o1", "C")]
+        for x in items:
+            x["det"] = True
+        fiches = {"pmmp:o1:1": {"lu_le": "2026-10-18T10:00:00+00:00", "champs": {"ref": "A"}},
+                  "pmmp:o1:2": {"lu_le": "2026-10-18T10:00:00+00:00", "champs": {"ref": "B", "version_lecture": 2}}}
+        e = enrichir(items, fiches, None, None, None)
+        self.assertEqual(e["fiches"]["visite_non_lue"], ["pmmp:o1:1"], "seule l'ancienne lecture ; fiche absente de fiches.json non listée")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -106,6 +106,14 @@ with sync_playwright() as p:
     opt=ev("()=>[...document.querySelectorAll('[data-mpv-o^=\"sects:\"]')].map(b=>b.dataset.mpvO)");pg.click("#mpv-dwa");pg.wait_for_timeout(200)
     chk(a1==["1"] and a2==["2"] and not a3 and "sects:Laboratoires|CONTROLE DE QUALITE" in opt,f"secteur publié sans code (Laboratoires) filtrable par son libellé, Y / Y1 gardés ; classe Laboratoires du lot 1 ET qualification Y1 du lot 2 : pas de correspondance croisée")
     ev("L=>{S.enr.lots=L;render();}",LOTS)
+    # ===== F3. visite non lue (ancienne lecture) : inconnue, jamais « non indiquée » =====
+    kV=next(k for k in OUV if X[k]["det"] and not X[k]["vis"] and not (X[k]["lots"] or X[k]["allot"]))
+    VF(vis="non");a0=kV in GOT()
+    ev("k=>{S.enr.fiches={inaccessibles:{},visite_non_lue:[k]};render();}",kV)
+    VF(vis="non");a1=kV in GOT();VF(vis="non",inc=["vis"]);G=GOT();a2=G.get(kV,{}).get("unk")
+    ev("k=>{MPV.sel=k.slice(5);render();}",kV);pv=ev("()=>(document.querySelector('[data-mpv-panel] [data-mpv-vis]')||{dataset:{}}).dataset.mpvVis")
+    ev("()=>{delete S.enr.fiches;render();}")
+    chk(a0 and not a1 and a2 is True and pv=="non_lue",f"visite d'une ancienne lecture : exclue de « non indiquée », incluse seulement sur demande comme inconnue ; fiche « {pv} »")
     # ===== G. puces, brouillon, recherche enregistrée =====
     VF(mts=["1-5"],tp="oui");CH=ev("()=>[...document.querySelectorAll('.mpv-r4 .mpv-x')].map(x=>x.innerText)");pg.click('.mpv-r4 [data-vfx="tp"]');pg.wait_for_timeout(300)
     chk(len(CH)==2 and ev("()=>[S.vf.tp,S.vf.mts.length]")==["",1] and kA in GOT(),"puces : retirer « TPE » rend l'annonce A (lot 1)")

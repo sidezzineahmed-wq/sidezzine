@@ -32,7 +32,7 @@ def run(*cmd):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--coffre-in", required=True)
-    ap.add_argument("--dossier", required=True)
+    ap.add_argument("--dossier", required=True, action="append", help="dossier(s) du complément, intégrés dans l'ordre")
     ap.add_argument("--kit", required=True)
     ap.add_argument("--sortie", required=True)
     ap.add_argument("--aujourdhui")
@@ -53,11 +53,21 @@ def main(argv=None):
         if sha(os.path.join(K, "referentiel", f)) != ref_relu[f]:
             shutil.copy(os.path.join(IN, "stock", "kit", "referentiel", f), os.path.join(K, "referentiel", f))
             rapport.setdefault("referentiels_relus_gardes", []).append(f)
-    rapport["integration"] = json.loads(run(os.path.join(ICI, "integrer_fiches.py"), "--fiches", os.path.join(IN, "stock", "etat", "fiches.json"),
-                                            "--dossier", a.dossier, "--kit", a.kit, "--precedent-complement",
-                                            os.path.join(IN, "stock", "kit", "referentiel", "fiches_complement.json"),
-                                            "--sortie", os.path.join(OUT, "stock", "etat", "fiches.json"),
-                                            "--complement", os.path.join(K, "referentiel", "fiches_complement.json")))
+    src, prec_c = os.path.join(IN, "stock", "etat", "fiches.json"), os.path.join(IN, "stock", "kit", "referentiel", "fiches_complement.json")
+    rapport["integration"] = []
+    for i, dos in enumerate(a.dossier):
+        dst, comp = os.path.join(OUT, "stock", "etat", f"_fiches_{i}.json"), os.path.join(OUT, f"_comp_{i}.json")
+        rapport["integration"].append({"dossier": dos, **json.loads(run(os.path.join(ICI, "integrer_fiches.py"), "--fiches", src, "--dossier", dos,
+                                                                        "--kit", a.kit, "--precedent-complement", prec_c, "--sortie", dst, "--complement", comp))})
+        src, prec_c = dst, comp
+    shutil.move(src, os.path.join(OUT, "stock", "etat", "fiches.json"))
+    shutil.move(prec_c, os.path.join(K, "referentiel", "fiches_complement.json"))
+    for f in os.listdir(os.path.join(OUT, "stock", "etat")):
+        if f.startswith("_fiches_"):
+            os.remove(os.path.join(OUT, "stock", "etat", f))
+    for f in os.listdir(OUT):
+        if f.startswith("_comp_"):
+            os.remove(os.path.join(OUT, f))
     # 3. catalogue valide reconstruit (même listing, fiches fusionnées)
     E = os.path.join(OUT, "_etat")
     run(os.path.join(K, "coffre.py"), "unpack", "--source", OUT, "--etat", E)

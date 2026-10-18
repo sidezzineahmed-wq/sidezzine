@@ -9,6 +9,9 @@ from .html_outils import date_iso, masquer_coordonnees, montant, nettoyer, vide_
 
 PARAMS = lambda r, o: {"page": "entreprise.EntrepriseDetailConsultation", "refConsultation": r, "orgAcronyme": o}
 PFX = "ctl0_CONTENU_PAGE_idEntrepriseConsultationSummary_"
+# 2 (18/10/2026) : visites lues (sous-bloc panelRepeaterVisitesLieux), qualification par position, lignes publiées gardées.
+# Une fiche sans ce champ a été lue par une version antérieure : sa visite des lieux n'a PAS été lue (inconnue, pas « non indiquée »).
+VERSION_LECTURE = 2
 DEBUT_CONTACT = re.compile(r'<div id="ctl0_CONTENU_PAGE_idEntrepriseConsultationSummary_panelCont\w*Administratif"|Contact Administratif', re.I)
 
 
@@ -49,12 +52,14 @@ def _panel_visible(h, suffixe):
 
 def _bloc_panel(h, panel):
     """Texte du contenu d'un panneau « line » (après l'intitulé), ou None."""
-    m = re.search(r'id="' + PFX + panel + r'"[^>]*>(.*?)(?=<div id="' + PFX + r'panel|<span class="spacer-small"|$)', h, re.S)
+    # le bloc s'arrête au panneau SUIVANT, pas à son propre sous-bloc (« panelRepeaterVisitesLieux » contient les visites)
+    m = re.search(r'id="' + PFX + panel + r'"[^>]*>(.*?)(?=<div id="' + PFX + r'panel(?!Repeater)|<span class="spacer-small"|$)', h, re.S)
     if not m:
         return None
     corps = re.sub(r'<div class="intitule-240 bold">.*?</div>', "", m.group(1), count=1, flags=re.S)
     corps = re.sub(r"<script.*?</script>", "", corps, flags=re.S)
     v = nettoyer(corps)
+    v = re.sub(r"\s+,", ",", v) if v else v  # « 28/10/2026 11:00 , lieu » (balises retirées) -> « 28/10/2026 11:00, lieu »
     # « Date et heure : » seul (libellé sans date ni adresse, cas des consultations alloties) = rien de publié
     if vide_portail(nettoyer(re.sub(r'<span id="' + PFX + r'label\w*"[^>]*>.*?</span>', "", corps, flags=re.S))):
         return None
@@ -157,6 +162,7 @@ def lire_fiche(h_tronque, masquer=True):
         "cat": _txt(h, "categoriePrincipale"), "lim": lim, "h": h_, "lieux_fiche": lieux,
         "est": est, "tp": tp, "cau": cau, "q": q, "q_txt": q_txt, "ag": ag, "vis": vis, "reu": reu, "var": var,
         "allot": allot, "dom": dom, "ouv": ouv, "dep": dep, "proto": proto,
+        "version_lecture": VERSION_LECTURE,
     }
 
 

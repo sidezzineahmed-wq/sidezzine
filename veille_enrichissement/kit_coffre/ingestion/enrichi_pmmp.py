@@ -162,7 +162,12 @@ def enrichir(items, fiches=None, referentiel=None, precedent=None, complement=No
     out["lots"] = _lots(items, fiches, precedent, complement_fiches)
     fi = {k: v for k, v in sorted(((complement_fiches or {}).get("fiches_inaccessibles") or {}).items())
           if k in cles and not cles[k]["det"]}
-    out["fiches"] = {"inaccessibles": fi, "regle": "fiche PMMP illisible après essais bornés : champs de fiche inconnus (jamais remplis)"}
+    vnl = sorted(k for k, x in cles.items() if x.get("det") and k in (fiches or {})
+                 and ((fiches[k] or {}).get("champs") or {}).get("version_lecture", 1) < 2)
+    out["fiches"] = {"inaccessibles": fi, "regle": "fiche PMMP illisible après essais bornés : champs de fiche inconnus (jamais remplis)",
+                     "visite_non_lue": vnl,
+                     "regle_visite": "fiche lue par une version du collecteur antérieure à version_lecture 2 : bloc « Visites des lieux » "
+                                     "non lu ; la visite est inconnue (jamais « non indiquée ») jusqu'à la prochaine lecture"}
     lus = [v.get("lu_le") for v in par_id.values() if v.get("lu_le")] + [v.get("lu_le") for v in out["lots"]["par_id"].values() if v.get("lu_le")]
     out["maj"] = max([((cls or {}).get("source") or {}).get("fin") or ""] + lus) or None
     return out

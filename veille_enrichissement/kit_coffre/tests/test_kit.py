@@ -523,6 +523,18 @@ class TestLots(unittest.TestCase):
         f = lire_fiche(fx("fiche_1041301_o8p_sans_contact.html"))
         self.assertEqual(len(f["q_txt"]), len(f["q"]), "lignes publiées conservées pour un nouveau calcul sans requête")
 
+    def test_visite_officielle_lue(self):
+        # bloc officiel (fiche l5b/1049723, 18/10/2026) : la visite est dans le sous-bloc panelRepeaterVisitesLieux
+        P = "ctl0_CONTENU_PAGE_idEntrepriseConsultationSummary_"
+        h = (f'<span id="{P}reference">R/1</span><span id="{P}objet">O</span><div id="{P}panelVisitesLieux" class="line" style="display:;">'
+             f'<div class="intitule-240 bold">Visites des lieux : </div><div id="{P}panelRepeaterVisitesLieux" class="content-bloc bloc-500">'
+             f'<ul class="default-list"><li><span id="{P}repeaterVisitesLieux_ctl1_dateVisites">28/10/2026 11:00</span>,&nbsp;'
+             f'<span id="{P}repeaterVisitesLieux_ctl1_adresseVisites">- Siège de la Fondation, Casablanca – Anfa </span></li></ul></div></div>'
+             f'<div id="{P}panelVariante" class="line"><span id="{P}varianteValeur">Non</span></div>')
+        self.assertEqual(lire_fiche(h)["vis"], "28/10/2026 11:00, - Siège de la Fondation, Casablanca – Anfa")
+        vide = fx("fiche_1046170_o4d_allotie_sans_contact.html")
+        self.assertIsNone(lire_fiche(vide)["vis"], "sous-bloc vide : rien de publié")
+
     def test_libelle_seul_rien_de_publie(self):
         f = lire_fiche(fx("fiche_1046170_o4d_allotie_sans_contact.html"))
         self.assertEqual((f["allot"], f["reu"], f["proto"], f["est"], f["tp"], f["cau"]), ("2 Lots", None, None, None, None, None))

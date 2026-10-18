@@ -22,19 +22,23 @@ const mpvQNcat=()=>((S.cat&&S.cat.items)||[]).forEach(x=>mpvQN(x.q));
 const _catAppliquer4=catAppliquer;catAppliquer=function(L){_catAppliquer4(L);mpvQNcat();softRender();};mpvQNcat();
 /* unités d'évaluation (mémoïsées par annonce et version des données) */
 let mpvUC=new WeakMap(),mpvUV=null;
-function mpvUnits(x){const L=mpvLotsAll();if(mpvUV!==L){mpvUC=new WeakMap();mpvUV=L;}let U=mpvUC.get(x);if(U)return U;
-  if(!mpvAlloti(x))U=[{_u:1,_lot:null,det:x.det,est:x.est,cau:x.cau,tp:x.tp,q:x.q||[],ag:x.ag,vis:x.vis}];
+function mpvUnits(x){const L=mpvLotsAll(),V=S.enr&&S.enr.fiches&&S.enr.fiches.visite_non_lue;if(mpvUV!==L||mpvUC.v!==V){mpvUC=new WeakMap();mpvUC.v=V;mpvUV=L;}let U=mpvUC.get(x);if(U)return U;
+  if(!mpvAlloti(x))U=[{_u:1,_lot:null,det:x.det,est:x.est,cau:x.cau,tp:x.tp,q:x.q||[],ag:x.ag,vis:x.vis,_visnl:mpvVisNL(x)}];
   else{const r=mpvLotsRec(x);U=r?r.lots.map(l=>({_u:1,_lot:l.num,det:true,est:l.est==null?null:l.est,cau:l.cau==null?null:l.cau,tp:l.tp==null?null:l.tp,q:mpvQN(l.q||[]),ag:(l.ag||[]).length?l.ag.join(" ; "):null,vis:l.vis||null})):[];
     if(!r||r.statut!=="lu")U.push({_u:1,_lot:null,_inc:1,det:false,est:null,cau:null,tp:null,q:[],ag:null,vis:null});}
   mpvUC.set(x,U);return U;}
 /* moteur : critère d'unité inchangé (fonctions mpv-2) ; une annonce = ∃ unité satisfaisant tous les critères par lot actifs */
 const _mpvF4=mpvF,_mpvUNK4={...MPV_UNK},_FAC4={mts:FACETS.mts,tp:FACETS.tp,cau:FACETS.cau,qual:FACETS.qual,ag:FACETS.ag,vis:FACETS.vis};
 const mpvLotOn=d=>MPV_LK.filter(k=>MPV_ON[k](d));
-function mpvUnitOk(u,d,ks,strict){let unk=false;for(const k of ks){if(_mpvF4(k,u,d))continue;const g=MPV_G[k];if(k!==strict&&g&&(d.inc||[]).includes(g)&&_mpvUNK4[k](u)){unk=true;continue;}return null;}return{unk};}
+/* visite d'une fiche lue par l'ancien collecteur (pmmp_enrichi.fiches.visite_non_lue) : inconnue, jamais « non indiquée » */
+let mpvVNL=null,mpvVNLsrc=null;
+function mpvVisNL(x){const L=S.enr&&S.enr.fiches&&S.enr.fiches.visite_non_lue;if(L!==mpvVNLsrc){mpvVNLsrc=L;mpvVNL=new Set(L||[]);}return mpvVNL.has("pmmp:"+x.o+":"+x.r);}
+const mpvUF=(k,u,d)=>k==="vis"&&u._visnl?false:_mpvF4(k,u,d),mpvUU=(k,u)=>k==="vis"&&u._visnl?true:_mpvUNK4[k](u);
+function mpvUnitOk(u,d,ks,strict){let unk=false;for(const k of ks){if(mpvUF(k,u,d))continue;const g=MPV_G[k];if(k!==strict&&g&&(d.inc||[]).includes(g)&&mpvUU(k,u)){unk=true;continue;}return null;}return{unk};}
 function mpvLotHits(x,d,strict){const ks=mpvLotOn(d);if(strict&&!ks.includes(strict))ks.push(strict);const H=[];mpvUnits(x).forEach(u=>{const r=mpvUnitOk(u,d,ks,strict);if(r)H.push({u,unk:r.unk});});return H;}
-mpvF=function(k,x,d){if(!MPV_LK.includes(k)||x._u)return _mpvF4(k,x,d);return mpvLotHits(x,d,k).length>0;};  /* k réellement satisfait sur le lot ; autres critères par lot : même lot (inconnus admis seulement si inclus) */
+mpvF=function(k,x,d){if(x._u&&MPV_LK.includes(k))return mpvUF(k,x,d);if(!MPV_LK.includes(k))return _mpvF4(k,x,d);return mpvLotHits(x,d,k).length>0;};  /* k réellement satisfait sur le lot ; autres critères par lot : même lot (inconnus admis seulement si inclus) */
 ["mts","tp","cau","qual","ag","vis"].forEach(k=>{FACETS[k]=(x,f)=>x._u||!x.r?_FAC4[k](x,f):(k==="mts"?!(f.mts.length||f.estMin||f.estMax):!f[k])||mpvF(k,x,f);});
-MPV_LK.forEach(k=>{MPV_UNK[k]=x=>x._u?_mpvUNK4[k](x):mpvUnits(x).some(u=>_mpvUNK4[k](u));});
+MPV_LK.forEach(k=>{MPV_UNK[k]=x=>x._u?mpvUU(k,x):mpvUnits(x).some(u=>mpvUU(k,u));});
 /* r = {ok, unk, lots} : lots = numéros des lots correspondants (annonce allotie, critère par lot actif) */
 mpvMatch=function(e,d,skip){if(!mpvAxes(e,d,skip)||(skip!=="q"&&!mpvQ(e.x,d)))return{ok:false};let unk=false;const lk=[];
   for(const k in MPV_ON){if(k===skip||!MPV_ON[k](d))continue;if(MPV_LK.includes(k)){lk.push(k);continue;}if(_mpvF4(k,e.x,d))continue;const g=MPV_G[k];if(g&&d.inc.includes(g)&&_mpvUNK4[k](e.x)){unk=true;continue;}return{ok:false};}
@@ -48,6 +52,7 @@ mpvDrawer=function(B){const d=MPV.dr,ks=mpvLotOn(d).filter(k=>k!=="qh"),sw=[];
   let h;try{h=_mpvDrawer4(B);}finally{sw.forEach(([x,q])=>{x.q=q;});}
   const L=mpvLotsAll();
   h=h.replace(/(<section id="mpv-s-cond"[\s\S]*?<\/div>)/,`$1<p class="mpv-mut" data-mpv-lotrule="1">Consultations alloties : estimation, caution, TPE / PME, qualification, agrément et visite sont lus <b>par lot</b> sur PMMP. Ces critères sont vérifiés sur un <b>même lot</b> (ex. estimation et réservation TPE du même lot) ; les critères généraux (lieu, catégorie, dates…) portent sur l'annonce.</p>`);
+  {const V=(S.enr&&S.enr.fiches&&S.enr.fiches.visite_non_lue)||[];if(V.length)h=h.replace(/(<section id="mpv-s-dispo"[\s\S]*?<ul class="mpv-dl2">)/,`$1<li data-mpv-cov="visnl"><b>Visite des lieux</b> : ${V.length} fiche${V.length>1?"s":""} lue${V.length>1?"s":""} par une ancienne version du collecteur (bloc visite non lu) : visite inconnue, jamais « non indiquée », jusqu'à la relecture.</li>`);}
   if(L){const c=L.couverture||{};h=h.replace(/(<section id="mpv-s-dispo"[\s\S]*?<ul class="mpv-dl2">)/,`$1<li data-mpv-cov="lots"><b>Détail par lot</b> : ${c.lues||0} consultation${(c.lues||0)>1?"s":""} alloties lues entièrement (${c.lots||0} lots)${c.partielles?` · ${c.partielles} lue${c.partielles>1?"s":""} partiellement`:""}${c.inaccessibles?` · ${c.inaccessibles} popup${c.inaccessibles>1?"s":""} inaccessible${c.inaccessibles>1?"s":""}`:""} · pas encore lues : ${c.non_lues||0}, sur ${c.alloties||0} alloties.</li>`);}
   return h;};
 /* liste : lots correspondants */
@@ -68,7 +73,9 @@ function mpvLotHtml(l,on){const v=(k,val)=>val!=null&&val!==""?esc(val):`<span c
    <dt>Agréments</dt><dd>${(l.ag||[]).length?esc(l.ag.join(" ; ")):v("ag",null)}</dd><dt>Visite des lieux</dt><dd>${v("vis",l.vis)}</dd>
    <dt>Réunion</dt><dd>${v("reu",l.reu)}</dd><dt>Échantillons / prospectus</dt><dd>${v("proto",l.proto)}</dd><dt>Variante</dt><dd>${l.var==null?v("var",null):l.var?"Oui":"Non"}</dd>${l.env?`<dt>Environnement</dt><dd>${esc(l.env)}</dd>`:""}${l.cat?`<dt>Catégorie</dt><dd>${esc(l.cat)}</dd>`:""}</dl></li>`;}
 const _mpvPanel4=mpvPanel;
-mpvPanel=function(B,dm,inList){let h=_mpvPanel4(B,dm,inList);const e=MPV.sel&&B&&B.by.get(MPV.sel);if(!e)return h;const x=e.x;if(!mpvAlloti(x))return h;
+mpvPanel=function(B,dm,inList){let h=_mpvPanel4(B,dm,inList);const e=MPV.sel&&B&&B.by.get(MPV.sel);if(!e)return h;const x=e.x;
+  if(!mpvAlloti(x)){const nl=x.det&&mpvVisNL(x),v=!x.det?"Inconnue (fiche détaillée pas encore lue)":nl?"Non lue (ancienne lecture du collecteur : bloc visite non lu ; relecture en cours)":x.vis||"Non indiquée sur PMMP";
+    return h.replace(/(<dt>Qualification<\/dt><dd>[^<]*<\/dd>)/,`$1<dt>Visite des lieux</dt><dd data-mpv-vis="${x.det?(nl?"non_lue":x.vis?"lue":"non_indiquee"):"inconnue"}">${esc(v)}</dd>`);}
   const r=mpvLotsRec(x),st=mpvLotSt(x),L=mpvLotsAll(),m=mpvLotOn(S.vf).length?mpvMatch(e,S.vf,null):null,on=new Set((m&&m.lots)||[]);
   const ind=r?"Par lot : voir le détail des lots ci-dessous":st==="inaccessible"?"Par lot : popup PMMP inaccessible":"Par lot : détail des lots pas encore lu";
   h=h.replace(/(<dt>Estimation<\/dt><dd>)([^<]*)(<\/dd><dt>Caution provisoire<\/dt><dd>)([^<]*)(<\/dd><dt>Qualification<\/dt><dd>)([^<]*)(<\/dd>)/,(z,a,ve,b,vc,c,vq,d2)=>a+(x.est!=null?ve:esc(ind))+b+(x.cau!=null?vc:esc(ind))+c+((x.q||[]).length?vq:esc(ind))+d2);

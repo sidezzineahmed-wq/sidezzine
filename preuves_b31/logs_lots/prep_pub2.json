@@ -1,0 +1,64 @@
+{
+ "coffre_relu": {
+  "manifest_cree_le": "2026-10-18T18:26:42+00:00",
+  "fichiers": 40
+ },
+ "referentiels_relus_gardes": [
+  "fiches_complement.json"
+ ],
+ "integration": [
+  {
+   "dossier": "compl_fiches",
+   "fiches_coffre": 5020,
+   "fiche_ajoutee": 0,
+   "fiche_remplacee_plus_recente": 0,
+   "fiche_coffre_plus_recente_gardee": 46,
+   "lots_rattaches": 0,
+   "lots_sans_fiche_coffre": 0,
+   "ref_differente_du_catalogue": 0,
+   "reparse_fiches": 1873,
+   "reparse_lots": 374,
+   "reparse_sha_ko": 0,
+   "reparse_change": 1873,
+   "meme_lecture_reanalysee": 1827,
+   "fiches_sortie": 5020,
+   "fiches_inaccessibles": 0,
+   "lots_inaccessibles": 0,
+   "fiches_avec_lots": 374
+  },
+  {
+   "dossier": "compl_vis",
+   "fiches_coffre": 5020,
+   "fiche_ajoutee": 0,
+   "fiche_remplacee_plus_recente": 47,
+   "fiche_coffre_plus_recente_gardee": 0,
+   "lots_rattaches": 1,
+   "lots_sans_fiche_coffre": 0,
+   "ref_differente_du_catalogue": 0,
+   "reparse_fiches": 47,
+   "reparse_lots": 1,
+   "reparse_sha_ko": 0,
+   "reparse_change": 47,
+   "fiches_sortie": 5020,
+   "fiches_inaccessibles": 0,
+   "lots_inaccessibles": 0,
+   "fiches_avec_lots": 374
+  }
+ ],
+ "catalogue_valide": {
+  "maj": "2026-10-18T18:18:05+00:00",
+  "n": 4472,
+  "n_details_avant": 4472,
+  "n_details": 4472,
+  "n_avant": 4472
+ },
+ "changes": [
+  "stock/catalogue_valide.json",
+  "stock/etat/fiches.json",
+  "stock/kit/ingestion/enrichi_pmmp.py",
+  "stock/kit/ingestion/test_enrichi_pmmp.py",
+  "stock/kit/tests/test_kit.py",
+  "stock/kit/veille/pmmp_fiche.py"
+ ],
+ "retires": []
+}

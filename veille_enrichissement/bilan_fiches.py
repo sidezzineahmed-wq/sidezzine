@@ -10,7 +10,8 @@ Par annonce et par champ, un seul statut :
   par_lot_partiel  popup lu mais incomplet (moins de lots que « N Lots ») ;
   par_lot_non_lu   annonce allotie dont le popup des lots n'est pas (encore) lu ;
   inaccessible     fiche (ou popup) illisible après essais bornés ;
-  non_lue          fiche pas encore lue.
+  non_lue          fiche pas encore lue ;
+  non_lue_ancien_collecteur  (visite) fiche lue par une version antérieure du collecteur qui ne lisait pas ce bloc.
 Aucun statut n'est déduit d'un autre ; aucun montant n'est sommé."""
 import json
 import os
@@ -28,6 +29,7 @@ def bilan(cat, det, auj=None):
     L = (E.get("lots") or {}).get("par_id") or {}
     LI = (E.get("lots") or {}).get("inaccessibles") or {}
     FI = (E.get("fiches") or {}).get("inaccessibles") or {}
+    VNL = set((E.get("fiches") or {}).get("visite_non_lue") or [])
     M = E.get("mode_passation") or {}
     items = [x for x in cat["items"] if not auj or not x.get("lim") or x["lim"] >= auj]
     out = {"annonces": len(items), "det": sum(1 for x in items if x["det"]), "alloties": sum(1 for x in items if x["lots"] or x["allot"]), "champs": {}}
@@ -55,6 +57,9 @@ def bilan(cat, det, auj=None):
                         "lots_non_affiche" if ch in (l.get("na") or []) else "lots_non_indique")
                 continue
             v = x.get(ch)
+            if ch == "vis" and k in VNL:
+                add(ch, "non_lue_ancien_collecteur")  # bloc visite non lu par l'ancienne version : inconnu, pas « non indiquée »
+                continue
             add(ch, "zero" if v == 0 and ch in ("est", "cau") else "connue" if not vide(v) else "non_indiquee")
         mp = (M.get("par_id") or {}).get(k)
         add("mode_passation", "connue" if mp and mp.get("v") and nref(mp.get("ref")) == nref(x["ref"]) else

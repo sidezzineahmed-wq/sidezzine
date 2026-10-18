@@ -156,5 +156,27 @@ class Complement(unittest.TestCase):
         self.assertTrue(os.path.basename(I.COMPLEMENT_MODE) == "mode_passation_complement.json")
 
 
+class Lots(unittest.TestCase):
+    def test_par_lot_identite_conservation_et_inaccessibles(self):
+        L = lambda lu, st="lu", n=2: {"lu_le": lu, "statut": st, "n": n, "n_annonce": 2,
+                                      "lots": [{"num": str(i + 1), "est": 100.0 * (i + 1), "tp": i == 0, "ni": ["q"], "na": [], "est_brut": "x"}
+                                               for i in range(n)]}
+        items = [it("1", "o1", "A", lots=True), it("2", "o1", "B", lots=True), it("3", "o1", "C", lots=True), it("4", "o1", "D", lots=False)]
+        fiches = {"pmmp:o1:1": {"lu_le": "2026-10-18T10:00:00+00:00", "champs": {"ref": "A"}, "lots": L("2026-10-18T10:00:00+00:00")},
+                  "pmmp:o1:2": {"lu_le": "2026-10-18T10:00:00+00:00", "champs": {"ref": "AUTRE"}, "lots": L("2026-10-18T10:00:00+00:00")},
+                  "pmmp:o1:3": {"lu_le": "2026-10-18T10:00:00+00:00", "champs": {"ref": "C"}, "lots": L("2026-10-18T10:00:00+00:00", "partiel", 1)}}
+        e = enrichir(items, fiches, None, None, None, {"lots_inaccessibles": {"pmmp:o1:9": {"tentatives": 3}}})
+        lo = e["lots"]
+        self.assertEqual(lo["couverture"], {"alloties": 3, "lues": 1, "partielles": 1, "inaccessibles": 0, "non_lues": 1, "lots": 3})
+        self.assertNotIn("est_brut", lo["par_id"]["pmmp:o1:1"]["lots"][0])
+        self.assertEqual([x["est"] for x in lo["par_id"]["pmmp:o1:1"]["lots"]], [100.0, 200.0], "valeurs par lot, pas de somme")
+        self.assertNotIn("pmmp:o1:9", lo["inaccessibles"], "hors catalogue : non gardé")
+        # passage suivant sans la fiche (ex. fichier fiches incomplet) : la lecture publiée est conservée ; une plus ancienne ne gagne pas
+        old = {"pmmp:o1:1": {"lu_le": "2026-10-01T00:00:00+00:00", "champs": {"ref": "A"}, "lots": L("2026-10-01T00:00:00+00:00", n=1)}}
+        e2 = enrichir(items, old, None, e, None)
+        self.assertEqual(e2["lots"]["par_id"]["pmmp:o1:1"]["n"], 2)
+        self.assertEqual(enrichir(items[1:], {}, None, e, None)["lots"]["par_id"].get("pmmp:o1:1"), None, "annonce retirée : élaguée")
+
+
 if __name__ == "__main__":
     unittest.main()

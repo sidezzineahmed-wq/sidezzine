@@ -62,6 +62,7 @@ class Refus(Exception):
 FICHIERS = ("catalogue.json", "catalogue_details.json", "catalogue_hors_listing.json", "catalogue_etat.json")
 TZ_MAROC = ZoneInfo("Africa/Casablanca")
 REFERENTIEL_CLASSIFICATION = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "referentiel", "classification_entites.json")
+COMPLEMENT_FICHES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "referentiel", "fiches_complement.json")
 COMPLEMENT_MODE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "referentiel", "mode_passation_complement.json")
 
 
@@ -132,7 +133,7 @@ def verifier_schema(cat):
 
 
 def ingerer(nouveau, statut, precedent, aujourdhui, details_precedents=None, accepter_baisse=False, hors_precedents=None, fiches=None,
-            referentiel_classification=None, complement_mode=None):
+            referentiel_classification=None, complement_mode=None, complement_fiches=None):
     verifier_source(nouveau, statut)
     err = verifier_schema(nouveau)
     if err:
@@ -225,7 +226,7 @@ def ingerer(nouveau, statut, precedent, aujourdhui, details_precedents=None, acc
                "obsoletes": {k: obsoletes[k] for k in sorted(obsoletes)},
                # enrichissement PMMP joint (mode de passation de la fiche, classification Etat/CL/EEP de l'entité) : voir enrichi_pmmp.py
                "pmmp_enrichi": enrichir(items, fiches, referentiel_classification, (details_precedents or {}).get("pmmp_enrichi"),
-                                       complement_mode)}
+                                       complement_mode, complement_fiches)}
     hors_listing = {"maj": nouveau["maj"], "catalogue_sha256": csha, "statut": "inconnu",
                     "explication": "absentes du dernier listing complet du collecteur alors que leur date limite n'est pas passée ; "
                                    "aucune preuve d'annulation : ne pas les présenter comme annulées",
@@ -258,6 +259,8 @@ def main(argv=None):
                     help="relevé officiel Etat/CL/EEP par entité (défaut : referentiel/classification_entites.json du kit)")
     ap.add_argument("--complement-mode", default=COMPLEMENT_MODE,
                     help="lectures du complément « mode de passation » (défaut : referentiel/mode_passation_complement.json du kit)")
+    ap.add_argument("--complement-fiches", default=COMPLEMENT_FICHES,
+                    help="fiches et popups de lots inaccessibles après essais (défaut : referentiel/fiches_complement.json du kit)")
     ap.add_argument("--aujourdhui", help="AAAA-MM-JJ ; défaut : jour civil Africa/Casablanca")
     ap.add_argument("--accepter-baisse", action="store_true")
     ap.add_argument("--sortie", required=True)
@@ -270,7 +273,8 @@ def main(argv=None):
     try:
         cat, details, r, hors, etat = ingerer(lire(a.catalogue_valide), lire(a.statut), json.loads(prec_octets), auj,
                                               lire(a.details_precedents), a.accepter_baisse, lire(a.hors_precedents), lire(a.fiches),
-                                              lire(a.referentiel_classification), lire(a.complement_mode))
+                                              lire(a.referentiel_classification), lire(a.complement_mode),
+                                              lire(a.complement_fiches))
     except Refus as e:
         open(os.path.join(a.sortie, "ingestion_rapport.json"), "wb").write(octets_json({"etat": "refus", "motif": str(e)}))
         print(json.dumps({"etat": "refus", "motif": str(e)}, ensure_ascii=False))

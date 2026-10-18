@@ -65,7 +65,6 @@ Règles appliquées :
 - les annulations (une disparition n'est jamais interprétée) ;
 - les rectificatifs en tant que tels ;
 - le DCE ;
-- le détail par lot (pour une consultation allotie, `est`, `cau` et `tp` restent null) ;
 - les consultations hors de la fenêtre par défaut ;
 - `cls` pour les nouveaux IDs.
 
@@ -107,3 +106,15 @@ l'historique de couverture. Un listing complet de ces pages ne signifie pas la c
   - Une annonce hérite de son entité (orgAcronyme) ; entité inconnue = inconnue.
   - Le filtre n'est appliqué par le portail qu'en mode liste (`type_rechercheEntite=exact`) : c'est ce qui explique le constat « ignoré » du 02/10.
 - **Tests** : `ingestion/test_enrichi_pmmp.py`, exécuté avec `unittest discover -s ingestion`.
+
+## Détail par lot et lecture complète des fiches (depuis le 18/10/2026)
+
+- **Popup « Détail des lots »** (`index.php?page=commun.PopUpDetailLots&orgAccronyme=<org>&refConsultation=<ref>&lang=fr`, deux « c » comme sur le portail) : `veille/pmmp_lots.py`.
+  - `maj_quotidienne.py` le lit **dans le même passage** que la fiche d'une consultation allotie (une requête de plus, même débit, arrêt sur 401/403).
+  - Stocké dans la fiche, clé `lots` datée séparément : `{lu_le, url, sha256_html_tronque, statut, n, n_annonce, lots[]}`. Si le popup échoue, la lecture précédente est gardée telle quelle.
+  - Identité : l'action du formulaire du popup doit porter la même organisation et la même consultation. Statut `partiel` si moins de lots lisibles que « N Lots » de la fiche.
+  - Par lot : `num`, `intitule`, `cat`, `est` (TTC tel que publié, `est_libelle`), `cau`, `tp`, `q` (lignes système / secteur / qualification / classe), `ag`, `vis`, `reu`, `proto`, `var`, `env`, `autres`. `ni` = non indiqué (« - »), `na` = bloc non affiché. Aucune somme, aucune valeur au niveau de l'annonce.
+- **Catalogue** : pour une consultation allotie, `est`, `cau`, `tp`, `q`, `ag` de `catalogue.json` restent null / vides ; les valeurs par lot vont dans `catalogue_details.json` → `pmmp_enrichi.lots` (couverture : lues, partielles, inaccessibles, non lues).
+- **Libellé seul** : « Date et heure : » sans date ni lieu (réunion, échantillons des consultations alloties) vaut « rien de publié » ; `construire_catalogue.py` neutralise aussi les anciennes lectures.
+- **Complément borné** (lecture publique, 2 connexions au plus, départs espacés d'au moins 4 s, pause aux minutes 10-22) : les fiches lues sont fusionnées dans `stock/etat/fiches.json` (la lecture la plus récente gagne) ; les lectures impossibles après essais sont listées dans `referentiel/fiches_complement.json` (`fiches_inaccessibles`, `lots_inaccessibles`), lues par l'ingestion (`--complement-fiches`, défaut du kit).
+- **Tests** : `tests/test_kit.py` (popup officiel, identité, lots partiels, passage horaire, coffre) et `ingestion/test_enrichi_pmmp.py` (section `lots`).

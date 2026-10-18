@@ -8,6 +8,11 @@ Deux champs officiels, DISTINCTS :
   * Classification « Etat/CL/EEP » : classification PMMP de l'ENTITÉ PUBLIQUE (referentiel/classification_entites.json,
     relevé officiel : rappel de la liste « Etat/CL/EEP » du formulaire de recherche, contrôlé par la recherche filtrée).
     Une annonce hérite de son entité (orgAcronyme) ; entité absente ou ambiguë = inconnue ; aucune déduction par le nom.
+  * Détail par lot : popup public « Détail des lots » d'une consultation allotie (commun.PopUpDetailLots), lu par le
+    collecteur dans le même passage que la fiche (fiches.json, clé « lots » : statut lu / partiel, lu_le, lots[]). Valeurs
+    PAR LOT telles que publiées (estimation TTC, caution, TPE/PME, qualifications, agréments, visites…), jamais sommées ni
+    aplaties ; « ni » = non indiqué par l'acheteur (« - »), « na » = bloc non affiché. La lecture la plus récente gagne ;
+    une lecture déjà publiée est conservée ; la page ne l'utilise que si la référence de la fiche concorde.
 Les codes PMMP des procédures (liste du formulaire libellée « Mode de passation », dont les valeurs sont les procédures) sont
 repris du même relevé. Aucune date « maintenant » : mêmes entrées -> mêmes octets.
 """
@@ -24,7 +29,50 @@ def _plus_recent(a, b):
     return b if a is None or (b.get("lu_le") or "") > (a.get("lu_le") or "") else a
 
 
-def enrichir(items, fiches=None, referentiel=None, precedent=None, complement=None):
+CHAMPS_LOT = ("num", "intitule", "cat", "description", "est", "est_libelle", "cau", "tp", "q", "ag", "vis", "reu", "proto", "var",
+              "env", "autres", "ni", "na")
+
+
+def _lots(items, fiches, precedent, complement_fiches):
+    """Section « lots » : détail par lot des consultations alloties."""
+    prec = (precedent or {}).get("lots") or {}
+    par_id = {k: dict(v) for k, v in (prec.get("par_id") or {}).items()}
+    inacc = {k: dict(v) for k, v in (prec.get("inaccessibles") or {}).items()}
+    for k, f in sorted((fiches or {}).items()):
+        L = (f or {}).get("lots")
+        if not L or not L.get("lu_le") or L.get("statut") not in ("lu", "partiel"):
+            continue
+        rec = {"lu_le": L["lu_le"], "statut": L["statut"], "n": L.get("n"), "n_annonce": L.get("n_annonce"),
+               "ref": ((f.get("champs") or {}).get("ref")), "url": L.get("url"),
+               "lots": [{c: x[c] for c in CHAMPS_LOT if c in x and not (c == "description" and x.get(c) == x.get("intitule"))}
+                        for x in L.get("lots") or []]}
+        par_id[k] = _plus_recent(par_id.get(k), rec)
+    for k, c in sorted(((complement_fiches or {}).get("lots_inaccessibles") or {}).items()):
+        if k not in par_id:
+            inacc[k] = c
+    cles = {f"pmmp:{x['o']}:{x['r']}": x for x in items}
+    for d in (par_id, inacc):  # consultations closes ou retirées : rien à garder (le popup n'a de sens que pour l'annonce ouverte)
+        for k in list(d):
+            if k not in cles:
+                d.pop(k)
+    for k in list(inacc):
+        if k in par_id:
+            inacc.pop(k)
+    alloties = [k for k, x in cles.items() if x.get("lots") or x.get("allot")]
+    lus = [k for k in alloties if k in par_id and _nref(par_id[k].get("ref")) == _nref(cles[k].get("ref"))]
+    return {"nom": "Détail par lot (popup PMMP « Détail des lots »)",
+            "source": {"page": "index.php?page=commun.PopUpDetailLots&orgAccronyme=<org>&refConsultation=<ref>&lang=fr"},
+            "regle": "valeurs par lot telles que publiées, jamais sommées ni aplaties ; ni = non indiqué (« - »), na = bloc non affiché ; "
+                     "utilisées seulement si la référence de la fiche concorde avec le catalogue",
+            "par_id": {k: par_id[k] for k in sorted(par_id)}, "inaccessibles": {k: inacc[k] for k in sorted(inacc)},
+            "couverture": {"alloties": len(alloties), "lues": sum(1 for k in lus if par_id[k]["statut"] == "lu"),
+                           "partielles": sum(1 for k in lus if par_id[k]["statut"] == "partiel"),
+                           "inaccessibles": sum(1 for k in alloties if k not in lus and k in inacc),
+                           "non_lues": sum(1 for k in alloties if k not in lus and k not in inacc),
+                           "lots": sum(len(par_id[k]["lots"]) for k in lus)}}
+
+
+def enrichir(items, fiches=None, referentiel=None, precedent=None, complement=None, complement_fiches=None):
     """items : consultations du catalogue publié ; fiches : fiches.json du collecteur ; referentiel : relevé officiel de
     classification ; precedent : « pmmp_enrichi » de la publication précédente (ou None) ; complement :
     referentiel/mode_passation_complement.json du kit (lectures du complément EAIOS : statut lu / champ_absent / inaccessible).
@@ -111,6 +159,10 @@ def enrichir(items, fiches=None, referentiel=None, precedent=None, complement=No
                                                       "entites_inconnues": sorted({x["o"] for x in items if x["o"] not in pe})})
     if procs:
         out["procedures"] = procs
-    lus = [v.get("lu_le") for v in par_id.values() if v.get("lu_le")]
+    out["lots"] = _lots(items, fiches, precedent, complement_fiches)
+    fi = {k: v for k, v in sorted(((complement_fiches or {}).get("fiches_inaccessibles") or {}).items())
+          if k in cles and not cles[k]["det"]}
+    out["fiches"] = {"inaccessibles": fi, "regle": "fiche PMMP illisible après essais bornés : champs de fiche inconnus (jamais remplis)"}
+    lus = [v.get("lu_le") for v in par_id.values() if v.get("lu_le")] + [v.get("lu_le") for v in out["lots"]["par_id"].values() if v.get("lu_le")]
     out["maj"] = max([((cls or {}).get("source") or {}).get("fin") or ""] + lus) or None
     return out

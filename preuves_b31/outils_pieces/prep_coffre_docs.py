@@ -20,7 +20,7 @@ F = json.load(open(f"{OUT}/f_fin.json"))
 os.makedirs(f"{OUT}/stock/etat")
 with open(f"{OUT}/stock/etat/fiches.json", "w", encoding="utf-8") as f:
     json.dump({k: F[k] for k in sorted(F)}, f, ensure_ascii=False, indent=1)
-kit = ["LISEZ-MOI.md", "maj_quotidienne.py", "veille/pmmp_fiche.py", "veille/etat.py", "ingestion/enrichi_pmmp.py", "ingestion/test_enrichi_pmmp.py", "tests/test_kit.py"]
+kit = ["LISEZ-MOI.md", "maj_quotidienne.py", "veille/pmmp_fiche.py", "veille/etat.py", "ingestion/enrichi_pmmp.py", "ingestion/test_enrichi_pmmp.py", "tests/test_kit.py", "integrer_releve_pieces.py", "tests/test_releve_pieces.py"]
 chg = ["stock/etat/fiches.json"]
 for k in kit:
     os.makedirs(os.path.dirname(f"{OUT}/stock/kit/{k}"), exist_ok=True); shutil.copy(f"{KIT}/{k}", f"{OUT}/stock/kit/{k}"); chg.append("stock/kit/" + k)

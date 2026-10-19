@@ -105,8 +105,8 @@ with sync_playwright() as p:
     ev("()=>{MPV.bandOpen=true;render();}");pg.wait_for_timeout(200)
     B_=ev("()=>{const e=document.querySelector('[data-mpv-couvdocs]');return e?{d:e.dataset.mpvCouvdocs,t:e.innerText}:null}")
     n_=CV["lu"]+CV["non_publie"]+CV["non_lu"]
-    chk(B_ and B_["d"]==f"{CV['lu']}/{n_}" and f"pas encore lues : {CV['non_lu']}" in B_["t"] and ("100 %" not in B_["t"] or CV["non_lu"]==0),
-        f"Source et couverture : pièces relevées {CV['lu']} / {n_}, pas encore lues {CV['non_lu']} (aucun 100 % prématuré)")
+    chk(B_ and B_["d"]==f"{CV['lu']}/{n_}" and f"Inventaires des pièces lus : {CV['lu']} sur {n_} consultations" in B_["t"] and f"inventaires pas encore lus : {CV['non_lu']} consultations" in B_["t"] and "Compte de consultations, pas de fichiers" in B_["t"] and ("100 %" not in B_["t"] or CV["non_lu"]==0),
+        f"Source et couverture : inventaires lus {CV['lu']} sur {n_} consultations, pas encore lus {CV['non_lu']} (aucun 100 % prématuré)")
     ev("()=>{MPV.bandOpen=false;render();}")
     chk(len(W()[w0:])==0,"aucune écriture");chk(not errs,f"aucune erreur JavaScript {errs[:2]}")
     ctx.close()

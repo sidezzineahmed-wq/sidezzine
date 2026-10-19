@@ -935,6 +935,13 @@ class TestRotationFiches(unittest.TestCase):
         self.assertEqual(set(choix[:4]), set(ids[15:]))  # nouvelles d'abord
         self.assertEqual(set(choix[4:]), set(ids[5:15]))  # puis les 10 sans pièces lues, malgré une lecture plus récente
         self.assertEqual(st["reliquat_pieces_non_lues_eligibles"], 10)
+        # file dédiée bornée (commande de la tâche : défaut 60) : nouvelles > pièces (quota) > relectures ordinaires (n)
+        choix, st = mq.choisir_fiches(etat, set(ids), 2, aujourd_hui="2026-10-02", maintenant_iso="2026-10-02T10:00:00+00:00",
+                                      nouvelles_max=150, pieces_max=3)
+        self.assertEqual(set(choix[:4]), set(ids[15:]))
+        self.assertTrue(set(choix[4:7]) <= set(ids[5:15]) and st["choisies"]["pieces"] == 3)
+        self.assertEqual(len(choix), 9, "4 nouvelles + 3 pièces + 2 relectures")
+        self.assertEqual(st["reliquat_pieces_apres_choix"], 7)
 
     def test_inventaire_des_pieces_garde_si_relecture_illisible(self):
         etat, ids = self._etat(1)
@@ -1000,9 +1007,9 @@ class TestRotationFiches(unittest.TestCase):
             mq.ClientPMMP, mq.CollecteListing, mq.passe_partitionnee, sys.argv = anciens
         c = json.loads(lire(os.path.join(etat.d, "couverture", sorted(os.listdir(os.path.join(etat.d, "couverture")))[-1])))
         F = c["fiches"]
-        self.assertEqual(F["selection"]["regle"], "nouvelles (max 150) > changees > anciennes (n=10)")  # actif par défaut
+        self.assertEqual(F["selection"]["regle"], "nouvelles (max 150) > changees > pieces non lues (max 60) > anciennes (n=10)")  # actif par défaut
         self.assertEqual((F["selection"]["file_nouvelles"], F["selection"]["file_changees"]), (8, 12))  # file avant
-        self.assertEqual(F["selection"]["choisies"], {"changees": 10, "nouvelles": 8, "anciennes": 0})
+        self.assertEqual(F["selection"]["choisies"], {"changees": 10, "nouvelles": 8, "pieces": 0, "anciennes": 0})
         self.assertEqual(len(F["lues"]), 6)
         self.assertTrue({x["id"] for x in F["lues"]} <= nouvelles)  # ordre : nouvelles d'abord
         self.assertEqual(F["reliquat"], {"nouvelles_non_lues_budget": 2, "relectures_non_faites_budget": 10,

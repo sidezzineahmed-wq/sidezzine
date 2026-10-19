@@ -813,6 +813,42 @@ class TestRotationFiches(unittest.TestCase):
         c, s = mq.choisir_fiches(etat, set(ids[:8]), 10, aujourd_hui="2026-10-02", maintenant_iso="2026-10-02T10:00:00+00:00")
         self.assertEqual(s["choisies"], {"changees": 2, "nouvelles": 2, "anciennes": 4})
 
+    def test_nouvelles_avant_relectures_saturation_du_budget_et_reprise(self):
+        # 12 anciennes déjà lues dont le listing a changé + 8 nouvelles sans fiche ; budget épuisé après 5 lectures
+        etat, ids = self._etat(20)
+        h = fx("fiche_1041301_o8p_sans_contact.html")
+        for i in ids[:12]:
+            etat.enregistrer_fiche(i, {"ref": "R", "obj": "O", "lim": "2026-12-01", "h": "10:00"}, "2026-10-01T08:00:00+00:00", "r0", "x")
+            e = etat.listing["items"][i]
+            e["listing"]["lim"] = "2026-12-15"
+            e.setdefault("changements", []).append({"vu_le": "2026-10-02T09:00:00+00:00", "run": "r1", "diff": {"lim": ["2026-12-01", "2026-12-15"]}})
+        nouvelles, changees = set(ids[12:]), set(ids[:12])
+        choix, st = mq.choisir_fiches(etat, set(ids), 10, aujourd_hui="2026-10-02", maintenant_iso="2026-10-02T10:00:00+00:00",
+                                      nouvelles_max=150)
+        self.assertEqual(set(choix[:8]), nouvelles)  # nouvelles d'abord
+        self.assertTrue(set(choix[8:]) <= changees and len(choix) == 18)  # puis 10 relectures au plus
+        n = [0]
+
+        class C:
+            def get(self, params):
+                n[0] += 1
+                if n[0] > 5:
+                    raise client_mod.ArretCollecte("budget de temps du passage atteint avant GET")
+                return FauxRep(h, "u")
+        res = mq.lire_fiches(C(), etat, "r2", choix, False, True)
+        self.assertEqual({x["id"] for x in res["lues"]}, set(choix[:5]))  # les 5 lues sont des nouvelles
+        self.assertTrue(set(choix[:5]) <= nouvelles)
+        # passage suivant : les 3 nouvelles restantes reviennent en tête, avant toute relecture (aucune marquée tentée)
+        choix2, st2 = mq.choisir_fiches(etat, set(ids), 10, aujourd_hui="2026-10-02", maintenant_iso="2026-10-02T11:00:00+00:00",
+                                        nouvelles_max=150)
+        self.assertEqual(set(choix2[:3]), nouvelles - set(choix[:5]))
+        self.assertEqual(st2["file_nouvelles"], 3)
+        # plafond honnête : reliquat mesuré
+        choix3, st3 = mq.choisir_fiches(etat, set(ids), 10, aujourd_hui="2026-10-02", maintenant_iso="2026-10-02T11:00:00+00:00",
+                                        nouvelles_max=2)
+        self.assertEqual(st3["reliquat_nouvelles_plafond"], 1)
+        self.assertEqual(set(choix3[:2]) <= nouvelles, True)
+
     def test_rotation_sans_repetition_sur_plusieurs_passages(self):
         etat, ids = self._etat(30)
         vus, t = [], 10

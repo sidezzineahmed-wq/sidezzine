@@ -461,7 +461,7 @@ def _change_apres_lecture(e, F, lu_le):
 
 
 def choisir_fiches(etat, ids_run, n, relire_anciennes=True, aujourd_hui=None, age_min_h=24, maintenant_iso=None,
-                   pause_echec_h=6, pause_echec_max_h=48):
+                   pause_echec_h=6, pause_echec_max_h=48, nouvelles_max=0):
     """Sélection tournante des fiches à lire, par PRIORITÉ STRICTE :
       1. changees : fiches dont le listing a changé (date/heure limite, objet, référence…) APRÈS leur dernière lecture,
          la lecture la plus ancienne d'abord ;
@@ -469,7 +469,11 @@ def choisir_fiches(etat, ids_run, n, relire_anciennes=True, aujourd_hui=None, ag
       3. anciennes : lues (ou tentées) il y a au moins age_min_h heures, la plus ancienne activité d'abord.
     Le journal etat.selection (persisté dans selection.json) garde pour chaque id la date du dernier choix et les
     échecs : une fiche en échec est mise en pause (6 h, doublée à chaque échec, max 48 h) et ne bloque pas la tête de
-    file ; une fiche choisie récemment ne revient pas avant age_min_h. Les consultations à date limite passée sont ignorées."""
+    file ; une fiche choisie récemment ne revient pas avant age_min_h. Les consultations à date limite passée sont ignorées.
+    nouvelles_max > 0 : les nouvelles sans fiche passent AVANT toute relecture (au plus nouvelles_max), puis les n places
+    vont aux changées puis aux anciennes : une annonce publiée n'attend pas sa fiche derrière des relectures (constat réel
+    du 19/10 : 30 puis 124 nouvelles en attente pour 1 place par passage). Plafond et budget de temps sont des limites :
+    le reliquat (au-delà du plafond, ou non lu faute de temps) est compté et reste en tête de file au passage suivant."""
     import datetime as _dt
     aujourd_hui = aujourd_hui or aujourd_hui_maroc()
     now = _dt.datetime.fromisoformat(maintenant_iso or maintenant())
@@ -511,8 +515,18 @@ def choisir_fiches(etat, ids_run, n, relire_anciennes=True, aujourd_hui=None, ag
     for k in ("changees", "nouvelles", "anciennes"):
         choix[k] = files[k][:max(reste, 0)]
         reste -= len(choix[k])
-    ordre = choix["changees"] + choix["nouvelles"] + choix["anciennes"]
-    stats = {"regle": "priorite_stricte changees>nouvelles>anciennes", "file_changees": len(files["changees"]),
+    if nouvelles_max > 0:
+        # nouvelles sans fiche d'abord (plafond honnête), puis les n places pour les relectures changées / anciennes
+        choix["nouvelles"] = files["nouvelles"][:nouvelles_max]
+        choix["changees"] = files["changees"][:n]
+        choix["anciennes"] = files["anciennes"][:max(n - len(choix["changees"]), 0)]
+        ordre = choix["nouvelles"] + choix["changees"] + choix["anciennes"]
+    else:
+        ordre = choix["changees"] + choix["nouvelles"] + choix["anciennes"]
+    stats = {"regle": (f"nouvelles (max {nouvelles_max}) > changees > anciennes (n={n})" if nouvelles_max
+                       else "priorite_stricte changees>nouvelles>anciennes"),
+             "reliquat_nouvelles_plafond": max(len(files["nouvelles"]) - len(choix["nouvelles"]), 0),
+             "file_changees": len(files["changees"]),
              "file_nouvelles": len(files["nouvelles"]), "file_anciennes_eligibles": len(files["anciennes"]),
              "en_pause_apres_echec": en_pause_n,
              "choisies": {k: len(v) for k, v in choix.items()}, "categorie": {i: k for k, v in choix.items() for i in v}}
@@ -583,6 +597,9 @@ def main():
     ap.add_argument("--etat", default=os.path.join(ICI, "donnees"))
     ap.add_argument("--max-pages", type=int, default=0, help="0 = toutes les pages annoncées")
     ap.add_argument("--fiches", type=int, default=0, help="nombre max de fiches lues ce passage")
+    ap.add_argument("--fiches-nouvelles-max", type=int, default=150,
+                    help="en plus de --fiches : toutes les annonces nouvelles sans fiche (au plus N) sont lues ce passage, dans le budget "
+                         "de temps (0 = comportement d'avant : les nouvelles n'ont que les places restantes de --fiches)")
     ap.add_argument("--sans-relecture", action="store_true", help="ne relit jamais une fiche déjà lue sauf si le listing l'a contredite")
     ap.add_argument("--age-min-relecture-h", type=float, default=24.0)
     ap.add_argument("--delai", type=float, default=4.0, help="secondes entre requêtes ; jamais moins de 4 (rythme convenu)")
@@ -633,8 +650,14 @@ def main():
         if a.budget_s:
             client.echeance = t_depart + a.budget_s  # fiches : jusqu'au budget complet
         if a.fiches:
-            choix, stats = choisir_fiches(etat, ids, a.fiches, not a.sans_relecture, age_min_h=a.age_min_relecture_h)
+            choix, stats = choisir_fiches(etat, ids, a.fiches, not a.sans_relecture, age_min_h=a.age_min_relecture_h,
+                                          nouvelles_max=a.fiches_nouvelles_max)
             couv["fiches"] = lire_fiches(client, etat, run_id, choix, not a.sans_snapshots, not a.ne_pas_masquer_coordonnees)
+            faites = {x["id"] for x in couv["fiches"]["lues"]} | {x["id"] for x in couv["fiches"]["echecs"]}
+            couv["fiches"]["reliquat"] = {  # mesurable : ce qui reste pour le passage suivant (aucune fiche marquée tentée)
+                "nouvelles_non_lues_budget": sum(1 for i in choix if i not in faites and stats["categorie"].get(i) == "nouvelles"),
+                "relectures_non_faites_budget": sum(1 for i in choix if i not in faites and stats["categorie"].get(i) != "nouvelles"),
+                "nouvelles_au_dela_du_plafond": stats["reliquat_nouvelles_plafond"]}
             if couv["fiches"].get("arret"):
                 erreur_fiches = f"ARRET fiches: {couv['fiches']['arret']}"
             couv["fiches"]["selection"] = stats

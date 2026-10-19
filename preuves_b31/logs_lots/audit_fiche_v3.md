@@ -64,3 +64,17 @@ Nombres exacts du résiduel (catalogue valide live, aucune archive hors catalogu
 - Compatibilité : seule règle de version = `version_lecture < 2` (visite non lue) ; une fiche v3 compte comme lue.
 - Fixtures : `PRADO_PAGESTATE` vidé (l'état encodé contenait le contact d'origine, y compris dans la fixture o4d déjà
   commitée, nettoyée ici ; l'historique git antérieur la contient encore).
+
+## Pièces publiées : relecture du résiduel (19/10, depuis 21:03 UTC) — EN COURS
+
+- Résiduel exact au catalogue valide (4 745 identifiants distincts) : 216 lues + 4 529 à lire (4 362 ouvertes + 167 à date
+  limite passée encore au catalogue). Cache v1/v2 inutilisable (bloc des pièces jamais présent) ; aucune page d'inventaire plus
+  légère (liens publiés = formulaire DCE ou téléchargements).
+- Publication intermédiaire : coffre c760 (kit : lecteur strict, file horaire « pièces non lues » de 60, inventaire gardé) et
+  EAIOS 8a5d : pièces relevées 393 / 4 745, 0 vide confirmé, 4 352 pas encore lues (visible dans « Source et couverture »).
+- Débit réel : ~4,5–4,9 s par fiche (2 connexions, ≥ 4 s, pause 10–22), ~590 fiches / h avec pauses.
+- Checkpoints : `compl_docs/cache/<org>_<ref>.json` (champs lus, lu_le, SHA) + `brut/` (HTML tronqué, local, jamais publié)
+  + `etat.json` ; consommés par `outils_pieces/prep_coffre_docs.py` (integrer_fiches, lecture la plus récente gagne, lots et
+  inventaire validé gardés) sur le coffre relu en direct, puis ingestion EAIOS.
+- Hors session : la tâche horaire (kit c760) reprend d'elle-même jusqu'à 60 fiches sans pièces par passage réussi, après les
+  nouvelles ; limite constatée : passages de 19:15 et 21:14 tués à 600 s par la limite d'outil de leur session (rien publié).

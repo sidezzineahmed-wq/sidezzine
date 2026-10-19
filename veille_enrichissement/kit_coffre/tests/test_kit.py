@@ -331,6 +331,336 @@ class TestPagination(unittest.TestCase):
         self.assertFalse(c["complete"])
 
 
+class FauxPortail:
+    """Portail simulé fidèle au protocole réel : filtre date limite inclusif par jour (+ catégorie, + type de procédure),
+    10 lignes en page 1, 500 après taille_500, ordre instable d'une requête à l'autre (tri sans clé unique).
+    items : r -> (date limite iso, code catégorie[, code procédure]) ; evenements = {n° de requête: f(portail)} (appliqué
+    AVANT la réponse) ; apres = {début jj/mm/aaaa: f(portail)} (appliqué juste APRÈS la 1re lecture de cette partition)."""
+    CAT = {"1": "Travaux", "2": "Fournitures", "3": "Services", "9": "Autre"}
+
+    def __init__(self, items, du="19/10/2026", au="19/04/2027", evenements=None, doublon_partition=None, apres=None,
+                 procedures=("1", "2", "50")):
+        import random
+        self.items = {r: (v + ("1",))[:3] for r, v in items.items()}
+        self.fenetre = {"dateMiseEnLigneStart": du, "dateMiseEnLigneEnd": au,
+                        "dateMiseEnLigneCalculeStart": "19/04/2026", "dateMiseEnLigneCalculeEnd": du}
+        self.procedures = list(procedures)
+        self.evenements = evenements or {}
+        self.apres = dict(apres or {})
+        self.doublon_partition = doublon_partition  # (début jj/mm/aaaa, nb de réponses) : le portail répète une ligne
+        self.c = type("C", (), {"nb_requetes": 0})()
+        self.rnd = random.Random(7)
+        self.q = None
+        self.globaux = []  # n° des requêtes de total global (fenêtre entière, sans filtre)
+        self.pages_demandees = 0
+
+    def _tick(self):
+        self.c.nb_requetes += 1
+        ev = self.evenements.pop(self.c.nb_requetes, None)
+        if ev:
+            ev(self)
+
+    def _sel(self):
+        import datetime as dt
+        d = lambda s: dt.date(int(s[6:]), int(s[3:5]), int(s[:2])).isoformat()
+        f = self.q
+        return sorted(r for r, (lim, cat, proc) in self.items.items()
+                      if d(f["dateMiseEnLigneStart"]) <= lim <= d(f["dateMiseEnLigneEnd"])
+                      and f.get("categorie") in (None, cat) and f.get("procedureType") in (None, proc))
+
+    def _jma(self, r):
+        lim = self.items[r][0] if r in self.items else "2026-10-19"
+        return f"{lim[8:]}/{lim[5:7]}/{lim[:4]}"
+
+    def _h(self, ids, total, taille, page):
+        rows = "".join(f'<tr class=""><input name="x$refCons" value="{r}" /><input name="x$orgCons" value="o8p" />'
+                       f'<span id="a_panelBlocCategorie">{self.CAT[self.items.get(r, ("", "1", "1"))[1]]}</span>'
+                       f'<td headers="cons_dateEnd"><div class="cloture-line"> {self._jma(r)}<br>10:00 </div></td></tr>'
+                       for r in ids)
+        return (f'<span id="ctl0_CONTENU_PAGE_resultSearch_nombreElement">{total}</span>'
+                f'<span id="ctl0_CONTENU_PAGE_resultSearch_nombrePageTop">{max(1, -(-total // taille))}</span>'
+                f'<input name="ctl0$CONTENU_PAGE$resultSearch$numPageTop" type="text" value="{page}" />'
+                f'<select name="ctl0$CONTENU_PAGE$resultSearch$listePageSizeTop"><option selected="selected" value="{taille}">{taille}</option></select>'
+                + rows)
+
+    def rechercher(self, classification=None, fenetre=None):
+        self._tick()
+        self.q = {**self.fenetre, **(fenetre or {})}
+        if self.q["dateMiseEnLigneStart"] == self.fenetre["dateMiseEnLigneStart"] and self.q["dateMiseEnLigneEnd"] == \
+                self.fenetre["dateMiseEnLigneEnd"] and not self.q.get("categorie") and not self.q.get("procedureType"):
+            self.globaux.append(self.c.nb_requetes)
+        s = self._sel()
+        return self._h(s[:10], len(s), 10, 1), {}
+
+    def partition(self, du, au, categorie=None, procedure=None):
+        f = {"dateMiseEnLigneStart": du.strftime("%d/%m/%Y"), "dateMiseEnLigneEnd": au.strftime("%d/%m/%Y")}
+        if categorie:
+            f["categorie"] = categorie
+        if procedure:
+            f["procedureType"] = procedure
+        h, _ = self.rechercher(fenetre=f)
+        return h, total_et_pages(h)
+
+    def taille_500(self, h):
+        self._tick()
+        s = self._sel()
+        self.rnd.shuffle(s)
+        page = s[:500]
+        dp = self.doublon_partition
+        if dp and dp[1] > 0 and self.q["dateMiseEnLigneStart"] == dp[0] and page:
+            page = page + page[:1]
+            self.doublon_partition = (dp[0], dp[1] - 1)
+        h = self._h(page, len(s), 500, 1)
+        ev = self.apres.pop(self.q["dateMiseEnLigneStart"], None)
+        if ev:
+            ev(self)
+        return h
+
+    def page(self, h, n):
+        self.pages_demandees += 1
+        raise AssertionError("pagination interdite : une partition doit tenir en une réponse")
+
+
+def _items(n_par_jour, cat=lambda k: "1", proc=lambda k: "1"):
+    import datetime as dt
+    out, k = {}, 0
+    for j, n in enumerate(n_par_jour):
+        lim = (dt.date(2026, 10, 19) + dt.timedelta(days=j)).isoformat()
+        for _ in range(n):
+            out[str(1000000 + k)] = (lim, cat(k), proc(k))
+            k += 1
+    return out
+
+
+GROS = [300, 300, 300] + [3] * 50
+
+
+class TestPartitions(unittest.TestCase):
+    def _passe(self, portail, etat=None):
+        d = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, d)
+        etat = etat or Etat(d)
+        couv = {}
+        ids = mq.passe_partitionnee(portail, etat, "r", PROV, ALIAS, couv)
+        return ids, couv, etat
+
+    def _ok(self, portail, couv, ids):
+        attendu = {f"pmmp:o8p:{r}" for r in portail.items}
+        self.assertTrue(couv["complete"], couv["raisons_incomplet"])
+        self.assertEqual(ids, attendu)
+        self.assertEqual(couv["ids_distincts"], len(attendu))
+        self.assertEqual(couv["total_annonce"], len(attendu))
+        self.assertEqual(len(couv["pages_lues"]), couv["pages_annoncees"])
+        self.assertTrue(all(p["lignes"] <= 500 for p in couv["pages_lues"]))
+        self.assertEqual(portail.pages_demandees, 0)
+
+    def test_partitions_disjointes_couverture_exacte_et_tour_de_verification(self):
+        p = FauxPortail(_items([182, 356, 250, 0, 90, 410, 30] + [5] * 170))
+        ids, couv, etat = self._passe(p)
+        self._ok(p, couv, ids)
+        self.assertEqual(len(couv["tours_verification"]), 1)  # portail immobile : un seul tour suffit
+        self.assertTrue(all(x["lectures"] == 2 for x in couv["pages_lues"]))  # lecture + relecture identique
+        self.assertEqual(len(etat.listing["items"]), len(p.items))
+
+    def test_fenetre_fixee_envoyee_a_chaque_requete(self):
+        # méthode RÉELLE CollecteListing.partition, client qui enregistre chaque POST (aucun réseau)
+        import datetime as dt
+        from veille.pmmp_listing import CollecteListing, P_RECH
+        envois = []
+
+        class Rep:
+            url, content = "u", b'<span id="ctl0_CONTENU_PAGE_resultSearch_nombreElement">0</span>'
+
+        class Client:
+            nb_requetes = 0
+
+            def post(self, url, data):
+                envois.append(dict(data))
+                return Rep()
+        cl = CollecteListing(Client())
+        cl.url = "u"
+        champs = {"dateMiseEnLigneStart": "19/10/2026", "dateMiseEnLigneEnd": "19/04/2027",
+                  "dateMiseEnLigneCalculeStart": "19/04/2026", "dateMiseEnLigneCalculeEnd": "19/10/2026", "annonceType": "3"}
+        cl.h = "".join(f'<input type="text" name="{P_RECH}{k}" value="{v}" />' for k, v in champs.items())
+        cl.fenetre = dict(champs)
+        cl.fenetre["dateMiseEnLigneCalculeEnd"] = "19/10/2026"
+        cl.h = cl.h.replace('value="19/10/2026" />', 'value="20/10/2026" />', 1)  # formulaire « recalculé » après minuit
+        cl.partition(dt.date(2026, 10, 19), dt.date(2027, 4, 19))
+        cl.partition(dt.date(2026, 10, 20), dt.date(2026, 10, 20), "1", "50")
+        self.assertEqual([e[P_RECH + "dateMiseEnLigneStart"] for e in envois], ["19/10/2026", "20/10/2026"])
+        self.assertEqual([e[P_RECH + "dateMiseEnLigneEnd"] for e in envois], ["19/04/2027", "20/10/2026"])
+        self.assertTrue(all(e[P_RECH + "dateMiseEnLigneCalculeEnd"] == "19/10/2026" for e in envois))  # fixée à l'ouverture
+        self.assertEqual((envois[1][P_RECH + "categorie"], envois[1][P_RECH + "procedureType"]), ("1", "50"))
+        p = FauxPortail(_items([100, 100]))
+        _, couv, _ = self._passe(p)
+        self.assertEqual(couv["fenetre_date_limite"], ["2026-10-19", "2027-04-19"])
+
+    def test_jour_au_dela_de_500_sous_partition_par_categorie(self):
+        p = FauxPortail(_items([30, 1200, 30], cat=lambda k: "123"[k % 3]))
+        ids, couv, _ = self._passe(p)
+        self._ok(p, couv, ids)
+        self.assertEqual(couv["subdivisions"][0]["par"], "categorie")
+
+    def test_categorie_inconnue_d_un_jour_subdivise_jamais_complet(self):
+        p = FauxPortail(_items([30, 600, 30], cat=lambda k: "9" if k == 40 else "123"[k % 3]))
+        ids, couv, _ = self._passe(p)
+        self.assertFalse(couv["complete"])
+        self.assertTrue(any("sous-partitions" in r and "inconnue" in r for r in couv["raisons_incomplet"]))
+
+    def test_jour_et_categorie_au_dela_de_500_sous_partition_par_procedure(self):
+        p = FauxPortail(_items([20, 700, 20], proc=lambda k: ("1", "2", "50")[k % 3]))
+        ids, couv, _ = self._passe(p)
+        self._ok(p, couv, ids)
+        self.assertEqual([s["par"] for s in couv["subdivisions"]], ["categorie", "procedure"])
+
+    def test_partition_indivisible_au_dela_de_500_partiel_sans_pagination(self):
+        p = FauxPortail(_items([20, 700, 20]))  # même jour, même catégorie, même procédure
+        ids, couv, _ = self._passe(p)
+        self.assertFalse(couv["complete"])
+        self.assertTrue(any("indivisible" in r for r in couv["raisons_incomplet"]))
+        self.assertEqual(p.pages_demandees, 0)
+
+    def test_insertion_apres_lecture_detectee_puis_confirmee(self):
+        p = FauxPortail(_items(GROS), apres={"19/10/2026": lambda q: q.items.__setitem__("2000001", ("2026-10-19", "1", "1"))})
+        ids, couv, _ = self._passe(p)
+        self._ok(p, couv, ids)
+        self.assertIn("pmmp:o8p:2000001", ids)
+        self.assertEqual(len(couv["tours_verification"]), 2)
+
+    def test_suppression_apres_lecture_sans_effacer_l_etat(self):
+        p = FauxPortail(_items(GROS), apres={"19/10/2026": lambda q: q.items.pop("1000000")})
+        ids, couv, etat = self._passe(p)
+        self._ok(p, couv, ids)
+        self.assertNotIn("pmmp:o8p:1000000", ids)
+        self.assertIn("pmmp:o8p:1000000", etat.listing["items"])  # vue avant sa disparition : jamais supprimée
+
+    def test_report_de_date_limite_entre_partitions(self):
+        p = FauxPortail(_items(GROS), apres={"19/10/2026": lambda q: q.items.__setitem__("1000000", ("2026-11-30", "1", "1"))})
+        ids, couv, _ = self._passe(p)
+        self._ok(p, couv, ids)
+        self.assertGreaterEqual(len(couv["tours_verification"]), 2)
+
+    def test_echange_a_total_constant_dans_une_meme_partition(self):
+        def echange(q):
+            q.items.pop("1000000")
+            q.items["2000002"] = ("2026-10-19", "1", "1")
+        p = FauxPortail(_items(GROS), apres={"19/10/2026": echange})
+        ids, couv, _ = self._passe(p)
+        self._ok(p, couv, ids)
+        self.assertIn("pmmp:o8p:2000002", ids)
+        self.assertNotIn("pmmp:o8p:1000000", ids)
+        self.assertTrue(couv["tours_verification"][0]["partitions_changees"])
+
+    def test_echange_a_total_constant_entre_deux_partitions_deja_lues(self):
+        # toutes les partitions lues, total global inchangé : seul le tour de relecture peut le voir
+        sec = FauxPortail(_items(GROS))
+        self._passe(sec)
+        debut_tour = sec.globaux[-2]  # avant-dernier total global = début du (seul) tour de vérification
+
+        def echange(q):
+            q.items.pop("1000000")  # 19/10
+            q.items["2000003"] = ("2027-03-01", "1", "1")  # partition lointaine, déjà lue
+        p = FauxPortail(_items(GROS), evenements={debut_tour: echange})
+        ids, couv, _ = self._passe(p)
+        self._ok(p, couv, ids)
+        self.assertEqual(couv["tours_verification"][0]["total_debut"], couv["tours_verification"][0]["total_fin"])
+        self.assertEqual(len(couv["tours_verification"][0]["partitions_changees"]), 2)
+        self.assertIn("pmmp:o8p:2000003", ids)
+        self.assertNotIn("pmmp:o8p:1000000", ids)
+
+    def test_doublon_du_portail_trace_puis_relu(self):
+        p = FauxPortail(_items(GROS), doublon_partition=("19/10/2026", 1))
+        ids, couv, _ = self._passe(p)
+        self._ok(p, couv, ids)
+        self.assertTrue(any("doublon" in a for x in couv["anomalies_vues"] for a in x["anomalies"]))
+
+    def test_doublon_persistant_partiel(self):
+        p = FauxPortail(_items(GROS), doublon_partition=("19/10/2026", 99))
+        ids, couv, _ = self._passe(p)
+        self.assertFalse(couv["complete"])
+        self.assertTrue(any("doublon" in r for r in couv["raisons_incomplet"]))
+
+    def test_portail_qui_bouge_sans_cesse_reste_partiel_explique(self):
+        p = FauxPortail(_items(GROS))
+        for k in range(3, 600):
+            p.evenements[k] = (lambda k: lambda q: q.items.__setitem__(str(3000000 + k), ("2026-10-20", "1", "1")))(k)
+        ids, couv, etat = self._passe(p)
+        self.assertFalse(couv["complete"])
+        self.assertEqual(len(couv["tours_verification"]), 3)  # vérification bornée
+        self.assertTrue(couv["raisons_incomplet"])
+        self.assertTrue(all(e["absences_listing_complet"] == 0 for e in etat.listing["items"].values()))
+
+    def test_ligne_hors_bornes_jamais_acceptee(self):
+        p = FauxPortail(_items([10, 10]))
+        p._jma = lambda r: "01/01/2030" if r == "1000000" else FauxPortail._jma(p, r)  # 2030 : hors fenêtre 19/10/2026–19/04/2027
+        ids, couv, _ = self._passe(p)
+        self.assertFalse(couv["complete"])
+        self.assertTrue(any("hors bornes" in r for r in couv["raisons_incomplet"]))
+
+    def test_403_et_coupure_reseau_arretent_sans_conclure(self):
+        def refus(q):
+            raise client_mod.ArretCollecte("HTTP 403 sur partition : arrêt (pas de contournement)")
+
+        def coupure(q):
+            raise client_mod.ArretCollecte("échec POST : Connection reset by peer")
+        for ev in (refus, coupure):
+            for k in (1, 4, 40):  # au début, pendant le découpage, pendant le tour de vérification
+                p = FauxPortail(_items(GROS), evenements={k: ev})
+                couv = {}
+                d = tempfile.mkdtemp()
+                self.addCleanup(shutil.rmtree, d)
+                with self.assertRaises(client_mod.ArretCollecte):
+                    mq.passe_partitionnee(p, Etat(d), "r", PROV, ALIAS, couv)
+                self.assertNotIn("complete", couv)
+
+    def test_plan_couvre_exactement_la_fenetre(self):
+        import datetime as dt
+        p = FauxPortail(_items([300, 300, 300]))
+        _, _, etat = self._passe(p)
+        du, au = dt.date(2026, 10, 19), dt.date(2027, 4, 19)
+        plan = mq.planifier_partitions(etat, du, au, 400)
+        self.assertEqual(plan[0][0], du)
+        self.assertEqual(plan[-1][1], au)
+        self.assertTrue(all(b + dt.timedelta(days=1) == a for (_, b), (a, _) in zip(plan, plan[1:])))
+
+
+class TestStatutEtCatalogueGarde(unittest.TestCase):
+    def test_partiel_ne_remplace_pas_dernier_succes_et_fiches_suivent(self):
+        import coffre
+        d = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, d)
+        etat = Etat(os.path.join(d, "e"))
+        x = {"r": "1041301", "o": "o8p", "ref": "R", "obj": "O", "mo": "M", "cat": "Travaux", "proc": "AOO", "pub": "2026-10-01",
+             "lim": "2026-12-01", "h": "10:00", "lx": [], "nat": False, "etr": [], "lots": False, "env": False, "lieux_portail": []}
+        etat.enregistrer_ligne(x, "2026-10-02T10:00:00+00:00", "r1")
+        etat.sauver_listing()
+        etat.enregistrer_couverture("r1", {"run_id": "r1", "statut": "LISTING_COMPLET_ANNONCES_DE_CONSULTATION_FENETRE_PAR_DEFAUT",
+                                           "fin": "2026-10-02T10:10:00+00:00",
+                                           "listing": {"total_annonce": 1, "ids_distincts": 1, "pages_lues": [{"page": 1}], "complete": True}})
+        cat, _ = cc.construire(etat, REG, "2026-10-02")
+        pc = os.path.join(d, "cat.json")
+        with open(pc, "w") as f:
+            json.dump(cat, f)
+        coffre.pack(etat.d, os.path.join(d, "c1"), pc)
+        # passage suivant PARTIEL + fiche lue entre-temps (visite publiée)
+        etat.enregistrer_fiche("pmmp:o8p:1041301", {"ref": "R", "obj": "O", "vis": "le 20/10/2026", "q": [], "dom": []},
+                               "2026-10-02T11:00:00+00:00", "r2", "h")
+        etat.enregistrer_couverture("r2", {"run_id": "r2", "statut": "PARTIEL", "fin": "2026-10-02T11:10:00+00:00",
+                                           "listing": {"total_annonce": 2, "ids_distincts": 1, "pages_lues": [{"page": 1}], "complete": False}})
+        cat2, _ = cc.construire(etat, REG, "2026-10-02")
+        with open(pc, "w") as f:
+            json.dump(cat2, f)
+        coffre.pack(etat.d, os.path.join(d, "c2"), pc, None, os.path.join(d, "c1"))
+        st = json.loads(lire(os.path.join(d, "c2", "stock", "statut.json")))
+        self.assertEqual(st["dernier_succes"]["run_id"], "r1")  # jamais le partiel
+        self.assertEqual(st["derniere_tentative"]["run_id"], "r2")
+        cv = json.loads(lire(os.path.join(d, "c2", "stock", "catalogue_valide.json")))
+        self.assertEqual(cv["maj"], "2026-10-02T10:10:00+00:00")  # même listing de référence
+        self.assertEqual([i["r"] for i in cv["items"]], ["1041301"])  # aucun identifiant ajouté
+        self.assertEqual(cv["items"][0]["vis"], "le 20/10/2026")  # fiche lue depuis : reprise
+        self.assertTrue(cv["items"][0]["det"])
+
+
 BASE_FICHE = {"ref": "R", "obj": "O", "mo": None, "cat": "Travaux", "proc": "AOO", "pub": "2026-10-01", "lim": "2026-12-01",
               "h": "10:00", "lx": [], "nat": False, "etr": [], "lots": False, "env": False, "lieux_portail": []}
 

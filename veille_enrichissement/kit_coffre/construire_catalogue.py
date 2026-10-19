@@ -109,6 +109,37 @@ def construire(etat, regions, aujourd_hui=None, exclure_absents=None, cls_herite
     return cat, rapport
 
 
+def rafraichir_fiches(cat, fiches, aujourd_hui=None):
+    """Catalogue valide GARDÉ (dernier passage non complet) : mêmes identifiants, même listing, même « maj » ; seuls les
+    champs de fiche sont repris des fiches lues depuis (règle de construire : champs communs de la fiche si elle est lue
+    après le listing). Aucune annonce ajoutée : celles du seul listing partiel attendent un listing complet. Les
+    consultations dont la date limite est passée sont retirées (même règle que construire)."""
+    aujourd_hui = aujourd_hui or aujourd_hui_maroc()
+    items, n = [], {"fiches_reprises": 0, "exclus_date_passee": 0}
+    for x in cat["items"]:
+        f = (fiches or {}).get(f"pmmp:{x['o']}:{x['r']}")
+        y = dict(x)
+        if f:
+            F = f.get("champs") or {}
+            if f["lu_le"] >= cat["maj"]:
+                for k in COMMUNS:
+                    if F.get(k) is not None:
+                        y[k] = F[k]
+            for k in FICHE_SEULE:
+                y[k] = None if libelle_seul(F.get(k)) else F.get(k)
+            y["q"] = y["q"] if y["q"] is not None else []
+            y["dom"] = y["dom"] if y["dom"] is not None else []
+            y["det"] = True
+            n["fiches_reprises"] += 1
+        if y["lim"] and y["lim"] < aujourd_hui:
+            n["exclus_date_passee"] += 1
+            continue
+        items.append({k: y[k] for k in CHAMPS})
+    out = {**{k: v for k, v in cat.items() if k != "items"}, "n": len(items), "n_details": sum(1 for x in items if x["det"]),
+           "items": items}
+    return out, n
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--etat", default=os.path.join(ICI, "donnees"))

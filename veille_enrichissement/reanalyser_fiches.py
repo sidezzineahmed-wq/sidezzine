@@ -10,8 +10,10 @@ Règles :
   - seule une fiche dont le HTML conservé a EXACTEMENT le SHA-256 enregistré (sha256_html_tronque) est ré-analysée ;
   - la date réelle de lecture (lu_le), le passage (run), le SHA et le popup des lots ne changent jamais ; la ré-analyse est
     datée à part (reanalyse_le) avec version_parseur et version_lecture_initiale ;
-  - le HTML conservé a été coupé avant le contact par l'ancien lecteur : contact et pièces restent « non lus » (le lecteur
-    ne voit pas leurs blocs) ; ils viendront d'une vraie relecture ;
+  - le HTML conservé a été coupé avant le contact par l'ancien lecteur. Le contact administratif PUBLIÉ est relu dans l'état
+    de page (veille/pmmp_pagestate.py : lecture passive bornée, ancrée au composant de résumé, identité référence + objet +
+    contexte de formulaire de la même consultation) ; refus = « non lu ». Source notée champs.sources_blocs.contact =
+    "etat_de_page". Les pièces restent « non lues » (visibilité des liens absente de l'état) ;
   - une fiche déjà analysée par le lecteur courant ou plus récent n'est pas touchée ; référence différente = non touchée ;
   - aucune ligne de qualification perdue : si le nouveau lecteur en perd une, l'ancienne liste est gardée (listé)."""
 import argparse
@@ -36,10 +38,11 @@ def main(argv=None):
     a = ap.parse_args(argv)
     sys.path.insert(0, a.kit)
     from veille.pmmp_fiche import VERSION_LECTURE, lire_fiche  # noqa: E402
+    from veille.pmmp_pagestate import lire_contact  # noqa: E402
     now = a.maintenant or dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
     F = lire(a.fiches, {}) or {}
     n = {"fiches": len(F), "reanalysees": 0, "deja_a_jour": 0, "sans_html": 0, "sha_different": 0, "ref_differente": 0,
-         "q_garde_ancien": [], "champs_changes": {}}
+         "q_garde_ancien": [], "champs_changes": {}, "contact_etat_de_page": 0, "contact_refus": {}}
     for k in sorted(F):
         doc = F[k]
         ch0 = doc.get("champs") or {}
@@ -68,8 +71,17 @@ def main(argv=None):
             n["q_garde_ancien"].append(k)
             ch["q"], ch["q_txt"] = ch0.get("q"), ch0.get("q_txt")
         for c in sorted(set(ch) | set(ch0)):
-            if c not in ("version_lecture", "blocs_lus") and ch.get(c) != ch0.get(c):
+            if c not in ("version_lecture", "blocs_lus", "sources_blocs") and ch.get(c) != ch0.get(c):
                 n["champs_changes"][c] = n["champs_changes"].get(c, 0) + 1
+        if ch.get("contact") is None and "contact" not in (ch.get("blocs_lus") or []):
+            c, motif = lire_contact(h, o, r, ch.get("ref"), ch.get("obj"))
+            if c is not None:
+                ch["contact"] = c
+                ch["blocs_lus"] = sorted(set(ch["blocs_lus"]) | {"contact"})
+                ch["sources_blocs"] = {"contact": "etat_de_page"}
+                n["contact_etat_de_page"] += 1
+            else:
+                n["contact_refus"][motif] = n["contact_refus"].get(motif, 0) + 1
         doc["champs"] = ch
         doc["reanalyse_le"] = now
         doc["version_parseur"] = VERSION_LECTURE

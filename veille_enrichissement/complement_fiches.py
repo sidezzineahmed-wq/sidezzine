@@ -53,12 +53,14 @@ def lire(p, d=None):
         return d
 
 
-def termine(rec, besoin):
-    """Vrai si plus rien n'est à lire pour cette cible."""
+def termine(rec, besoin, sans_popup=False):
+    """Vrai si plus rien n'est à lire pour cette cible (sans_popup : la fiche suffit, le popup déjà lu n'est pas relu)."""
     if not rec:
         return False
     if besoin == "fiche" and not rec.get("fiche"):
         return False
+    if sans_popup and besoin == "fiche":
+        return True
     lots = rec.get("lots")
     return not rec.get("allotie") or bool(lots and lots.get("statut") in ("lu", "partiel"))
 
@@ -73,6 +75,7 @@ def main(argv=None):
     ap.add_argument("--paralleles", type=int, default=1)
     ap.add_argument("--pause-debut", type=int, default=10)
     ap.add_argument("--pause-fin", type=int, default=22)
+    ap.add_argument("--sans-popup", action="store_true", help="besoin « fiche » : relire la fiche seule (popup des lots déjà lu, non relu)")
     ap.add_argument("--attente-echec-min", type=float, default=10.0, help="attente avant nouvel essai : N x tentatives minutes")
     a = ap.parse_args(argv)
     if not 1 <= a.paralleles <= 2:
@@ -124,7 +127,7 @@ def main(argv=None):
                 rec["allot"] = f.get("allot")
             elif "allotie" not in rec:
                 rec["allotie"], rec["allot"] = True, v.get("allot")
-            if rec.get("allotie") and not (rec.get("lots") or {}).get("statut") in ("lu", "partiel"):
+            if rec.get("allotie") and not (rec.get("lots") or {}).get("statut") in ("lu", "partiel") and not (a.sans_popup and v.get("besoin") == "fiche"):
                 url, h, coupe = get(PARAMS_LOTS(r, o))
                 res = lire_popup(h, o, r, rec.get("allot"))
                 if res["statut"] == "inaccessible":
@@ -155,7 +158,7 @@ def main(argv=None):
             for k, v in sorted(cibles.items(), key=lambda kv: (kv[1].get("prio", 9), kv[1].get("lim") or "9", kv[1].get("h") or "", kv[0])):
                 o, r = k.split(":")[1:]
                 rec = lire(os.path.join(C, f"{o}_{r}.json"))
-                if termine(rec, v.get("besoin")):
+                if termine(rec, v.get("besoin"), a.sans_popup):
                     continue
                 ech = lire(os.path.join(E, f"{o}_{r}.json"), {}) or {}
                 if ech.get("tentatives", 0) >= a.essais:

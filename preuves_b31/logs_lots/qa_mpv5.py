@@ -44,7 +44,9 @@ with sync_playwright() as p:
     chk("Par lot : voir le détail des lots" in t and P["ech"]=="lu" and "15,36 Mo" in t and P["dst"]=="lu","g3h/1044229 alloti : valeurs par lot renvoyées au détail des lots (aucune somme), DCE 15,36 Mo")
     chk(not re.search(r"Estimation\s*\n?\s*[\d ]+,\d\d DH",P["sum"]),"alloti : aucune estimation globale inventée")
     # ===== C. ré-analyse hors ligne : contact / pièces pas encore lus =====
-    P=sel(KR);t=P["t"]
+    # contact non récupérable (refus de l'état) simulé en mémoire si toutes les ré-analyses réelles l'ont récupéré
+    ev("k=>{const r=S.enr.complements_fiche.par_id[k];window.__kr=JSON.stringify(r);if(r.statuts.contact!=='non_lu'){r.statuts.contact='non_lu';delete r.contact;delete r.sources_blocs;}}",KR)
+    P=sel(KR);t=P["t"];ev("k=>{S.enr.complements_fiche.par_id[k]=JSON.parse(window.__kr);render();}",KR)
     chk(P["cst"]=="non_lu" and P["dst"]=="non_lu" and "Non publié" not in t and t.count("Pas encore lu (relecture de la fiche")>=2,f"{KR} ré-analysé : contact et pièces « pas encore lus », jamais « non publiés »")
     chk("ré-analysée hors ligne le" in t and ev("()=>document.querySelector('[data-mpv-cflu]').dataset.mpvCflu")==CF[KR]["lu_le"],"source : date réelle de lecture gardée, ré-analyse datée à part")
     # ===== D. fiche sans compléments =====
@@ -59,6 +61,31 @@ with sync_playwright() as p:
     R_=ev("()=>document.querySelector('[data-mpv-ret]').innerText")
     chk(P["ret"]=="non_lu" and "Avenue" not in R_ and "Pas encore lu" in R_ and P["dst"]=="non_lu","référence lue ≠ catalogue : compléments non utilisés (retrait, pièces pas encore lus)")
     ev("k=>{S.enr.complements_fiche.par_id[k].ref=window.__r;render();}",K1)
+    # ===== G. échappement et liens officiels (valeurs hostiles injectées EN MÉMOIRE, aucun clic) =====
+    ev("""k=>{const r=S.enr.complements_fiche.par_id[k];window.__g=JSON.stringify(r);
+      r.ech_txt='<img src=x onerror="window.__xss=1">PROSPECTUS';r.ret='<script>window.__xss=2</script>Rue';
+      r.contact={nom:'<b onclick=1>Agent</b>',email:'x" onmouseover="window.__xss=3',tel:'05',fax:null};
+      r.docs=[{type:'dce',libelle:'A',taille:'1 Ko',url:'javascript:window.__xss=4'},
+              {type:'reglement',libelle:'B',taille:'1 Ko',url:'index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=999&orgAcronyme=e5w'},
+              {type:'complement',libelle:'C',taille:'1 Ko',url:'index.php?page=entreprise.EntrepriseAccueilAuthentifie&refConsultation=1041719&orgAcronyme=e5w'},
+              {type:'dce',libelle:'D',taille:'1 Ko',url:'https://evil.example/index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1041719&orgAcronyme=e5w'}];}""",K1)
+    P=sel(K1)
+    G_=ev("""()=>{const p=document.querySelector('[data-mpv-panel]');return{img:p.querySelectorAll('.mpv-fiche5 img').length,scr:p.querySelectorAll('.mpv-fiche5 script').length,
+      b:p.querySelectorAll('.mpv-fiche5 b[onclick]').length,mail:p.querySelectorAll('.mpv-fiche5 a[href^="mailto:"]').length,
+      hrefs:[...p.querySelectorAll('.mpv-fiche5 a[href]')].map(a=>a.getAttribute('href')),xss:window.__xss||0,
+      txt:p.querySelector('[data-mpv-echt]').innerText}}""")
+    FICHE="https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseDetailsConsultation&refConsultation=1041719&orgAcronyme=e5w"
+    chk(G_["img"]==0 and G_["scr"]==0 and G_["b"]==0 and G_["xss"]==0 and "<img src=x" in G_["txt"],"textes source échappés (balises affichées comme texte, rien exécuté)")
+    chk(G_["mail"]==0,"e-mail invalide : affiché en texte, aucun lien mailto")
+    chk(all(h.startswith("https://www.marchespublics.gov.ma/index.php?page=entreprise.Entreprise") and "refConsultation=1041719&orgAcronyme=e5w" in h for h in G_["hrefs"]) and G_["hrefs"].count(FICHE)>=4,
+        f"liens hostiles / autre ID / page soumissionnaire / autre hôte remplacés par la fiche PMMP du même ID ({len(G_['hrefs'])} liens)")
+    ev("k=>{S.enr.complements_fiche.par_id[k]=JSON.parse(window.__g);render();}",K1)
+    # ===== H. contact relevé dans l'état de page d'une lecture conservée : provenance affichée =====
+    KE=next((k for k in sorted(CF) if (CF[k].get("sources_blocs") or {}).get("contact")=="etat_de_page" and k in X and not (X[k]["lots"] or X[k]["allot"])),None)
+    if KE:
+        P=sel(KE);t=P["t"]
+        chk(P["cst"]=="lu" and "état de page de cette lecture" in t and P["dst"]=="non_lu" and ev("()=>!!document.querySelector('[data-mpv-docpmmp]')"),
+            f"{KE} : contact de l'état de page avec sa date de lecture ; pièces « pas encore lues » avec lien vers la fiche PMMP")
     chk(len(W()[w0:])==0,"aucune écriture");chk(not errs,f"aucune erreur JavaScript {errs[:2]}")
     ctx.close()
     for w,sch in ((390,"light"),(1440,"dark")):

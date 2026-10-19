@@ -17,9 +17,15 @@ function mpvBloc(x,b,val,vide){const st=mpvCfSt(x,b);
 /* champ du catalogue (fiche lue) : null = non indiqué ; fiche non lue = inconnu */
 const mpvFc=(x,v,vide)=>!x.det?mpvNL("Fiche pas encore lue"):v!=null&&v!==""?v:mpvNL(vide||"Non indiqué sur PMMP (« - »)");
 const mpvParLot=x=>mpvAlloti(x)?"Par lot : voir le détail des lots":null;
-function mpvDocUrl(x,u){/* lien public PMMP du même identifiant seulement ; sinon la fiche PMMP de la consultation */
-  try{const U=new URL(u,MPV5_PORTAIL);if(U.origin+"/"===MPV5_PORTAIL&&U.searchParams.get("refConsultation")===String(x.r)&&U.searchParams.get("orgAcronyme")===String(x.o))return U.href;}catch(e){}
+/* liens officiels seulement : https://www.marchespublics.gov.ma/index.php, page publique de la liste blanche, MÊME
+   refConsultation / orgAcronyme ; sinon (javascript:, autre hôte, autre page, autre ID, espace soumissionnaire) : fiche PMMP */
+const MPV5_PAGES=new Set(["entreprise.EntrepriseDemandeTelechargementDce","entreprise.EntrepriseDetailsConsultation"]);
+function mpvDocUrl(x,u){
+  try{const U=new URL(String(u||""),MPV5_PORTAIL);
+    if(U.protocol==="https:"&&U.host==="www.marchespublics.gov.ma"&&U.pathname==="/index.php"&&!U.username&&!U.password&&!U.hash&&MPV5_PAGES.has(U.searchParams.get("page"))&&
+       U.searchParams.get("refConsultation")===String(x.r)&&U.searchParams.get("orgAcronyme")===String(x.o)&&[...U.searchParams.keys()].every(k=>["page","refConsultation","orgAcronyme"].includes(k)))return U.href;}catch(e){}
   return pmmpUrl(x);}
+const mpvMail=e=>/^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,190}\.[A-Za-z]{2,24}$/.test(String(e||""));
 const MPV5_DOC={dce:"Dossier de consultation (DCE)",reglement:"Règlement de consultation",complement:"Complément",avis:"Avis publié"};
 function mpvSec(id,title,state,body){return`<details class="mpv-fs" data-mpv-fs="${id}"${(MPV.fsOpen||{})[id]?" open":""}><summary>${mpvI("chev","mpv-car")}<b>${esc(title)}</b>${state?`<small>${state}</small>`:""}</summary><div>${body}</div></details>`;}
 const mpvKv=rows=>`<dl class="mpv-kv mpv-kv5">${rows.filter(Boolean).map(([k,v,a])=>`<dt>${esc(k)}</dt><dd${a||""}>${v}</dd>`).join("")}</dl>`;
@@ -41,10 +47,10 @@ function mpvFiche5(x,D){const r=mpvCf(x),al=mpvAlloti(x),pl=mpvParLot(x);
     ["Dépôt des offres",mpvFc(x,x.dep?esc(x.dep):null)],["Ouverture des plis",mpvFc(x,x.ouv?esc(x.ouv):null)]]);
   /* Documents publiés */
   const dst=mpvCfSt(x,"docs"),docs=dst==="lu"?((r.docs||[]).length?`<ul class="mpv-l5 mpv-docs">${r.docs.map(d=>`<li data-mpv-doc="${esc(d.type)}"><span>${esc(MPV5_DOC[d.type]||d.libelle||"Document")}${d.taille?` <small class="mpv-mut">${esc(d.taille)}</small>`:""}</span><a class="mpv-lk" href="${esc(mpvDocUrl(x,d.url))}" target="_blank" rel="noopener">Ouvrir sur PMMP${mpvI("ext","mpv-ie")}<span class="mpv-sr"> (nouvel onglet)</span></a></li>`).join("")}</ul><p class="mpv-mut">Liens vers le portail PMMP pour cette consultation : le document n'est pas joint dans EAIOS ; le téléchargement se fait sur PMMP.</p>`:mpvNL("Aucune pièce publiée sur la fiche PMMP"))
-    :mpvBloc(x,"docs",null).h;
+    :mpvBloc(x,"docs",null).h+`<p class="mpv-mut">Les pièces publiées se consultent sur la <a class="mpv-lk" data-mpv-docpmmp="1" href="${esc(pmmpUrl(x))}" target="_blank" rel="noopener">fiche PMMP de la consultation${mpvI("ext","mpv-ie")}<span class="mpv-sr"> (nouvel onglet)</span></a>.</p>`;
   /* Contact administratif publié */
   const cst=mpvCfSt(x,"contact"),c=r&&r.contact;
-  const ct=cst==="lu"&&c?(c.nom||c.email||c.tel||c.fax?mpvKv([["Nom / service",c.nom?esc(c.nom):mpvNL("Non indiqué")],["E-mail",c.email?`<a class="mpv-lk" href="mailto:${esc(c.email)}">${esc(c.email)}</a>`:mpvNL("Non indiqué")],["Téléphone",c.tel?esc(c.tel):mpvNL("Non indiqué")],["Télécopieur",c.fax?esc(c.fax):mpvNL("Non indiqué")]])+`<p class="mpv-mut">Coordonnées professionnelles publiées dans le bloc administratif de la fiche PMMP.</p>`:mpvNL("Bloc publié sans coordonnées (« - »)"))
+  const ct=cst==="lu"&&c?(c.nom||c.email||c.tel||c.fax?mpvKv([["Nom / service",c.nom?esc(c.nom):mpvNL("Non indiqué")],["E-mail",c.email?(mpvMail(c.email)?`<a class="mpv-lk" href="mailto:${esc(c.email)}">${esc(c.email)}</a>`:esc(c.email)):mpvNL("Non indiqué")],["Téléphone",c.tel?esc(c.tel):mpvNL("Non indiqué")],["Télécopieur",c.fax?esc(c.fax):mpvNL("Non indiqué")]])+`<p class="mpv-mut" data-mpv-csrc="${(r.sources_blocs||{}).contact==="etat_de_page"?"etat_de_page":"page"}">Coordonnées professionnelles publiées dans le bloc administratif de la fiche PMMP${(r.sources_blocs||{}).contact==="etat_de_page"?`, relevées dans la page de la fiche reçue le ${esc(mpvDt(r.lu_le))} (état de page de cette lecture)`:` (lue le ${esc(mpvDt(r.lu_le))})`}.</p>`:mpvNL("Bloc publié sans coordonnées (« - »)"))
     :mpvBloc(x,"contact",null).h;
   /* Source et provenance */
   const pc=S.enr&&x.proc&&((S.enr.procedures||{}).codes||{})[x.proc];

@@ -110,6 +110,8 @@ def _complements(items, fiches, precedent):
             if f.get(c) is not None:
                 rec[c] = f[c]
         rec["statuts"] = statuts_blocs(ch)
+        if ch.get("sources_blocs"):
+            rec["sources_blocs"] = ch["sources_blocs"]  # ex. contact relu dans l'état de la page déjà reçue
         for c in CHAMPS_V3:
             if ch.get(c) is not None:
                 rec[c] = ch[c]
@@ -130,6 +132,7 @@ def _complements(items, fiches, precedent):
     cov["avec_valeur"] = {c: sum(1 for k in ok if par_id[k].get(c) is not None) for c in CHAMPS_V3}
     cov["reference_discordante"] = sorted(set(par_id) - ok)
     cov["reanalyses_hors_ligne"] = sum(1 for k in ok if par_id[k].get("reanalyse_le"))
+    cov["contact_etat_de_page"] = sum(1 for k in ok if (par_id[k].get("sources_blocs") or {}).get("contact") == "etat_de_page")
     return {"nom": "Compléments de fiche PMMP (retrait, plans, prospectus/échantillons, contact publié, pièces)",
             "source": {"page": "index.php?page=entreprise.EntrepriseDetailsConsultation&refConsultation=<ref>&orgAcronyme=<org>",
                        "portail": "https://www.marchespublics.gov.ma/"},

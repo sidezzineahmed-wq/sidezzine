@@ -60,3 +60,16 @@ du contrôle ; variation ultérieure du total enregistrée à part (publications
 Autres corrections : lectures d'un passage interrompu gardées comme amorce (jamais comme preuve) ; réserve de budget
 pour les fiches (min(240 s, budget/5)) ; arrêt du listing sur budget = PARTIEL mais fiches lues dans la réserve.
 Kit : 65/65.
+
+## 19/10 17:14 (tâche horaire, kit v3) et livraison 17:5x
+- 17:14 : LISTING_COMPLET 4674 ; contrôle 3 refusé (somme 4672, début 4673, fin 4674, 2 partitions changées) ;
+  contrôle 5 : début 4674 = fin 4674 = somme 4674, aucun écart de compte → conforme à la règle stricte.
+  Fiches : 5 lues avant l'arrêt sur budget, mais rapportées « 0 » (la liste était perdue sur ArretCollecte) → corrigé :
+  arrêt budget/réseau = fiches déjà lues comptées ; 401/403 = arrêt immédiat (inchangé). Test dédié. Kit 66/66.
+- Livraison : coffre e534 (base e246 relue, kit strict, 52 + 72 fiches nouvelles, catalogue_valide reconstruit sur le
+  listing complet 17:14 : 4720 dont 4720 avec fiche) ; EAIOS 4104 (4720/4720 avec fiche, 389 alloties 389 popups,
+  0 visite non lue, 245 consultations nouvelles depuis le catalogue du 18/10, toutes avec fiche).
+- Lieu : « MAROC » est un lieu choisi par l'acheteur (375 / 4602 ; 372 avec province) et non une racine ; la page
+  remplaçait la province par « Tout le Maroc » → libellé « Tout le Maroc · <provinces> » (part_mpv.js, JS d8827446c319).
+  QA mpv4 24/24, mpv3 31/31, mpv2 66/66, mpv 50/50 (contrôle du bandeau rendu dépendant des données : le dernier essai
+  17:14 a un listing réussi ET une erreur de fiches enregistrée).

@@ -1,0 +1,82 @@
+{
+ "maj": "2026-10-19T17:34:36+00:00",
+ "annonces": 4720,
+ "det": 4720,
+ "alloties": 389,
+ "champs": {
+  "est": {
+   "connue": 4263,
+   "lots_valeur": 3807,
+   "non_indiquee": 1,
+   "par_lot": 389,
+   "zero": 67
+  },
+  "cau": {
+   "connue": 4056,
+   "lots_valeur": 3807,
+   "par_lot": 389,
+   "zero": 275
+  },
+  "tp": {
+   "connue": 4331,
+   "lots_non_indique": 56,
+   "lots_valeur": 3751,
+   "par_lot": 389
+  },
+  "q": {
+   "connue": 1031,
+   "lots_non_indique": 3681,
+   "lots_valeur": 126,
+   "non_indiquee": 3300,
+   "par_lot": 389
+  },
+  "ag": {
+   "connue": 208,
+   "lots_non_indique": 3797,
+   "lots_valeur": 10,
+   "non_indiquee": 4123,
+   "par_lot": 389
+  },
+  "vis": {
+   "connue": 527,
+   "lots_non_indique": 3644,
+   "lots_valeur": 163,
+   "non_indiquee": 3804,
+   "par_lot": 389
+  },
+  "reu": {
+   "connue": 46,
+   "lots_non_indique": 3779,
+   "lots_valeur": 28,
+   "non_indiquee": 4285,
+   "par_lot": 389
+  },
+  "proto": {
+   "connue": 682,
+   "lots_non_indique": 918,
+   "lots_valeur": 2889,
+   "non_indiquee": 3649,
+   "par_lot": 389
+  },
+  "var": {
+   "connue": 4331,
+   "lots_valeur": 3807,
+   "par_lot": 389
+  },
+  "dom": {
+   "connue": 4720
+  },
+  "ouv": {
+   "connue": 4720
+  },
+  "dep": {
+   "connue": 4720
+  },
+  "mode_passation": {
+   "connue": 4720
+  },
+  "classification_entite": {
+   "connue": 4720
+  }
+ }
+}

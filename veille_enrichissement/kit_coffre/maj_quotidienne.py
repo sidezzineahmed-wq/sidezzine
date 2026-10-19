@@ -567,8 +567,11 @@ def lire_fiches(client, etat, run_id, ids, snapshots, masquer):
             if snapshots:
                 etat.snapshot(run_id, f"fiche_{org}_{ref}", h)
             res["lues"].append({"id": i, "lu_le": lu_le, "contact_coupe": coupe})
-        except ArretCollecte:
-            raise
+        except ArretCollecte as e:
+            if "HTTP 401" in str(e) or "HTTP 403" in str(e):
+                raise  # refus du portail : arrêt immédiat de tout le passage
+            res["arret"] = str(e)[:300]  # budget / réseau : les fiches déjà lues restent comptées (elles sont enregistrées)
+            return res
         except Exception as e:  # une fiche illisible n'arrête pas les autres
             res["echecs"].append({"id": i, "raison": repr(e)[:200]})
             etat.noter_tentative(i, maintenant(), run_id, False, repr(e))
@@ -631,11 +634,9 @@ def main():
             client.echeance = t_depart + a.budget_s  # fiches : jusqu'au budget complet
         if a.fiches:
             choix, stats = choisir_fiches(etat, ids, a.fiches, not a.sans_relecture, age_min_h=a.age_min_relecture_h)
-            try:
-                couv["fiches"] = lire_fiches(client, etat, run_id, choix, not a.sans_snapshots, not a.ne_pas_masquer_coordonnees)
-            except ArretCollecte as e:
-                couv["fiches"] = {"demandees": len(choix), "lues": [], "echecs": [], "arret": str(e)}
-                erreur_fiches = f"ARRET fiches: {e}"
+            couv["fiches"] = lire_fiches(client, etat, run_id, choix, not a.sans_snapshots, not a.ne_pas_masquer_coordonnees)
+            if couv["fiches"].get("arret"):
+                erreur_fiches = f"ARRET fiches: {couv['fiches']['arret']}"
             couv["fiches"]["selection"] = stats
     except ArretCollecte as e:
         statut_err = f"ARRET: {e}"

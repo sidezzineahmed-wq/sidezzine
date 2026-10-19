@@ -1020,6 +1020,23 @@ class TestLotsPassageHoraire(unittest.TestCase):
         with self.assertRaises(client_mod.ArretCollecte):
             mq.lire_fiches(FauxClient(popup_403=True), self.etat, "r3", [self.i], False, True)
 
+    def test_arret_pendant_les_fiches_garde_le_compte_des_fiches_lues(self):
+        n = [0]
+        h = fx("fiche_1041301_o8p_sans_contact.html")
+
+        class C:
+            def get(self, params):
+                n[0] += 1
+                if n[0] > 2:
+                    raise client_mod.ArretCollecte("budget de temps du passage atteint avant GET")
+                return FauxRep(h, "u")
+        ids = ["pmmp:o8p:1041301", "pmmp:o8p:1041302", "pmmp:o8p:1041303"]
+        res = mq.lire_fiches(C(), self.etat, "r", ids, False, True)
+        self.assertEqual(len(res["lues"]), 2)  # lues avant l'arrêt : comptées et enregistrées
+        self.assertIn("budget", res["arret"])
+        self.assertIsNotNone(self.etat.fiche("pmmp:o8p:1041302"))
+        self.assertIsNone(self.etat.fiche("pmmp:o8p:1041303"))
+
     def test_coffre_conserve_les_lots_et_catalogue_sans_libelle(self):
         import coffre
         mq.lire_fiches(FauxClient(), self.etat, "r1", [self.i], False, True)

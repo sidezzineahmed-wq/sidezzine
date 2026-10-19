@@ -1,0 +1,58 @@
+{
+ "coffre_relu": {
+  "manifest_cree_le": "2026-10-19T17:34:54+00:00",
+  "fichiers": 40
+ },
+ "integration": [
+  {
+   "dossier": "compl_delta2",
+   "fiches_coffre": 5144,
+   "fiche_ajoutee": 52,
+   "fiche_remplacee_plus_recente": 0,
+   "fiche_coffre_plus_recente_gardee": 0,
+   "lots_rattaches": 4,
+   "lots_sans_fiche_coffre": 0,
+   "ref_differente_du_catalogue": 0,
+   "reparse_fiches": 52,
+   "reparse_lots": 4,
+   "reparse_sha_ko": 0,
+   "reparse_change": 0,
+   "fiches_sortie": 5196,
+   "fiches_inaccessibles": 0,
+   "lots_inaccessibles": 0,
+   "fiches_avec_lots": 381
+  },
+  {
+   "dossier": "compl_delta3",
+   "fiches_coffre": 5196,
+   "fiche_ajoutee": 72,
+   "fiche_remplacee_plus_recente": 0,
+   "fiche_coffre_plus_recente_gardee": 0,
+   "lots_rattaches": 8,
+   "lots_sans_fiche_coffre": 0,
+   "ref_differente_du_catalogue": 0,
+   "reparse_fiches": 72,
+   "reparse_lots": 8,
+   "reparse_sha_ko": 0,
+   "reparse_change": 0,
+   "fiches_sortie": 5268,
+   "fiches_inaccessibles": 0,
+   "lots_inaccessibles": 0,
+   "fiches_avec_lots": 389
+  }
+ ],
+ "catalogue_valide": {
+  "maj": "2026-10-19T17:34:36+00:00",
+  "n": 4720,
+  "n_details_avant": 4596,
+  "n_details": 4720,
+  "n_avant": 4720
+ },
+ "changes": [
+  "stock/catalogue_valide.json",
+  "stock/etat/fiches.json",
+  "stock/kit/maj_quotidienne.py",
+  "stock/kit/tests/test_kit.py"
+ ],
+ "retires": []
+}

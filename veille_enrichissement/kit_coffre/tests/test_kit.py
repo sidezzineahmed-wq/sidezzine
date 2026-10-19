@@ -228,6 +228,22 @@ class TestEtatEtCatalogue(unittest.TestCase):
         self.assertIsNone(nd["cls"])  # aucune passe classification -> null, pas devinée
         self.assertEqual(cat["total_portail"], 3796)
 
+    def test_qualification_cles_triees_stockees(self):
+        """État écrit avec des clés triées (json sort_keys) : le catalogue rétablit l'ordre du schéma sans changer de valeur."""
+        x = dict(self.rows[0]); x.update({"r": "1041301", "o": "o8p", "lim": "2026-11-20", "h": "13:00"})
+        self.etat.enregistrer_ligne(x, "2026-10-02T10:00:00+00:00", "r1")
+        q = {"c": "3", "m": "Equipement", "q": "A.5", "ql": "Travaux", "s": "A", "sl": "Construction"}
+        self.etat.enregistrer_fiche("pmmp:o8p:1041301", {"ref": x["ref"], "obj": x["obj"], "q": [q], "dom": []}, "2026-10-02T10:05:00+00:00", "r1", "x")
+        self._couv("r1", False, 3796)
+        cat, _ = cc.construire(self.etat, REG, "2026-10-02")
+        self.assertEqual(valider_catalogue(cat, REG), [])
+        it = [c for c in cat["items"] if c["r"] == "1041301"][0]
+        self.assertEqual([list(e.keys()) for e in it["q"]], [["m", "s", "sl", "q", "ql", "c"]])
+        self.assertEqual(it["q"][0], q)
+        garde, _ = cc.rafraichir_fiches({**cat, "items": [dict(i, q=[dict(sorted(e.items())) for e in i["q"]]) for i in cat["items"]]},
+                                        {"pmmp:o8p:1041301": self.etat.fiche("pmmp:o8p:1041301")}, "2026-10-02")
+        self.assertEqual(valider_catalogue(garde, REG), [])
+
     def test_listing_ne_redate_pas_la_fiche(self):
         x = self.rows[0]
         i = self.etat.enregistrer_ligne(x, "2026-10-01T10:00:00+00:00", "r1")

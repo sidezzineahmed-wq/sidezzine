@@ -23,12 +23,18 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from veille.etat import Etat, aujourd_hui_maroc, maintenant, _ecrire_json  # noqa: E402
 from veille.pmmp_fiche import libelle_seul  # noqa: E402
-from veille.schema import CHAMPS, valider_catalogue  # noqa: E402
+from veille.schema import CHAMPS, Q_CLES, valider_catalogue  # noqa: E402
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 SOURCE = "marchespublics.gov.ma, consultations en cours"
 COMMUNS = ["ref", "obj", "mo", "cat", "proc", "lim", "h"]
 FICHE_SEULE = ["est", "tp", "cau", "q", "ag", "vis", "reu", "var", "allot", "dom", "ouv", "dep", "proto"]
+
+
+def _q_ordre(v):
+    """Qualifications dans l'ordre des clés du schéma (m, s, sl, q, ql, c). Un état stocké avec des clés triées ne change
+    aucune valeur : seul l'ordre est rétabli ; une entrée aux clés différentes est laissée telle quelle (le contrôle la refuse)."""
+    return [{c: q[c] for c in Q_CLES} if isinstance(q, dict) and set(q) == set(Q_CLES) else q for q in v] if isinstance(v, list) else v
 
 
 def _espace(s):
@@ -79,6 +85,7 @@ def construire(etat, regions, aujourd_hui=None, exclure_absents=None, cls_herite
                 x[k] = None
         if det and x["q"] is None:
             x["q"] = []
+        x["q"] = _q_ordre(x["q"])
         if det and x["dom"] is None:
             x["dom"] = []
         x["proto"] = x.pop("proto")
@@ -127,7 +134,7 @@ def rafraichir_fiches(cat, fiches, aujourd_hui=None):
                         y[k] = F[k]
             for k in FICHE_SEULE:
                 y[k] = None if libelle_seul(F.get(k)) else F.get(k)
-            y["q"] = y["q"] if y["q"] is not None else []
+            y["q"] = _q_ordre(y["q"] if y["q"] is not None else [])
             y["dom"] = y["dom"] if y["dom"] is not None else []
             y["det"] = True
             n["fiches_reprises"] += 1

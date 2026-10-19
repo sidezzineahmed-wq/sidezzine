@@ -50,6 +50,19 @@ def _lire_json(chemin, defaut):
 CHAMPS_LISTING = ["ref", "obj", "mo", "cat", "proc", "pub", "lim", "h", "lx", "nat", "etr", "lots", "env", "lieux_portail"]
 
 
+def garder_pieces(champs, precedent):
+    """Une lecture qui n'a PAS lu le bloc des pièces (section absente ou illisible) garde l'inventaire déjà validé de la
+    lecture précédente, avec sa propre date (docs_lu_le). Une lecture qui l'a lu fait foi (même vide confirmé)."""
+    pc = (precedent or {}).get("champs") or {}
+    if "docs" in (champs.get("blocs_lus") or []) or "docs" not in (pc.get("blocs_lus") or []):
+        return champs
+    out = dict(champs)
+    out["docs"], out["docs_preuve"] = pc.get("docs"), pc.get("docs_preuve")
+    out["docs_lu_le"] = pc.get("docs_lu_le") or precedent.get("lu_le")
+    out["blocs_lus"] = sorted(set(out.get("blocs_lus") or []) | {"docs"})
+    return out
+
+
 class Etat:
     def __init__(self, dossier):
         self.d = dossier
@@ -132,6 +145,7 @@ class Etat:
     def enregistrer_fiche(self, i, champs, lu_le, run_id, sha256_html, lots=None):
         """Appelé uniquement après une lecture HTTP réelle et valide de la fiche. lots : lecture du popup « Détail des lots »
         (datée séparément) ; None = pas de popup lu ce passage."""
+        champs = garder_pieces(champs, self.fiche(i))
         doc = {"id": i, "lu_le": lu_le, "run": run_id, "sha256_html_tronque": sha256_html, "champs": champs}
         if lots is not None:
             doc["lots"] = lots

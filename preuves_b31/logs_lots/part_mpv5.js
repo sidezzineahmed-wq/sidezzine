@@ -19,11 +19,11 @@ const mpvFc=(x,v,vide)=>!x.det?mpvNL("Fiche pas encore lue"):v!=null&&v!==""?v:m
 const mpvParLot=x=>mpvAlloti(x)?"Par lot : voir le détail des lots":null;
 /* liens officiels seulement : https://www.marchespublics.gov.ma/index.php, page publique de la liste blanche, MÊME
    refConsultation / orgAcronyme ; sinon (javascript:, autre hôte, autre page, autre ID, espace soumissionnaire) : fiche PMMP */
-const MPV5_PAGES=new Set(["entreprise.EntrepriseDemandeTelechargementDce","entreprise.EntrepriseDetailsConsultation"]);
+const MPV5_PAGES=new Set(["entreprise.EntrepriseDemandeTelechargementDce","entreprise.EntrepriseDetailsConsultation","entreprise.ExtraitPV","entreprise.EntrepriseDownloadAvisJAL"]);
 function mpvDocUrl(x,u){
   try{const U=new URL(String(u||""),MPV5_PORTAIL);
     if(U.protocol==="https:"&&U.host==="www.marchespublics.gov.ma"&&U.pathname==="/index.php"&&!U.username&&!U.password&&!U.hash&&MPV5_PAGES.has(U.searchParams.get("page"))&&
-       U.searchParams.get("refConsultation")===String(x.r)&&U.searchParams.get("orgAcronyme")===String(x.o)&&[...U.searchParams.keys()].every(k=>["page","refConsultation","orgAcronyme"].includes(k)))return U.href;}catch(e){}
+       U.searchParams.get("refConsultation")===String(x.r)&&U.searchParams.get("orgAcronyme")===String(x.o)&&[...U.searchParams.keys()].every(k=>["page","refConsultation","orgAcronyme","idAvis"].includes(k)))return U.href;}catch(e){}
   return pmmpUrl(x);}
 const mpvMail=e=>/^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,190}\.[A-Za-z]{2,24}$/.test(String(e||""));
 const MPV5_DOC={dce:"Dossier de consultation (DCE)",reglement:"Règlement de consultation",complement:"Complément",avis:"Avis publié"};
@@ -46,7 +46,7 @@ function mpvFiche5(x,D){const r=mpvCf(x),al=mpvAlloti(x),pl=mpvParLot(x);
   const dep=mpvKv([["Date limite de remise des plis",`${esc(D.d)}`],["Retrait du dossier",mpvBloc(x,"retrait",r&&r.ret?esc(r.ret):null).h,` data-mpv-ret="${mpvCfSt(x,"retrait")}"`],
     ["Dépôt des offres",mpvFc(x,x.dep?esc(x.dep):null)],["Ouverture des plis",mpvFc(x,x.ouv?esc(x.ouv):null)]]);
   /* Documents publiés */
-  const dst=mpvCfSt(x,"docs"),docs=dst==="lu"?((r.docs||[]).length?`<ul class="mpv-l5 mpv-docs">${r.docs.map(d=>`<li data-mpv-doc="${esc(d.type)}"><span>${esc(MPV5_DOC[d.type]||d.libelle||"Document")}${d.taille?` <small class="mpv-mut">${esc(d.taille)}</small>`:""}</span><a class="mpv-lk" href="${esc(mpvDocUrl(x,d.url))}" target="_blank" rel="noopener">Ouvrir sur PMMP${mpvI("ext","mpv-ie")}<span class="mpv-sr"> (nouvel onglet)</span></a></li>`).join("")}</ul><p class="mpv-mut">Liens vers le portail PMMP pour cette consultation : le document n'est pas joint dans EAIOS ; le téléchargement se fait sur PMMP.</p>`:mpvNL("Aucune pièce publiée sur la fiche PMMP"))
+  const dst=mpvCfSt(x,"docs"),docs=dst==="lu"?((r.docs||[]).length?`<ul class="mpv-l5 mpv-docs">${r.docs.map(d=>`<li data-mpv-doc="${esc(d.type)}"><span>${esc(MPV5_DOC[d.type]||d.libelle||"Document")}${d.taille?` <small class="mpv-mut">${esc(d.taille)}</small>`:""}</span><a class="mpv-lk" href="${esc(mpvDocUrl(x,d.url))}" target="_blank" rel="noopener">Ouvrir sur PMMP${mpvI("ext","mpv-ie")}<span class="mpv-sr"> (nouvel onglet)</span></a></li>`).join("")}</ul><p class="mpv-mut">Liens vers le portail PMMP pour cette consultation : le document n'est pas joint dans EAIOS ; le téléchargement se fait sur PMMP.</p>`:mpvNL("Aucune pièce publiée : constaté sur la fiche PMMP ("+(r.docs_preuve==="bloc_aucune_piece"?"mention officielle « aucune pièce »":"liens officiels tous masqués")+")"))+(r.docs_lu_le?`<p class="mpv-mut" data-mpv-docslu="${esc(r.docs_lu_le)}">Liste relevée le ${esc(mpvDt(r.docs_lu_le))} (lecture précédente de la fiche ; la dernière lecture n'a pas pu relire ce bloc).</p>`:"")
     :mpvBloc(x,"docs",null).h+`<p class="mpv-mut">Les pièces publiées se consultent sur la <a class="mpv-lk" data-mpv-docpmmp="1" href="${esc(pmmpUrl(x))}" target="_blank" rel="noopener">fiche PMMP de la consultation${mpvI("ext","mpv-ie")}<span class="mpv-sr"> (nouvel onglet)</span></a>.</p>`;
   /* Contact administratif publié */
   const cst=mpvCfSt(x,"contact"),c=r&&r.contact;

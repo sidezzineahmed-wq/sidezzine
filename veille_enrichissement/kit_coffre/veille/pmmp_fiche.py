@@ -172,7 +172,7 @@ def lire_fiche(h_tronque, masquer=True):
     pp = _txt(h, "prixAcquisitionPlan")
     if pp is not None:
         prix_plans = montant(pp)
-    docs = _lire_documents(h)
+    docs, docs_preuve = _lire_documents(h)
     if masquer:
         vis, reu, proto = masquer_coordonnees(vis), masquer_coordonnees(reu), masquer_coordonnees(proto)
         ech_txt = masquer_coordonnees(ech_txt)
@@ -185,7 +185,7 @@ def lire_fiche(h_tronque, masquer=True):
         # v3 : blocs publiés jusque-là non extraits (absent de la page lue = None, « - » publié = None aussi mais bloc lu)
         "ret": _txt(h, "adresseRetraitDossiers"), "prix_plans": prix_plans,
         "ech_date": ech_date, "ech_txt": ech_txt,
-        "contact": _lire_contact(h), "docs": docs,
+        "contact": _lire_contact(h), "docs": docs, "docs_preuve": docs_preuve,
         "blocs_lus": sorted(k for k, ok in (("contact", 'id="' + PFX + 'contactAdministratif"' in h),
                                              ("docs", docs is not None),
                                              ("retrait", 'id="' + PFX + 'adresseRetraitDossiers"' in h),
@@ -216,16 +216,19 @@ def _visible_attrs(attrs):
 
 
 def _lire_documents(h):
-    """Pièces publiées (liens VISIBLES du bloc « Pièces de la consultation ») et documents d'avis. Aucun téléchargement :
-    type, libellé, taille et lien public seulement. None = non lu : bloc absent de la page lue, structure inattendue ou
-    aucun lien visible sans le bloc officiel « aucune pièce » visible ; [] seulement si ce bloc officiel est visible."""
+    """(docs, preuve). Pièces publiées (liens VISIBLES du bloc « Pièces de la consultation ») et documents d'avis visibles.
+    Aucun téléchargement : type, libellé, taille et lien public seulement.
+    docs None = non lu : bloc absent, structure inattendue, ou lien visible sans libellé.
+    docs [] = aucune pièce CONFIRMÉE, avec sa preuve : « bloc_aucune_piece » (bloc officiel visible) ou
+    « liens_officiels_tous_masques » (les 3 liens officiels présents et explicitement masqués, aucun avis visible)."""
     nopc = _NO_PIECES.search(h)
     vide_officiel = bool(nopc and _visible_attrs(nopc.group(1)))
     if 'id="ctl0_CONTENU_PAGE_divPiecesConsultation"' not in h:
-        return [] if vide_officiel else None
+        return ([], "bloc_aucune_piece") if vide_officiel else (None, "bloc_absent")
     lis = _LI_PIECE.findall(h)
     if sorted(t for _, t in lis) != ["Complement", "Dce", "Reglement"]:
-        return None  # structure du bloc inattendue : jamais « aucun document »
+        return None, "structure_inattendue"  # jamais « aucun document »
+    visibles = [t for d, t in lis if d.lower() != "none"]
     docs = []
     for ident, typ in DOC_TYPES:
         m = re.search(r'<li\s+style="display:\s*(\w+)[^"]*"[^>]*>(?:(?!</li>).)*?id="ctl0_CONTENU_PAGE_' + ident + r'"([^>]*)>(.*?)</a>', h, re.S)
@@ -233,20 +236,27 @@ def _lire_documents(h):
             continue
         lib = nettoyer(m.group(3))
         if vide_portail(lib):
-            continue
+            return None, "lien_visible_sans_libelle"
         url = re.search(r'href="([^"]+)"', m.group(2))
         t = re.match(r"^(.*?)\s+-\s+([\d.,]+\s*[KMG]?o)$", lib or "")
         docs.append({"type": typ, "libelle": t.group(1) if t else lib, "taille": t.group(2) if t else None,
                      "url": nettoyer(url.group(1)) if url else None})
     for bloc in re.findall(r"<!--Debut Bloc documents Avis-->(.*?)<!--Fin Bloc documents Avis-->", h, re.S):
         bloc = re.sub(r"<!--Debut Bloc Pieces Consultation-->.*?<!--Fin Bloc Pieces Consultation-->", "", bloc, flags=re.S)
-        for href, lib in re.findall(r'<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>', bloc, re.S):
-            lib = nettoyer(lib)
-            if lib and not vide_portail(lib):
-                docs.append({"type": "avis", "libelle": lib, "taille": None, "url": nettoyer(href)})
-    if not docs:
-        return [] if vide_officiel else None  # bloc présent sans lien visible : non prouvé vide
-    return docs
+        for attrs, li in re.findall(r'<li\b([^>]*)>(.*?)</li>', bloc, re.S):
+            if not _visible_attrs(attrs):
+                continue  # gabarit masqué (lien vide ou « Lien d'accès direct » non publié) ; sans style = visible
+            for href, lib in re.findall(r'<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>', li, re.S):
+                lib = nettoyer(lib)
+                if lib and not vide_portail(lib):
+                    docs.append({"type": "avis", "libelle": lib, "taille": None, "url": nettoyer(href)})
+    if docs:
+        return docs, "liens_visibles"
+    if vide_officiel:
+        return [], "bloc_aucune_piece"
+    if not visibles:
+        return [], "liens_officiels_tous_masques"
+    return None, "structure_inattendue"
 
 
 def fiche_valide(f):

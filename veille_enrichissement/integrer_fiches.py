@@ -34,6 +34,19 @@ def q_conserve(ancien, nouveau):
     return all(any(vals(o) <= vals(n) for n in nouveau or []) for o in ancien or [])
 
 
+def garder_pieces(champs, precedent):
+    """Même règle que veille/etat.py du kit : une lecture sans le bloc des pièces garde l'inventaire déjà validé d'une
+    autre lecture, avec sa propre date (docs_lu_le) ; une lecture qui a lu le bloc fait foi."""
+    pc = (precedent or {}).get("champs") or {}
+    if "docs" in (champs.get("blocs_lus") or []) or "docs" not in (pc.get("blocs_lus") or []):
+        return champs
+    out = dict(champs)
+    out["docs"], out["docs_preuve"] = pc.get("docs"), pc.get("docs_preuve")
+    out["docs_lu_le"] = pc.get("docs_lu_le") or precedent.get("lu_le")
+    out["blocs_lus"] = sorted(set(out.get("blocs_lus") or []) | {"docs"})
+    return out
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--fiches", required=True)
@@ -109,9 +122,13 @@ def main(argv=None):
                     n.setdefault("relecture_q_differente", []).append(k)  # nouvelle lecture réelle : elle fait foi, l'écart est listé
                 if doc.get("lots"):
                     nouveau["lots"] = doc["lots"]
+                nouveau["champs"] = garder_pieces(nouveau["champs"], doc)
                 F[k] = doc = nouveau
                 n["fiche_remplacee_plus_recente"] += 1
             else:
+                avant = doc.get("champs") or {}
+                doc["champs"] = garder_pieces(avant, fi)  # coffre plus récent sans pièces lues : inventaire validé gardé, daté
+                n["pieces_gardees_d_une_lecture_anterieure"] = n.get("pieces_gardees_d_une_lecture_anterieure", 0) + (doc["champs"] is not avant)
                 n["fiche_coffre_plus_recente_gardee"] += 1
         if lo and lo.get("statut") in ("lu", "partiel"):
             if doc is None:

@@ -92,6 +92,14 @@ with sync_playwright() as p:
         P=sel(KE);t=P["t"]
         chk(P["cst"]=="lu" and "état de page de cette lecture" in t and P["dst"]=="non_lu" and ev("()=>!!document.querySelector('[data-mpv-docpmmp]')"),
             f"{KE} : contact de l'état de page avec sa date de lecture ; pièces « pas encore lues » avec lien vers la fiche PMMP")
+    # ===== I. pièces : vide confirmé avec preuve, inventaire daté à part, lien d'avis officiel du même ID =====
+    ev("""k=>{const r=S.enr.complements_fiche.par_id[k];window.__i=JSON.stringify(r);r.docs=[];r.docs_preuve='liens_officiels_tous_masques';r.docs_lu_le='2026-10-19T21:00:00+00:00';}""",K1)
+    P=sel(K1);t=P["t"]
+    chk(P["dst"]=="lu" and "Aucune pièce publiée : constaté sur la fiche PMMP (liens officiels tous masqués)" in t and "Liste relevée le" in t,"aucune pièce CONFIRMÉE avec sa preuve ; date propre de l'inventaire affichée")
+    ev("""k=>{const r=S.enr.complements_fiche.par_id[k];r.docs=[{type:'avis',libelle:'Extrait de PV',taille:null,url:'index.php?page=entreprise.ExtraitPV&refConsultation=1041719&orgAcronyme=e5w'}];delete r.docs_lu_le;}""",K1)
+    P=sel(K1)
+    chk(P["docs"] and P["docs"][0][0]=="https://www.marchespublics.gov.ma/index.php?page=entreprise.ExtraitPV&refConsultation=1041719&orgAcronyme=e5w","extrait de PV publié : lien officiel du même ID conservé")
+    ev("k=>{S.enr.complements_fiche.par_id[k]=JSON.parse(window.__i);render();}",K1)
     chk(len(W()[w0:])==0,"aucune écriture");chk(not errs,f"aucune erreur JavaScript {errs[:2]}")
     ctx.close()
     for w,sch in ((390,"light"),(1440,"dark")):

@@ -112,7 +112,7 @@ def _complements(items, fiches, precedent):
         rec["statuts"] = statuts_blocs(ch)
         if ch.get("sources_blocs"):
             rec["sources_blocs"] = ch["sources_blocs"]  # ex. contact relu dans l'état de la page déjà reçue
-        for c in CHAMPS_V3:
+        for c in CHAMPS_V3 + ("docs_preuve", "docs_lu_le"):
             if ch.get(c) is not None:
                 rec[c] = ch[c]
         a = par_id.get(k)
@@ -130,6 +130,11 @@ def _complements(items, fiches, precedent):
             n[par_id[k]["statuts"][b] if k in ok else "non_lu"] += 1
         cov[b] = n
     cov["avec_valeur"] = {c: sum(1 for k in ok if par_id[k].get(c) is not None) for c in CHAMPS_V3}
+    cov["docs_detail"] = {"avec_pieces": sum(1 for k in ok if par_id[k].get("docs")),
+                          "aucune_piece_confirmee": sum(1 for k in ok if par_id[k].get("docs") == []),
+                          "preuves": {p: sum(1 for k in ok if par_id[k].get("docs_preuve") == p and par_id[k]["statuts"]["docs"] == "lu")
+                                      for p in sorted({par_id[k].get("docs_preuve") for k in ok if par_id[k].get("docs_preuve")})},
+                          "inventaire_date_propre": sum(1 for k in ok if par_id[k].get("docs_lu_le"))}
     cov["reference_discordante"] = sorted(set(par_id) - ok)
     cov["reanalyses_hors_ligne"] = sum(1 for k in ok if par_id[k].get("reanalyse_le"))
     cov["contact_etat_de_page"] = sum(1 for k in ok if (par_id[k].get("sources_blocs") or {}).get("contact") == "etat_de_page")

@@ -128,23 +128,39 @@ class TestFiche(unittest.TestCase):
         self.assertEqual(f["blocs_lus"], ["contact", "docs", "echantillons", "prix_plans", "retrait"])
         self.assertEqual(f["version_lecture"], 3)
 
-    def test_pieces_vide_seulement_si_bloc_officiel_visible(self):
-        # jamais « aucun document » sur une section illisible : [] seulement avec le bloc officiel « aucune pièce » visible
+    def test_pieces_vide_confirme_avec_preuve_jamais_sur_section_illisible(self):
         h = fx("fiche_1041719_e5w_v3_contact_fictif.html")
-        cache = re.sub(r'<li\s+style="display:\s*block"', '<li style="display:none"', h)
-        self.assertNotEqual(cache, h)
-        self.assertIsNone(lire_fiche(cache)["docs"], "bloc présent, aucun lien visible, pas de bloc « aucune pièce » : non lu")
-        self.assertNotIn("docs", lire_fiche(cache)["blocs_lus"])
-        vide = cache.replace('<div id="ctl0_CONTENU_PAGE_divPiecesConsultation"',
-                             '<div id="ctl0_CONTENU_PAGE_divNoPiecesConsultation">Aucune pièce</div><div id="ctl0_CONTENU_PAGE_divPiecesConsultation"')
-        self.assertEqual(lire_fiche(vide)["docs"], [])
-        cache_vide = vide.replace('divNoPiecesConsultation">', 'divNoPiecesConsultation" style="display:none">')
-        self.assertIsNone(lire_fiche(cache_vide)["docs"], "bloc « aucune pièce » masqué : non prouvé")
-        casse = h.replace('id="ctl0_CONTENU_PAGE_pictoComplement"', 'id="ctl0_CONTENU_PAGE_pictoAutre"')
-        self.assertIsNone(lire_fiche(casse)["docs"], "structure inattendue : non lu")
-        seul = re.sub(r'<div class="bloc-docs-link bloc-250">.*?<!--Fin Bloc Pieces Consultation-->',
+        # structure officielle complète, 3 liens explicitement masqués, aucun avis visible : zéro pièce confirmé
+        masque = re.sub(r'<li\s+style="display:\s*block"', '<li style="display:none"', h)
+        self.assertNotEqual(masque, h)
+        f = lire_fiche(masque)
+        self.assertEqual((f["docs"], f["docs_preuve"]), ([], "liens_officiels_tous_masques"))
+        self.assertIn("docs", f["blocs_lus"])
+        # bloc officiel « aucune pièce » visible, sans bloc des liens
+        seul = re.sub(r'<div id="ctl0_CONTENU_PAGE_divPiecesConsultation".*?<!--Fin Bloc Pieces Consultation-->',
                       '<div id="ctl0_CONTENU_PAGE_divNoPiecesConsultation">Aucune pièce</div>', h, flags=re.S)
-        self.assertEqual(lire_fiche(seul)["docs"], [], "bloc « aucune pièce » seul visible : vide confirmé")
+        self.assertEqual((lire_fiche(seul)["docs"], lire_fiche(seul)["docs_preuve"]), ([], "bloc_aucune_piece"))
+        masque_aussi = seul.replace('divNoPiecesConsultation">', 'divNoPiecesConsultation" style="display:none">')
+        self.assertIsNone(lire_fiche(masque_aussi)["docs"], "aucun bloc visible : non lu")
+        # sections illisibles : jamais « aucun document »
+        casse = h.replace('id="ctl0_CONTENU_PAGE_pictoComplement"', 'id="ctl0_CONTENU_PAGE_pictoAutre"')
+        self.assertEqual((lire_fiche(casse)["docs"], lire_fiche(casse)["docs_preuve"]), (None, "structure_inattendue"))
+        sans_lib = re.sub(r'(id="ctl0_CONTENU_PAGE_linkDownloadDce"[^>]*>)[^<]*(</a>)', r'\1\2', h)
+        self.assertEqual((lire_fiche(sans_lib)["docs"], lire_fiche(sans_lib)["docs_preuve"]), (None, "lien_visible_sans_libelle"))
+        self.assertNotIn("docs", lire_fiche(sans_lib)["blocs_lus"])
+        coupe = h[:h.index('<div id="ctl0_CONTENU_PAGE_divPiecesConsultation"')]
+        self.assertEqual((lire_fiche(coupe)["docs"], lire_fiche(coupe)["docs_preuve"]), (None, "bloc_absent"))
+
+    def test_avis_seulement_visibles(self):
+        h = fx("fiche_1041719_e5w_v3_contact_fictif.html")
+        self.assertEqual([d["type"] for d in lire_fiche(h)["docs"]], ["dce"], "gabarits d'avis masqués non retenus")
+        gab = h.replace('<div class="blue bold">Avis de publicité</div>',
+                        '<div class="blue bold">Avis de publicité</div><ul><li style="display:none"><a href="index.php?page=entreprise.ExtraitPV&refConsultation=1041719&orgAcronyme=e5w">Lien masqué</a></li></ul>', 1)
+        self.assertEqual([d["type"] for d in lire_fiche(gab)["docs"]], ["dce"])
+        vis = h.replace('<div class="blue bold">Avis de publicité</div>',
+                        '<div class="blue bold">Avis de publicité</div><ul><li class="picto-link"><a href="index.php?page=entreprise.ExtraitPV&refConsultation=1041719&orgAcronyme=e5w">Extrait de PV</a></li></ul>', 1)
+        self.assertIn({"type": "avis", "libelle": "Extrait de PV", "taille": None,
+                       "url": "index.php?page=entreprise.ExtraitPV&refConsultation=1041719&orgAcronyme=e5w"}, lire_fiche(vis)["docs"])
 
     def test_ancienne_page_tronquee_contact_et_documents_non_lus(self):
         # page coupée avant le contact (lectures v2 en cache) : contact / documents NON LUS (None, absents de blocs_lus)
@@ -913,6 +929,21 @@ class TestRotationFiches(unittest.TestCase):
         self.assertEqual(set(choix[:4]), set(ids[15:]))  # nouvelles d'abord
         self.assertEqual(set(choix[4:]), set(ids[5:15]))  # puis les 10 sans pièces lues, malgré une lecture plus récente
         self.assertEqual(st["reliquat_pieces_non_lues_eligibles"], 10)
+
+    def test_inventaire_des_pieces_garde_si_relecture_illisible(self):
+        etat, ids = self._etat(1)
+        i = ids[0]
+        etat.enregistrer_fiche(i, {"ref": "R", "obj": "O", "docs": [{"type": "dce"}], "docs_preuve": "liens_visibles",
+                                   "blocs_lus": ["contact", "docs"]}, "2026-10-19T21:00:00+00:00", "r1", "x")
+        etat.enregistrer_fiche(i, {"ref": "R", "obj": "O2", "docs": None, "docs_preuve": "structure_inattendue",
+                                   "blocs_lus": ["contact"]}, "2026-10-20T08:00:00+00:00", "r2", "y")
+        f = etat.fiche(i)
+        self.assertEqual((f["lu_le"], f["champs"]["obj"]), ("2026-10-20T08:00:00+00:00", "O2"), "lecture récente : fait foi")
+        self.assertEqual((f["champs"]["docs"], f["champs"]["docs_lu_le"]), ([{"type": "dce"}], "2026-10-19T21:00:00+00:00"))
+        self.assertIn("docs", f["champs"]["blocs_lus"])
+        etat.enregistrer_fiche(i, {"ref": "R", "obj": "O3", "docs": [], "docs_preuve": "bloc_aucune_piece",
+                                   "blocs_lus": ["contact", "docs"]}, "2026-10-21T08:00:00+00:00", "r3", "z")
+        self.assertEqual((etat.fiche(i)["champs"]["docs"], etat.fiche(i)["champs"].get("docs_lu_le")), ([], None), "nouvelle lecture des pièces : fait foi")
 
     def test_commande_exacte_de_la_routine_nouvelles_d_abord_et_reliquat(self):
         # main() avec la commande EXACTE de la tâche horaire : --etat W --fiches 10 --sans-snapshots --delai 3

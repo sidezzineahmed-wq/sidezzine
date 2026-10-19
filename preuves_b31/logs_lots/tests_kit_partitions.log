@@ -1,5 +1,12 @@
-...................................................................
+.........................................................../tmp/claude-0/-home-user-sidezzine/3e421be1-fcd4-5f44-b7d1-e5316c0ec263/scratchpad/kit_m5/maj_quotidienne.py:41: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/claude-0/-home-user-sidezzine/3e421be1-fcd4-5f44-b7d1-e5316c0ec263/scratchpad/kit_m5/referentiel/regions.json' mode='r' encoding='utf-8'>
+  reg = json.load(open(os.path.join(ICI, "referentiel", "regions.json"), encoding="utf-8"))["regions"]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/tmp/claude-0/-home-user-sidezzine/3e421be1-fcd4-5f44-b7d1-e5316c0ec263/scratchpad/kit_m5/maj_quotidienne.py:42: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/claude-0/-home-user-sidezzine/3e421be1-fcd4-5f44-b7d1-e5316c0ec263/scratchpad/kit_m5/referentiel/alias_lieux.json' mode='r' encoding='utf-8'>
+  alias = json.load(open(os.path.join(ICI, "referentiel", "alias_lieux.json"), encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+{"run_id": "2026-10-19T180503Z", "statut": "LISTING_COMPLET_ANNONCES_DE_CONSULTATION_FENETRE_PAR_DEFAUT", "total_annonce": 20, "pages_annoncees": null, "lignes_lues": null, "ids_distincts": 20, "raisons_incomplet": null, "pages_lues": [1], "fiches_lues": 6, "nb_requetes": 0, "erreur": null, "erreur_fiches": "ARRET fiches: budget de temps du passage atteint avant GET"}
+.........
 ----------------------------------------------------------------------
-Ran 67 tests in 4.253s
+Ran 68 tests in 4.520s
 
 OK

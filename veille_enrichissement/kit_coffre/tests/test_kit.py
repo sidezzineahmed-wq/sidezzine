@@ -849,6 +849,63 @@ class TestRotationFiches(unittest.TestCase):
         self.assertEqual(st3["reliquat_nouvelles_plafond"], 1)
         self.assertEqual(set(choix3[:2]) <= nouvelles, True)
 
+    def test_commande_exacte_de_la_routine_nouvelles_d_abord_et_reliquat(self):
+        # main() avec la commande EXACTE de la tâche horaire : --etat W --fiches 10 --sans-snapshots --delai 3
+        # (aucune option nouvelle) ; portail simulé : listing = 20 annonces, 12 déjà lues et changées, 8 nouvelles ;
+        # budget épuisé après 6 lectures de fiches
+        etat, ids = self._etat(20)
+        for i in ids[:12]:
+            etat.enregistrer_fiche(i, {"ref": "R", "obj": "O", "lim": "2026-12-01", "h": "10:00"}, "2026-10-01T08:00:00+00:00", "r0", "x")
+            e = etat.listing["items"][i]
+            e["listing"]["lim"] = "2026-12-15"
+            e.setdefault("changements", []).append({"vu_le": "2099-01-01T00:00:00+00:00", "run": "r1", "diff": {"lim": ["2026-12-01", "2026-12-15"]}})
+        etat.sauver_listing()
+        nouvelles = set(ids[12:])
+        h = fx("fiche_1041301_o8p_sans_contact.html")
+        lus = []
+
+        class Client:
+            nb_requetes, octets_recus, echeance = 0, 0, None
+
+            def __init__(self, *a, **k):
+                pass
+
+            def get(self, params):
+                if len(lus) >= 6:
+                    raise client_mod.ArretCollecte("budget de temps du passage atteint avant GET")
+                lus.append(params)
+                return FauxRep(h, "u")
+
+        class Listing:
+            def __init__(self, c):
+                self.c, self.organismes, self.fenetre, self.types_annonce = c, {}, {}, []
+
+            def ouvrir(self):
+                pass
+
+        def passe(cl, et, run_id, *a, **k):
+            a[2].update({"complete": True, "total_annonce": 20, "ids_distincts": 20, "pages_lues": [{"page": 1}]})
+            for i in ids:
+                et.listing["items"][i]["dernier_run"] = run_id
+            return set(ids)
+        anciens = (mq.ClientPMMP, mq.CollecteListing, mq.passe_partitionnee, sys.argv)
+        mq.ClientPMMP, mq.CollecteListing, mq.passe_partitionnee = Client, Listing, passe
+        sys.argv = ["maj_quotidienne.py", "--etat", etat.d, "--fiches", "10", "--sans-snapshots", "--delai", "3"]
+        try:
+            with self.assertRaises(SystemExit):  # code 1 : arrêt des fiches sur budget (rien n'est conclu)
+                mq.main()
+        finally:
+            mq.ClientPMMP, mq.CollecteListing, mq.passe_partitionnee, sys.argv = anciens
+        c = json.loads(lire(os.path.join(etat.d, "couverture", sorted(os.listdir(os.path.join(etat.d, "couverture")))[-1])))
+        F = c["fiches"]
+        self.assertEqual(F["selection"]["regle"], "nouvelles (max 150) > changees > anciennes (n=10)")  # actif par défaut
+        self.assertEqual((F["selection"]["file_nouvelles"], F["selection"]["file_changees"]), (8, 12))  # file avant
+        self.assertEqual(F["selection"]["choisies"], {"changees": 10, "nouvelles": 8, "anciennes": 0})
+        self.assertEqual(len(F["lues"]), 6)
+        self.assertTrue({x["id"] for x in F["lues"]} <= nouvelles)  # ordre : nouvelles d'abord
+        self.assertEqual(F["reliquat"], {"nouvelles_non_lues_budget": 2, "relectures_non_faites_budget": 10,
+                                         "nouvelles_au_dela_du_plafond": 0})  # reliquat après, mesuré
+
     def test_rotation_sans_repetition_sur_plusieurs_passages(self):
         etat, ids = self._etat(30)
         vus, t = [], 10

@@ -119,7 +119,7 @@ def _complements(items, fiches, precedent):
             ch = {c: v for c, v in ch.items() if c not in ("docs", "docs_preuve")}
         if ch.get("sources_blocs"):
             rec["sources_blocs"] = ch["sources_blocs"]  # ex. contact relu dans l'état de la page déjà reçue
-        for c in CHAMPS_V3 + ("docs_preuve", "docs_lu_le"):
+        for c in CHAMPS_V3 + ("docs_preuve", "docs_lu_le", "docs_source"):
             if ch.get(c) is not None:
                 rec[c] = ch[c]
         a = par_id.get(k)

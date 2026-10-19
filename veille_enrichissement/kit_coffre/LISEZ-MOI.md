@@ -119,6 +119,18 @@ l'historique de couverture. Un listing complet de ces pages ne signifie pas la c
 - **Complément borné** (lecture publique, 2 connexions au plus, départs espacés d'au moins 4 s, pause aux minutes 10-22) : les fiches lues sont fusionnées dans `stock/etat/fiches.json` (la lecture la plus récente gagne) ; les lectures impossibles après essais sont listées dans `referentiel/fiches_complement.json` (`fiches_inaccessibles`, `lots_inaccessibles`), lues par l'ingestion (`--complement-fiches`, défaut du kit).
 - **Tests** : `tests/test_kit.py` (popup officiel, identité, lots partiels, passage horaire, coffre) et `ingestion/test_enrichi_pmmp.py` (section `lots`).
 
+## Fiche complète, lecteur v3 (depuis le 19/10/2026)
+
+- **Lecteur** `veille/pmmp_fiche.py` (`version_lecture` 3). La page est coupée à la zone entreprise (« Pièces téléchargées », questions, cautions, dépôts, messagerie) : rien de l'espace soumissionnaire n'est lu ni gardé. Blocs ajoutés :
+  - `ret` (adresse de retrait), `prix_plans` (0 publié = vrai zéro), `ech_date` / `ech_txt` (prospectus, notices, échantillons : date et texte publiés, distincts de la remise des plis ; téléphones et e-mails du texte libre masqués) ;
+  - `contact` : contact administratif PUBLIÉ dans la fiche (nom / service, e-mail, téléphone, télécopieur), tel quel ;
+  - `docs` : pièces publiées (type, libellé, taille, lien relatif PMMP du même identifiant) ; aucun téléchargement ;
+  - `blocs_lus` : blocs présents dans la page lue (sert au statut « lu / non publié / pas encore lu »).
+- **Compatibilité** : les règles de version comparent `version_lecture < 2` (visite non lue) : une fiche v3 compte comme lue (visite, qualification, lots). Sélection des fiches, priorité aux nouvelles et commande de la tâche inchangées.
+- **Ingestion** : `pmmp_enrichi.complements_fiche` (`par_id`, `couverture` par bloc). Statut par bloc : `lu` (valeur ; null = « - »), `non_publie` (page lue au-delà du bloc), `non_lu` (lecture antérieure ou page coupée avant le bloc). Les lectures v2 coupées avant le contact restent « non lues » pour le contact et les pièces jusqu'à leur relecture horaire. La lecture la plus récente gagne ; une valeur publiée est conservée.
+- **Ré-analyse hors ligne** (`veille_enrichissement/reanalyser_fiches.py`, hors kit) : HTML déjà lu au SHA identique ; `lu_le`, `run`, SHA et lots inchangés ; `reanalyse_le`, `version_parseur`, `version_lecture_initiale` ajoutés.
+- **Tests** : `tests/test_kit.py` (fixture officielle e5w/1041719, contact remplacé par des valeurs fictives) et `ingestion/test_enrichi_pmmp.py` (`ComplementsFicheV3`).
+
 ## Listing partitionné vérifiable (depuis le 19/10/2026)
 
 Constat réel : la pagination du portail est instable (tri sans clé unique : catégorie, publication, référence, objet,

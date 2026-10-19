@@ -95,14 +95,46 @@ class TestFiche(unittest.TestCase):
         self.assertIsNone(f["ag"]); self.assertIsNone(f["vis"]); self.assertIsNone(f["reu"]); self.assertIsNone(f["proto"])
         self.assertEqual(f["dep"], "la Caisse pour le Financement Routier")
 
-    def test_contact_jamais_conserve(self):
-        faux = ('<div id="ctl0_CONTENU_PAGE_idEntrepriseConsultationSummary_panelContcatAdministratif" class="line">'
-                '<div>Contact Administratif : </div><span>Agent Fictif</span> fictif@example.org 0600000000</div>')
-        h = fx("fiche_1041301_o8p_sans_contact.html").replace("</body>", faux + "</body>")
+    def test_zone_entreprise_jamais_conservee_contact_publie_lu_tel_quel(self):
+        # v3 : le contact administratif PUBLIÉ est lu (demande utilisateur) ; la zone entreprise (pièces téléchargées,
+        # questions, cautions, dépôts) est coupée dès la réception
+        faux = ('<!--Debut Bloc Pieces telechargees--><div id="ctl0_CONTENU_PAGE_panelOnglet2">question privée Q-123</div>')
+        h = fx("fiche_1041719_e5w_v3_contact_fictif.html") + faux
         t, coupe = tronquer_contact(h)
         self.assertTrue(coupe)
-        self.assertNotIn("fictif@example.org", t)
-        self.assertNotIn("Agent Fictif", json.dumps(lire_fiche(t), ensure_ascii=False))
+        self.assertNotIn("Q-123", t)
+        f = lire_fiche(t)
+        self.assertEqual(f["contact"], {"nom": "Agent Fictif", "email": "contact.fictif@example.org", "tel": "0500000000",
+                                        "fax": "0500000001"})
+
+    def test_fiche_v3_meme_id_e5w_1041719(self):
+        # fiche officielle e5w/1041719 (contact remplacé par des valeurs fictives) : valeurs confirmées par l'utilisateur
+        f = lire_fiche(fx("fiche_1041719_e5w_v3_contact_fictif.html"))
+        self.assertEqual((f["ref"], f["lim"], f["h"], f["est"], f["cau"], f["tp"], f["var"]),
+                         ("10/2026/ARR/MERINIDES", "2026-10-20", "09:00", 1276320.0, 25000.0, False, False))
+        self.assertIn("Réservé", f["obj"])  # l'objet garde sa mention ; TPME reste le champ officiel « Non »
+        self.assertEqual(f["ret"], "Avenue Abi Imran Fassi ain kadous – Fés")
+        self.assertEqual(f["prix_plans"], 0.0)  # « 0,00 MAD » publié : vrai zéro, pas « inconnu »
+        self.assertEqual(f["ech_date"], "2026-10-19T10:00")  # prospectus : distincts de la remise des plis (20/10 09:00)
+        self.assertTrue(f["ech_txt"].startswith("LES CONCURRENTS DOIVENT DEPOSER LES PROSPECTUS"))
+        self.assertNotIn("0612345678", f["ech_txt"])  # texte libre : téléphones toujours masqués
+        self.assertEqual(len(f["dom"]), 3)
+        self.assertEqual(f["dep"], "www.marchespublics.gov.ma")
+        self.assertTrue(f["ouv"].startswith("bureau de Monsieur le Président"))
+        self.assertIsNone(f["reu"]); self.assertIsNone(f["vis"]); self.assertEqual(f["q"], []); self.assertIsNone(f["ag"])
+        self.assertEqual(f["docs"], [{"type": "dce", "libelle": "Dossier de consultation", "taille": "648 Ko",
+                                      "url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1041719&orgAcronyme=e5w"}])
+        self.assertEqual(f["blocs_lus"], ["contact", "docs", "echantillons", "prix_plans", "retrait"])
+        self.assertEqual(f["version_lecture"], 3)
+
+    def test_ancienne_page_tronquee_contact_et_documents_non_lus(self):
+        # page coupée avant le contact (lectures v2 en cache) : contact / documents NON LUS (None, absents de blocs_lus)
+        h = fx("fiche_1041719_e5w_v3_contact_fictif.html")
+        h = h[:h.index('<div id="ctl0_CONTENU_PAGE_idEntrepriseConsultationSummary_panelContcatAdministratif"')]
+        f = lire_fiche(h)
+        self.assertIsNone(f["contact"]); self.assertIsNone(f["docs"])
+        self.assertNotIn("contact", f["blocs_lus"]); self.assertNotIn("docs", f["blocs_lus"])
+        self.assertEqual(f["ret"], "Avenue Abi Imran Fassi ain kadous – Fés")  # bloc présent avant le contact : lu
 
     def test_absent_reste_null(self):
         f = lire_fiche("<html><body>rien</body></html>")

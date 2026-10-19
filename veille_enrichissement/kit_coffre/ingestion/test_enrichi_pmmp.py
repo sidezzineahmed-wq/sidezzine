@@ -189,5 +189,63 @@ class VisiteNonLue(unittest.TestCase):
         self.assertEqual(e["fiches"]["visite_non_lue"], ["pmmp:o1:1"], "seule l'ancienne lecture ; fiche absente de fiches.json non listée")
 
 
+class ComplementsFicheV3(unittest.TestCase):
+    """Lecteur v3 : statut par bloc, compatibilité des versions, ré-analyse datée à part. Données fictives."""
+    V3 = {"ref": "A", "version_lecture": 3, "ret": "Rue fictive", "prix_plans": 0.0, "ech_date": "2026-10-19T10:00",
+          "ech_txt": "Dépôt des prospectus", "contact": {"nom": "Agent Fictif", "email": "x@example.org", "tel": None, "fax": None},
+          "docs": [{"type": "dce", "libelle": "Dossier de consultation", "taille": "1 Ko", "url": "index.php?page=x"}],
+          "blocs_lus": ["contact", "docs", "echantillons", "prix_plans", "retrait"]}
+
+    def _items(self, *refs):
+        items = [it(str(n + 1), "o1", r) for n, r in enumerate(refs)]
+        for x in items:
+            x["det"] = True
+        return items
+
+    def test_v3_complet_tronque_ancien_et_sans_fiche(self):
+        items = self._items("A", "B", "C", "D")
+        tronq = {k: v for k, v in self.V3.items() if k not in ("contact", "docs")}
+        tronq.update(ref="B", contact=None, docs=None, blocs_lus=["echantillons", "prix_plans", "retrait"])
+        sans_contact = dict(self.V3, ref="C", contact=None, blocs_lus=["docs", "prix_plans", "retrait"], ech_date=None, ech_txt=None)
+        fiches = {"pmmp:o1:1": {"lu_le": "2026-10-19T18:00:00+00:00", "run": "R1", "champs": self.V3},
+                  "pmmp:o1:2": {"lu_le": "2026-10-18T10:00:00+00:00", "run": "R0", "champs": tronq,
+                                "reanalyse_le": "2026-10-19T20:00:00+00:00", "version_parseur": 3, "version_lecture_initiale": 2},
+                  "pmmp:o1:3": {"lu_le": "2026-10-19T18:00:00+00:00", "run": "R1", "champs": sans_contact},
+                  "pmmp:o1:4": {"lu_le": "2026-10-18T10:00:00+00:00", "run": "R0", "champs": {"ref": "D", "version_lecture": 2}}}
+        e = enrichir(items, fiches, None, None, None)
+        c = e["complements_fiche"]
+        P = c["par_id"]
+        self.assertEqual(P["pmmp:o1:1"]["statuts"], {b: "lu" for b in ("retrait", "prix_plans", "echantillons", "contact", "docs")})
+        self.assertEqual(P["pmmp:o1:1"]["prix_plans"], 0.0, "0 publié = vrai zéro, gardé")
+        # page coupée avant le contact : contact / pièces NON LUS, jamais « non publiés » ; date réelle gardée, ré-analyse à part
+        self.assertEqual(P["pmmp:o1:2"]["statuts"]["contact"], "non_lu")
+        self.assertEqual(P["pmmp:o1:2"]["statuts"]["docs"], "non_lu")
+        self.assertEqual(P["pmmp:o1:2"]["statuts"]["retrait"], "lu")
+        self.assertEqual((P["pmmp:o1:2"]["lu_le"], P["pmmp:o1:2"]["reanalyse_le"], P["pmmp:o1:2"]["version_parseur"]),
+                         ("2026-10-18T10:00:00+00:00", "2026-10-19T20:00:00+00:00", 3))
+        # page lue au-delà du contact sans bloc contact : non publié ; échantillons absents d'une page v3 : non publiés
+        self.assertEqual(P["pmmp:o1:3"]["statuts"]["contact"], "non_publie")
+        self.assertEqual(P["pmmp:o1:3"]["statuts"]["echantillons"], "non_publie")
+        self.assertNotIn("pmmp:o1:4", P, "lecteur v2 : aucun bloc v3 extrait")
+        self.assertEqual(c["couverture"]["contact"], {"lu": 1, "non_publie": 1, "non_lu": 2})
+        self.assertEqual(c["couverture"]["docs"], {"lu": 2, "non_publie": 0, "non_lu": 2})
+        self.assertEqual(c["couverture"]["reanalyses_hors_ligne"], 1)
+        # compatibilité : une fiche v3 compte comme lue (visite, lots) ; seule une lecture < v2 est « visite non lue »
+        self.assertEqual(e["fiches"]["visite_non_lue"], [])
+
+    def test_lecture_reelle_plus_recente_gagne_sur_reanalyse_et_reference_discordante(self):
+        items = self._items("A")
+        rean = {"lu_le": "2026-10-18T10:00:00+00:00", "champs": dict(self.V3, ret="Ancienne"), "reanalyse_le": "2026-10-19T20:00:00+00:00"}
+        e1 = enrichir(items, {"pmmp:o1:1": rean}, None, None, None)
+        neuf = {"lu_le": "2026-10-19T18:00:00+00:00", "champs": self.V3}
+        e2 = enrichir(items, {"pmmp:o1:1": neuf}, None, e1, None)
+        self.assertEqual(e2["complements_fiche"]["par_id"]["pmmp:o1:1"]["ret"], "Rue fictive")
+        e3 = enrichir(items, {}, None, e2, None)
+        self.assertEqual(e3["complements_fiche"]["par_id"]["pmmp:o1:1"]["ret"], "Rue fictive", "lecture publiée conservée")
+        e4 = enrichir(items, {"pmmp:o1:1": {"lu_le": "2026-10-20T00:00:00+00:00", "champs": dict(self.V3, ref="AUTRE")}}, None, None, None)
+        self.assertEqual(e4["complements_fiche"]["couverture"]["reference_discordante"], ["pmmp:o1:1"])
+        self.assertEqual(e4["complements_fiche"]["couverture"]["retrait"]["non_lu"], 1)
+
+
 if __name__ == "__main__":
     unittest.main()

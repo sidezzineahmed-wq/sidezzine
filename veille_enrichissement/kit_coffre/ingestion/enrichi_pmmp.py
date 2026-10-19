@@ -13,6 +13,11 @@ Deux champs officiels, DISTINCTS :
     PAR LOT telles que publiées (estimation TTC, caution, TPE/PME, qualifications, agréments, visites…), jamais sommées ni
     aplaties ; « ni » = non indiqué par l'acheteur (« - »), « na » = bloc non affiché. La lecture la plus récente gagne ;
     une lecture déjà publiée est conservée ; la page ne l'utilise que si la référence de la fiche concorde.
+  * Compléments de fiche (lecteur v3) : adresse de retrait, prix des plans, prospectus / échantillons (date et texte publiés,
+    distincts de la remise des plis), contact administratif PUBLIÉ dans la fiche, pièces publiées (liens publics PMMP, aucun
+    fichier joint). Statut PAR BLOC : « lu » (valeur publiée, None = « - »), « non_publie » (page lue jusqu'au-delà du bloc,
+    bloc absent), « non_lu » (lecture antérieure ou page coupée avant le bloc : jamais « non publié »). Date de lecture réelle
+    (lu_le) conservée ; une ré-analyse hors ligne du HTML déjà lu est datée à part (reanalyse_le, version_parseur).
 Les codes PMMP des procédures (liste du formulaire libellée « Mode de passation », dont les valeurs sont les procédures) sont
 repris du même relevé. Aucune date « maintenant » : mêmes entrées -> mêmes octets.
 """
@@ -70,6 +75,70 @@ def _lots(items, fiches, precedent, complement_fiches):
                            "inaccessibles": sum(1 for k in alloties if k not in lus and k in inacc),
                            "non_lues": sum(1 for k in alloties if k not in lus and k not in inacc),
                            "lots": sum(len(par_id[k]["lots"]) for k in lus)}}
+
+
+CHAMPS_V3 = ("type_annonce", "ret", "prix_plans", "ech_date", "ech_txt", "contact", "docs")
+BLOCS_V3 = ("retrait", "prix_plans", "echantillons", "contact", "docs")
+
+
+def statuts_blocs(ch):
+    """Statut de chaque bloc v3 d'une fiche lue : lu / non_publie / non_lu (voir docstring du module)."""
+    if "blocs_lus" not in (ch or {}):
+        return {b: "non_lu" for b in BLOCS_V3}  # champs analysés par un lecteur antérieur : blocs jamais extraits
+    lus = set(ch["blocs_lus"])
+    au_dela = "docs" in lus  # page lue jusqu'aux pièces, donc au-delà du contact
+    st = {b: "lu" if b in lus else "non_publie" for b in ("retrait", "prix_plans", "echantillons")}
+    st["contact"] = "lu" if "contact" in lus else "non_publie" if au_dela else "non_lu"
+    st["docs"] = "lu" if au_dela else "non_lu"
+    return st
+
+
+def _cle_lecture(v):
+    return (v.get("lu_le") or "", v.get("reanalyse_le") or "")
+
+
+def _complements(items, fiches, precedent):
+    """Section « complements_fiche » : blocs v3 par annonce, avec statut par bloc et provenance."""
+    prec = ((precedent or {}).get("complements_fiche") or {}).get("par_id") or {}
+    par_id = {k: dict(v) for k, v in prec.items()}
+    for k, f in sorted((fiches or {}).items()):
+        ch = (f or {}).get("champs") or {}
+        if not f or not f.get("lu_le") or "blocs_lus" not in ch:
+            continue
+        rec = {"ref": ch.get("ref"), "lu_le": f["lu_le"], "run": f.get("run"), "version_lecture": ch.get("version_lecture")}
+        for c in ("reanalyse_le", "version_parseur", "version_lecture_initiale"):
+            if f.get(c) is not None:
+                rec[c] = f[c]
+        rec["statuts"] = statuts_blocs(ch)
+        for c in CHAMPS_V3:
+            if ch.get(c) is not None:
+                rec[c] = ch[c]
+        a = par_id.get(k)
+        if a is None or _cle_lecture(rec) >= _cle_lecture(a):
+            par_id[k] = rec
+    cles = {f"pmmp:{x['o']}:{x['r']}": x for x in items}
+    for k in list(par_id):
+        if k not in cles:
+            par_id.pop(k)
+    ok = {k for k, v in par_id.items() if _nref(v.get("ref")) == _nref(cles[k].get("ref"))}
+    cov = {}
+    for b in BLOCS_V3:
+        n = {"lu": 0, "non_publie": 0, "non_lu": 0}
+        for k in cles:
+            n[par_id[k]["statuts"][b] if k in ok else "non_lu"] += 1
+        cov[b] = n
+    cov["avec_valeur"] = {c: sum(1 for k in ok if par_id[k].get(c) is not None) for c in CHAMPS_V3}
+    cov["reference_discordante"] = sorted(set(par_id) - ok)
+    cov["reanalyses_hors_ligne"] = sum(1 for k in ok if par_id[k].get("reanalyse_le"))
+    return {"nom": "Compléments de fiche PMMP (retrait, plans, prospectus/échantillons, contact publié, pièces)",
+            "source": {"page": "index.php?page=entreprise.EntrepriseDetailsConsultation&refConsultation=<ref>&orgAcronyme=<org>",
+                       "portail": "https://www.marchespublics.gov.ma/"},
+            "regle": "statut par bloc : lu (valeur publiée ; absente = « - » publié), non_publie (page lue au-delà du bloc, bloc "
+                     "absent), non_lu (lecture antérieure ou page coupée avant le bloc) ; contact = coordonnées professionnelles "
+                     "publiées dans le bloc administratif de la fiche, rien de l'espace entreprise ; pièces = liens publics PMMP du "
+                     "même identifiant, aucun fichier joint ; lu_le = lecture réelle, reanalyse_le = ré-analyse hors ligne du même HTML ; "
+                     "utilisé seulement si la référence lue concorde avec le catalogue",
+            "par_id": {k: par_id[k] for k in sorted(par_id)}, "couverture": cov}
 
 
 def enrichir(items, fiches=None, referentiel=None, precedent=None, complement=None, complement_fiches=None):
@@ -160,6 +229,7 @@ def enrichir(items, fiches=None, referentiel=None, precedent=None, complement=No
     if procs:
         out["procedures"] = procs
     out["lots"] = _lots(items, fiches, precedent, complement_fiches)
+    out["complements_fiche"] = _complements(items, fiches, precedent)
     fi = {k: v for k, v in sorted(((complement_fiches or {}).get("fiches_inaccessibles") or {}).items())
           if k in cles and not cles[k]["det"]}
     vnl = sorted(k for k, x in cles.items() if x.get("det") and k in (fiches or {})
@@ -168,6 +238,7 @@ def enrichir(items, fiches=None, referentiel=None, precedent=None, complement=No
                      "visite_non_lue": vnl,
                      "regle_visite": "fiche lue par une version du collecteur antérieure à version_lecture 2 : bloc « Visites des lieux » "
                                      "non lu ; la visite est inconnue (jamais « non indiquée ») jusqu'à la prochaine lecture"}
-    lus = [v.get("lu_le") for v in par_id.values() if v.get("lu_le")] + [v.get("lu_le") for v in out["lots"]["par_id"].values() if v.get("lu_le")]
+    lus = [v.get("lu_le") for v in par_id.values() if v.get("lu_le")] + [v.get("lu_le") for v in out["lots"]["par_id"].values() if v.get("lu_le")] + \
+        [v.get("lu_le") for v in out["complements_fiche"]["par_id"].values() if v.get("lu_le")]
     out["maj"] = max([((cls or {}).get("source") or {}).get("fin") or ""] + lus) or None
     return out

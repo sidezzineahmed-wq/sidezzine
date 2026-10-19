@@ -1,7 +1,9 @@
 """Fiche publique d'une consultation PMMP (EntrepriseDetailConsultation), sans login.
 
-Le bloc « Contact Administratif » (nom, e-mail, téléphone d'agents) n'est JAMAIS lu ni conservé :
-le HTML est tronqué avant ce bloc dès la réception, avant toute analyse ou sauvegarde.
+Version 3 (19/10/2026) : le bloc « Contact Administratif » PUBLIÉ sur la fiche officielle (nom ou service, e-mail,
+téléphone, télécopieur) est lu tel quel, à la demande de l'utilisateur ; il n'est jamais déduit ni complété. La page est
+coupée AVANT la zone entreprise (pièces téléchargées, questions, cautions, dépôts : propre à un compte), dès la réception.
+Les textes libres (visite, réunion, échantillons) gardent leurs téléphones / e-mails masqués : seul le bloc contact les porte.
 """
 import re
 
@@ -10,14 +12,19 @@ from .html_outils import date_iso, masquer_coordonnees, montant, nettoyer, vide_
 PARAMS = lambda r, o: {"page": "entreprise.EntrepriseDetailConsultation", "refConsultation": r, "orgAcronyme": o}
 PFX = "ctl0_CONTENU_PAGE_idEntrepriseConsultationSummary_"
 # 2 (18/10/2026) : visites lues (sous-bloc panelRepeaterVisitesLieux), qualification par position, lignes publiées gardées.
-# Une fiche sans ce champ a été lue par une version antérieure : sa visite des lieux n'a PAS été lue (inconnue, pas « non indiquée »).
-VERSION_LECTURE = 2
+# 3 (19/10/2026) : retrait du dossier, prix d'acquisition des plans, échantillons (date / modalités séparées), contact
+#                  administratif publié, pièces et documents d'avis publiés.
+# Une fiche lue par une version antérieure n'a PAS lu les blocs ajoutés ensuite (inconnus, pas « non publiés »).
+VERSION_LECTURE = 3
+# zone propre au compte entreprise : jamais conservée (pièces téléchargées, questions, cautions, réponses, messagerie)
+DEBUT_ZONE_ENTREPRISE = re.compile(r'<!--Debut Bloc Pieces telechargees-->|<div id="ctl0_CONTENU_PAGE_panelOnglet2"')
 DEBUT_CONTACT = re.compile(r'<div id="ctl0_CONTENU_PAGE_idEntrepriseConsultationSummary_panelCont\w*Administratif"|Contact Administratif', re.I)
 
 
 def tronquer_contact(h):
-    """Coupe tout à partir du bloc Contact Administratif. Renvoie (html_tronqué, coupé?)."""
-    m = DEBUT_CONTACT.search(h)
+    """Coupe la page avant la zone entreprise (le contact administratif publié et les pièces publiées sont gardés).
+    Renvoie (html_tronqué, coupé?). Nom historique gardé pour les appelants."""
+    m = DEBUT_ZONE_ENTREPRISE.search(h)
     if not m:
         return h, False
     return h[: m.start()], True
@@ -154,16 +161,74 @@ def lire_fiche(h_tronque, masquer=True):
     dom = _li(h, "domainesActivite")
     ouv = _txt(h, "lieuOuverturePlis")
     dep = _txt(h, "adresseDepotOffres")
+    ech_date = None
+    m = re.match(r"(\d{2}/\d{2}/\d{4})\s+(\d{2}:\d{2})", _txt(h, "dateEchantillons") or "")
+    if m:
+        ech_date = date_iso(m.group(1)) + "T" + m.group(2)
+    ech_txt = _txt(h, "adresseEchantillons", "div") or _txt(h, "adresseEchantillons")
+    if ech_txt:
+        ech_txt = re.sub(r"^[•\s]+", "", ech_txt) or None
+    prix_plans = None
+    pp = _txt(h, "prixAcquisitionPlan")
+    if pp is not None:
+        prix_plans = montant(pp)
     if masquer:
         vis, reu, proto = masquer_coordonnees(vis), masquer_coordonnees(reu), masquer_coordonnees(proto)
+        ech_txt = masquer_coordonnees(ech_txt)
     return {
         "ref": _txt(h, "reference"), "obj": _txt(h, "objet"), "mo": mo, "acheteur_code": acheteur.split(" - ", 1)[0] if acheteur and " - " in acheteur else None,
         "type_annonce": _txt(h, "annonce"), "proc": proc, "mode_passation": (_txt(h, "modePassation") or "").lstrip("| ").strip() or None,
         "cat": _txt(h, "categoriePrincipale"), "lim": lim, "h": h_, "lieux_fiche": lieux,
         "est": est, "tp": tp, "cau": cau, "q": q, "q_txt": q_txt, "ag": ag, "vis": vis, "reu": reu, "var": var,
         "allot": allot, "dom": dom, "ouv": ouv, "dep": dep, "proto": proto,
+        # v3 : blocs publiés jusque-là non extraits (absent de la page lue = None, « - » publié = None aussi mais bloc lu)
+        "ret": _txt(h, "adresseRetraitDossiers"), "prix_plans": prix_plans,
+        "ech_date": ech_date, "ech_txt": ech_txt,
+        "contact": _lire_contact(h), "docs": _lire_documents(h),
+        "blocs_lus": sorted(k for k, ok in (("contact", 'id="' + PFX + 'contactAdministratif"' in h),
+                                             ("docs", 'id="ctl0_CONTENU_PAGE_divPiecesConsultation"' in h),
+                                             ("retrait", 'id="' + PFX + 'adresseRetraitDossiers"' in h),
+                                             ("prix_plans", 'id="' + PFX + 'prixAcquisitionPlan"' in h),
+                                             ("echantillons", 'id="' + PFX + 'dateEchantillons"' in h)) if ok),
         "version_lecture": VERSION_LECTURE,
     }
+
+
+def _lire_contact(h):
+    """Contact administratif tel que publié ; None si le bloc n'est pas dans la page lue (non lu), valeurs None si « - »."""
+    if not re.search(r'id="' + PFX + r'contactAdministratif"', h):
+        return None
+    return {"nom": _txt(h, "contactAdministratif"), "email": _txt(h, "email"), "tel": _txt(h, "telephone"),
+            "fax": _txt(h, "telecopieur")}
+
+
+DOC_TYPES = (("linkDownloadReglement", "reglement"), ("linkDownloadDce", "dce"), ("linkDownloadComplement", "complement"))
+
+
+def _lire_documents(h):
+    """Pièces publiées (liens visibles du bloc « Pièces de la consultation ») et documents d'avis ; None si le bloc n'est
+    pas dans la page lue. Aucun téléchargement : libellé, taille et lien public seulement."""
+    if 'id="ctl0_CONTENU_PAGE_divPiecesConsultation"' not in h:
+        return None
+    docs = []
+    for ident, typ in DOC_TYPES:
+        m = re.search(r'<li\s+style="display:\s*(\w+)[^"]*"[^>]*>(?:(?!</li>).)*?id="ctl0_CONTENU_PAGE_' + ident + r'"([^>]*)>(.*?)</a>', h, re.S)
+        if not m or m.group(1).lower() == "none":
+            continue
+        lib = nettoyer(m.group(3))
+        if vide_portail(lib):
+            continue
+        url = re.search(r'href="([^"]+)"', m.group(2))
+        t = re.match(r"^(.*?)\s+-\s+([\d.,]+\s*[KMG]?o)$", lib or "")
+        docs.append({"type": typ, "libelle": t.group(1) if t else lib, "taille": t.group(2) if t else None,
+                     "url": nettoyer(url.group(1)) if url else None})
+    for bloc in re.findall(r"<!--Debut Bloc documents Avis-->(.*?)<!--Fin Bloc documents Avis-->", h, re.S):
+        bloc = re.sub(r"<!--Debut Bloc Pieces Consultation-->.*?<!--Fin Bloc Pieces Consultation-->", "", bloc, flags=re.S)
+        for href, lib in re.findall(r'<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>', bloc, re.S):
+            lib = nettoyer(lib)
+            if lib and not vide_portail(lib):
+                docs.append({"type": "avis", "libelle": lib, "taille": None, "url": nettoyer(href)})
+    return docs
 
 
 def fiche_valide(f):

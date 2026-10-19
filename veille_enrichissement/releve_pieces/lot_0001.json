@@ -1,0 +1,2029 @@
+{
+"entrees": [
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "117,78 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1024862&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "4f2c88a41938f638ea432b2d410a8b32ff92c004f51cc75b56d795d09d384b4a",
+"id": "pmmp:g3h:1024862",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:03:53+00:00",
+"org": "g3h",
+"page_id": "g3h:1024862",
+"ref_consultation": "1024862",
+"reference": "293/CL/2026/SRMFM",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "4,11 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042811&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "638af18247ecbcc5b3cb86b24de7119e84906edf28089ab7415e54e767ab4294",
+"id": "pmmp:g3h:1042811",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:03:58+00:00",
+"org": "g3h",
+"page_id": "g3h:1042811",
+"ref_consultation": "1042811",
+"reference": "116/CL/2026/SRMFM",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "7,9 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042814&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "b0d3bddb94fc8f0b4233263108a8216b735973e6e08b5e7522e25d7efa51103c",
+"id": "pmmp:g3h:1042814",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:04:01+00:00",
+"org": "g3h",
+"page_id": "g3h:1042814",
+"ref_consultation": "1042814",
+"reference": "123/P1/2026/SRMFM",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "4,58 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042820&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "c3cf919287d8fc8fbbb2af7f12b5584c62d2802ede415c950b0e3aaffc62966b",
+"id": "pmmp:g3h:1042820",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:04:06+00:00",
+"org": "g3h",
+"page_id": "g3h:1042820",
+"ref_consultation": "1042820",
+"reference": "192/CL/2026/SRMFM",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "7,07 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042841&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "1ab25ef9512c21ff5604e02916fc2a1f44b99382f5d6db7c2e295bc462e549f0",
+"id": "pmmp:g3h:1042841",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:04:11+00:00",
+"org": "g3h",
+"page_id": "g3h:1042841",
+"ref_consultation": "1042841",
+"reference": "222/R1/CL/2026/SRMFM",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "7,54 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042864&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "808281c920bba6b945cad81f57cca053fa79ecfbf6dd9a94a14769f9ad2e187c",
+"id": "pmmp:g3h:1042864",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:04:15+00:00",
+"org": "g3h",
+"page_id": "g3h:1042864",
+"ref_consultation": "1042864",
+"reference": "224/R1/CL/2026/SRMFM",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "7,25 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042880&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "a42cffe3e92aedda40634219a752ecddd02d0978e7cc594b155c1ff334bdf5db",
+"id": "pmmp:g3h:1042880",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:04:20+00:00",
+"org": "g3h",
+"page_id": "g3h:1042880",
+"ref_consultation": "1042880",
+"reference": "266/P1/2026/SRMFM",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,62 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042210&orgAcronyme=d4q"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "8f6798512761362bff19cd92706596570d9b93dc674b9072c1c7028e091d3c94",
+"id": "pmmp:d4q:1042210",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:04:25+00:00",
+"org": "d4q",
+"page_id": "d4q:1042210",
+"ref_consultation": "1042210",
+"reference": "82/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "3,45 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042648&orgAcronyme=d4q"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "4819284e87f56d8e680c97ad5dc9744d591e1f1cf212be5bada5784e7a37dbed",
+"id": "pmmp:d4q:1042648",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:04:29+00:00",
+"org": "d4q",
+"page_id": "d4q:1042648",
+"ref_consultation": "1042648",
+"reference": "36/2026/DR4",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "1,79 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042669&orgAcronyme=d4q"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "d84f649cde8cb2da3238ddeff12c403ef7fad57cc07a0a04098ce1754b0adcb5",
+"id": "pmmp:d4q:1042669",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:04:33+00:00",
+"org": "d4q",
+"page_id": "d4q:1042669",
+"ref_consultation": "1042669",
+"reference": "38/2026/DR4",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "971,62 Ko",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042834&orgAcronyme=d4q"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "e601d6a3c2b0e564331cf634fd75a79053689d6961fddfdbc9e4d07c04d5427f",
+"id": "pmmp:d4q:1042834",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:04:38+00:00",
+"org": "d4q",
+"page_id": "d4q:1042834",
+"ref_consultation": "1042834",
+"reference": "37/2026/DR4",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "33,45 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042942&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "74ab3eaa13f557eb313e7759f089fa17372134e69eae5ca77c3fd99c75e61259",
+"id": "pmmp:g3h:1042942",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:04:43+00:00",
+"org": "g3h",
+"page_id": "g3h:1042942",
+"ref_consultation": "1042942",
+"reference": "189/2026/EL",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,73 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043296&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "fce245e080f7ad61632b7f0d8648cc6e784329f382e995689e54115051fbb059",
+"id": "pmmp:g3h:1043296",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:04:48+00:00",
+"org": "g3h",
+"page_id": "g3h:1043296",
+"ref_consultation": "1043296",
+"reference": "10011934",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "31,07 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043559&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "72dbd2791400f79dbef41570d3f92e6d608f50ac28b8742812a17b10d4624313",
+"id": "pmmp:g3h:1043559",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:04:52+00:00",
+"org": "g3h",
+"page_id": "g3h:1043559",
+"ref_consultation": "1043559",
+"reference": "169/2026/AS",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "36,03 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043625&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "ae4b129506872c88e4e6f42996c61bcbef7c0b961b51970571342a64e481c9ca",
+"id": "pmmp:g3h:1043625",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:04:56+00:00",
+"org": "g3h",
+"page_id": "g3h:1043625",
+"ref_consultation": "1043625",
+"reference": "175/2026/MG",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "30,64 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043654&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "fbf9be12a9b2c28ed2887086224264e9069bb64510a3b762de6c1b4f67bc085c",
+"id": "pmmp:g3h:1043654",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:05:01+00:00",
+"org": "g3h",
+"page_id": "g3h:1043654",
+"ref_consultation": "1043654",
+"reference": "156/2026/AS",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "55,53 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043671&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "f8a2f66c27280282a290ca93fe01668faddd32d1ed19174b0bea2b9dbb8b9e2f",
+"id": "pmmp:g3h:1043671",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:05:05+00:00",
+"org": "g3h",
+"page_id": "g3h:1043671",
+"ref_consultation": "1043671",
+"reference": "162/2026/EP",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "45,64 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043684&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "4b78e8e3133e613037392a1e5273ae7c14ca7e13200cc3b7fcaa91ac418a0fe3",
+"id": "pmmp:g3h:1043684",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:05:09+00:00",
+"org": "g3h",
+"page_id": "g3h:1043684",
+"ref_consultation": "1043684",
+"reference": "174/2026/EL",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "13,05 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1046801&orgAcronyme=q1s"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "6fa01fcda587b1391cfa9bf806b4069798a999ea47f6910301fdfa21b957e36f",
+"id": "pmmp:q1s:1046801",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:05:14+00:00",
+"org": "q1s",
+"page_id": "q1s:1046801",
+"ref_consultation": "1046801",
+"reference": "15/2026/CARGON",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "7,05 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1038575&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "c272d17319d0262dc5cacd3422107bd2d8c53b0ca2e851d9ce2795241fdd052b",
+"id": "pmmp:g3h:1038575",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:05:19+00:00",
+"org": "g3h",
+"page_id": "g3h:1038575",
+"ref_consultation": "1038575",
+"reference": "10011437",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "84,35 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042856&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "f7837593170d8b015a003b2693965710d21a8c7ee6e91f1dc304a1e5ea5ee8d5",
+"id": "pmmp:g3h:1042856",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:05:23+00:00",
+"org": "g3h",
+"page_id": "g3h:1042856",
+"ref_consultation": "1042856",
+"reference": "477/2026/SRMCS",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "5,45 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043297&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "0996e97e012d215ac42f1d2ee4f2349fc1363da4e873a1f8ba2bd9a90054b9c2",
+"id": "pmmp:g3h:1043297",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:05:28+00:00",
+"org": "g3h",
+"page_id": "g3h:1043297",
+"ref_consultation": "1043297",
+"reference": "10011943",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "4,55 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1041065&orgAcronyme=o8p"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "dc3fa3af9f1a75b9415ebf4be2523c6295499df3c82485c949b6fc87ace8d7c4",
+"id": "pmmp:o8p:1041065",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:05:32+00:00",
+"org": "o8p",
+"page_id": "o8p:1041065",
+"ref_consultation": "1041065",
+"reference": "44/2026/Fe",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "613,69 Ko",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042074&orgAcronyme=p8x"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "3fa1111b53248e0262482b2372255abe1d5f31edd7128db6abf6fbb564a88889",
+"id": "pmmp:p8x:1042074",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:05:37+00:00",
+"org": "p8x",
+"page_id": "p8x:1042074",
+"ref_consultation": "1042074",
+"reference": "30INV2026/KH",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "1,48 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1039382&orgAcronyme=a1t"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "4daedadae92a86cb7098bb631db3121d7106055381e114f49b7711a30ca5b2cf",
+"id": "pmmp:a1t:1039382",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:05:41+00:00",
+"org": "a1t",
+"page_id": "a1t:1039382",
+"ref_consultation": "1039382",
+"reference": "09/ENA/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "1,03 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1048257&orgAcronyme=a1t"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "09bdcf774c64462c2cdff1b87ad170b66274452b43ab43ce28209fb28a726ac6",
+"id": "pmmp:a1t:1048257",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:05:47+00:00",
+"org": "a1t",
+"page_id": "a1t:1048257",
+"ref_consultation": "1048257",
+"reference": ".203/2026/apdn",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,25 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1017114&orgAcronyme=a1z"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "3c086a65701f657144116cb3709d27d4511e293d69c7657c9ab67117b8772f90",
+"id": "pmmp:a1z:1017114",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:05:50+00:00",
+"org": "a1z",
+"page_id": "a1z:1017114",
+"ref_consultation": "1017114",
+"reference": "1/2026/ECIALBAIDA",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "6,94 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1040305&orgAcronyme=a1z"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "9618da4188a3cfebaaa9f992f933383af79064e1b7cdb33ecff5fcd13e783e51",
+"id": "pmmp:a1z:1040305",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:05:55+00:00",
+"org": "a1z",
+"page_id": "a1z:1040305",
+"ref_consultation": "1040305",
+"reference": "81/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "1012,29 Ko",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1041662&orgAcronyme=a1z"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "8c5d9b7187f44aa3dcc593fa3a149d1bee349e0a67a1a0f01b4f148f51c4855a",
+"id": "pmmp:a1z:1041662",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:06:00+00:00",
+"org": "a1z",
+"page_id": "a1z:1041662",
+"ref_consultation": "1041662",
+"reference": "06/2026/CMC",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "1,82 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1024955&orgAcronyme=a2a"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "14cdebc09c45114cdf2817a9882fa405131c7d6da4df3ba260b07602de331bdd",
+"id": "pmmp:a2a:1024955",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:06:04+00:00",
+"org": "a2a",
+"page_id": "a2a:1024955",
+"ref_consultation": "1024955",
+"reference": "18/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "10,54 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1041635&orgAcronyme=b5j"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "da875784b952bee9f806648db47f2c852f92f59ae0d85ac1736039fe39b5e24e",
+"id": "pmmp:b5j:1041635",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:06:09+00:00",
+"org": "b5j",
+"page_id": "b5j:1041635",
+"ref_consultation": "1041635",
+"reference": "24/2026/ALEM",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "8 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1023939&orgAcronyme=d4q"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "722cb9364871a4d1f6654b4c598103a5507b3863bace61be95ab7b18d89577c2",
+"id": "pmmp:d4q:1023939",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:06:13+00:00",
+"org": "d4q",
+"page_id": "d4q:1023939",
+"ref_consultation": "1023939",
+"reference": "26/DAM/S/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,65 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042209&orgAcronyme=d4q"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "515b2ff1bbf7311984b0d4dc5180e5c4ab8274dea03759b14d17cd9f51348d7f",
+"id": "pmmp:d4q:1042209",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:06:17+00:00",
+"org": "d4q",
+"page_id": "d4q:1042209",
+"ref_consultation": "1042209",
+"reference": "83/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "4,12 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042915&orgAcronyme=d4q"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "c5943fb843d9e944cf642ed603644ac030c109550855b1c237f9071c46960e79",
+"id": "pmmp:d4q:1042915",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:06:22+00:00",
+"org": "d4q",
+"page_id": "d4q:1042915",
+"ref_consultation": "1042915",
+"reference": "GN3130439/2026/AGS/DXG",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,34 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042920&orgAcronyme=d4q"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "d83c014cf048a48d01de0082897d4149dcfd149170ab5fc2a553606defaec3a0",
+"id": "pmmp:d4q:1042920",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:06:27+00:00",
+"org": "d4q",
+"page_id": "d4q:1042920",
+"ref_consultation": "1042920",
+"reference": "GN3130673/2026/AGS/DXG",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "17,13 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1039332&orgAcronyme=e5w"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "acee61014830d4a731fbc01ebe8ed6c5e398cead97fbcc756192afb826225963",
+"id": "pmmp:e5w:1039332",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:06:31+00:00",
+"org": "e5w",
+"page_id": "e5w:1039332",
+"ref_consultation": "1039332",
+"reference": "09/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,99 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1044404&orgAcronyme=e5w"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "c776acc2b2b772f1c2e70bc9cc774ce84454b3e0ff2750453c7356bfe2cc0d80",
+"id": "pmmp:e5w:1044404",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:06:36+00:00",
+"org": "e5w",
+"page_id": "e5w:1044404",
+"ref_consultation": "1044404",
+"reference": "40/2026/CPB/ST/BP",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "1,62 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1036765&orgAcronyme=f4g"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "9913557b5bd81763b577585c25a4c24ba44960dcfae71731f024643458300073",
+"id": "pmmp:f4g:1036765",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:06:41+00:00",
+"org": "f4g",
+"page_id": "f4g:1036765",
+"ref_consultation": "1036765",
+"reference": "18/DRAI/BK/BG/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "19,87 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1037552&orgAcronyme=f4g"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "697c844fc5324d28917f3758cfc58e45184b3925735719f5c8b51694009f5503",
+"id": "pmmp:f4g:1037552",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:06:46+00:00",
+"org": "f4g",
+"page_id": "f4g:1037552",
+"ref_consultation": "1037552",
+"reference": "06/DRAI/GON/BH/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "9,56 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042529&orgAcronyme=f4g"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "b09a4b366ad7cbb65ac232fb247babdd9340937fa7e7e10c7364cafdd4a099b2",
+"id": "pmmp:f4g:1042529",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:06:50+00:00",
+"org": "f4g",
+"page_id": "f4g:1042529",
+"ref_consultation": "1042529",
+"reference": "02/DPAI/BH/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,73 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042583&orgAcronyme=f4g"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "ad883730f18795ab57b998bf302719d13e876a9dbf280337b85b11936bb82997",
+"id": "pmmp:f4g:1042583",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:06:55+00:00",
+"org": "f4g",
+"page_id": "f4g:1042583",
+"ref_consultation": "1042583",
+"reference": "48/C.M.CH/DM/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "1,96 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042960&orgAcronyme=f4g"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "0ac42f8a5d2f042e8033f315f70ea74d5dd9aaf24eb800a7b6ef54fc8fe99b4d",
+"id": "pmmp:f4g:1042960",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:06:58+00:00",
+"org": "f4g",
+"page_id": "f4g:1042960",
+"ref_consultation": "1042960",
+"reference": "18/DRAILSH/BG/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,21 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1034766&orgAcronyme=f8y"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "fb10dc5653a6e184ab711ef6937d741c8d0a46b5388aac794acd956bd3b1fd07",
+"id": "pmmp:f8y:1034766",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:07:03+00:00",
+"org": "f8y",
+"page_id": "f8y:1034766",
+"ref_consultation": "1034766",
+"reference": "43/2026/BRO",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "7,83 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1039344&orgAcronyme=f8y"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "32e62bdafe81a0f2c63991a0aa63e0f9c13d4546ec985226f5a543899d092b69",
+"id": "pmmp:f8y:1039344",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:07:07+00:00",
+"org": "f8y",
+"page_id": "f8y:1039344",
+"ref_consultation": "1039344",
+"reference": "03/2026/CF",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "4,17 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1040205&orgAcronyme=f8y"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "67ff0877c71cd75da4e16ff66fb191fe71e3fac809fe48de2db425294d4d104e",
+"id": "pmmp:f8y:1040205",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:07:12+00:00",
+"org": "f8y",
+"page_id": "f8y:1040205",
+"ref_consultation": "1040205",
+"reference": "04/2026/BM",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,1 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1041303&orgAcronyme=f8y"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "17afd36395b192c46b07b5e1f14ba26b88ba1c95f2d55191c30b75082117ae21",
+"id": "pmmp:f8y:1041303",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:07:16+00:00",
+"org": "f8y",
+"page_id": "f8y:1041303",
+"ref_consultation": "1041303",
+"reference": "01.2026/",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "4,39 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042866&orgAcronyme=f8y"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "72004788c927f25ae434384149138febe2d52787c1225a33b014d60707b70151",
+"id": "pmmp:f8y:1042866",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:07:21+00:00",
+"org": "f8y",
+"page_id": "f8y:1042866",
+"ref_consultation": "1042866",
+"reference": "05/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,2 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043842&orgAcronyme=f8y"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "08c2490a1a9c9e0429c8c486e17a62d961b84479586b13f6e250c5cbae5c9435",
+"id": "pmmp:f8y:1043842",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:07:26+00:00",
+"org": "f8y",
+"page_id": "f8y:1043842",
+"ref_consultation": "1043842",
+"reference": "10/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "129,21 Ko",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1045477&orgAcronyme=f8y"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "55a37222363b1729f7cccdf049bb52d9c4c382bc4b12d5275d5f06d79f4f0f7b",
+"id": "pmmp:f8y:1045477",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:07:31+00:00",
+"org": "f8y",
+"page_id": "f8y:1045477",
+"ref_consultation": "1045477",
+"reference": "01/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "3,96 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1035495&orgAcronyme=f9f"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "79280906dcaedde301b30c4c32e831c4de08d9f918d92282d85758be77498fcc",
+"id": "pmmp:f9f:1035495",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:07:35+00:00",
+"org": "f9f",
+"page_id": "f9f:1035495",
+"ref_consultation": "1035495",
+"reference": "41/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "3,31 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1039998&orgAcronyme=f9f"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "fcfcf85eea005947ea5b98d7c3cff2d40751f4b54780d30471bde35f95fa8f7f",
+"id": "pmmp:f9f:1039998",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:07:39+00:00",
+"org": "f9f",
+"page_id": "f9f:1039998",
+"ref_consultation": "1039998",
+"reference": "29/2026/BP",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "3,06 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042635&orgAcronyme=f9f"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "a49856cbfced04dcebacc78cfde5c1783b80d79380ff1276127b11be46ae44e7",
+"id": "pmmp:f9f:1042635",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:07:44+00:00",
+"org": "f9f",
+"page_id": "f9f:1042635",
+"ref_consultation": "1042635",
+"reference": "24/TDT/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "1,76 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1044220&orgAcronyme=f9f"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "1dc03cbe709525e20a12edd6d01fe8313794ea449aaf08aa1f924b5d6b9de759",
+"id": "pmmp:f9f:1044220",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:07:49+00:00",
+"org": "f9f",
+"page_id": "f9f:1044220",
+"ref_consultation": "1044220",
+"reference": "31/CPT/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,66 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1046520&orgAcronyme=f9f"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "c25e7a0dbdeda55527e79ad089a803f91ebaa4f59a74433107aebef965f4f047",
+"id": "pmmp:f9f:1046520",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:07:53+00:00",
+"org": "f9f",
+"page_id": "f9f:1046520",
+"ref_consultation": "1046520",
+"reference": "01/AH/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "1,31 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1032973&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "a69f0ebdcba587c3126499599309d17559c73d8f19362ec9ff0f3b24b2640c99",
+"id": "pmmp:g3h:1032973",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:07:57+00:00",
+"org": "g3h",
+"page_id": "g3h:1032973",
+"ref_consultation": "1032973",
+"reference": "AON26BG2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "1,69 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1035747&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "d74ebf222f8e61546b6fe25136fee83f740606e7b7077d84fb4a755f5c5edfbe",
+"id": "pmmp:g3h:1035747",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:08:02+00:00",
+"org": "g3h",
+"page_id": "g3h:1035747",
+"ref_consultation": "1035747",
+"reference": "16/DAR/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "1,07 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1037430&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "602dc3d553396afc6fb8ab1fcfaecde88775a41c518641014fb85814230a88e8",
+"id": "pmmp:g3h:1037430",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:08:07+00:00",
+"org": "g3h",
+"page_id": "g3h:1037430",
+"ref_consultation": "1037430",
+"reference": "22/2026/INDH/PS",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,61 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1039819&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "bb7deeb3071c5af16b0df2ed4eae1ed982a49650e6e87793bf88ad824d14ab78",
+"id": "pmmp:g3h:1039819",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:08:11+00:00",
+"org": "g3h",
+"page_id": "g3h:1039819",
+"ref_consultation": "1039819",
+"reference": "32/INDH/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "17,49 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1039944&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "b399801c2569c0e8eef739d4dba13f4d8401fac8de5066c7b53bdf48579cb9c3",
+"id": "pmmp:g3h:1039944",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:08:16+00:00",
+"org": "g3h",
+"page_id": "g3h:1039944",
+"ref_consultation": "1039944",
+"reference": "SAPSB/10/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "552,05 Ko",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1040006&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "c700d249c7824a69671c62dfd7102cc279bf31cf3477c9eded10545f2806ce6f",
+"id": "pmmp:g3h:1040006",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:08:20+00:00",
+"org": "g3h",
+"page_id": "g3h:1040006",
+"ref_consultation": "1040006",
+"reference": "39/2026/INDH/PT",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "16,46 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1040925&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "08851fcb9dd3643d70c73d3edfcb316550b557b29d6c0ecd477a881c454303ca",
+"id": "pmmp:g3h:1040925",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:08:24+00:00",
+"org": "g3h",
+"page_id": "g3h:1040925",
+"ref_consultation": "1040925",
+"reference": "26/2026/INDH",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "1,18 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1041433&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "41de3a4d422dd4eea612a0f2448b594f69e795d22a73293c3249aaf5d2f73a32",
+"id": "pmmp:g3h:1041433",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:08:29+00:00",
+"org": "g3h",
+"page_id": "g3h:1041433",
+"ref_consultation": "1041433",
+"reference": "55/FA/DIV.G.F./DIV.M.EQ/ZN/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,46 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1041490&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "d16665c89104b6a9f6adb7b534506d3d0f9e48712aaa83750a388e5b1139525e",
+"id": "pmmp:g3h:1041490",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:08:34+00:00",
+"org": "g3h",
+"page_id": "g3h:1041490",
+"ref_consultation": "1041490",
+"reference": "10011391",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "4,08 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1041582&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "1a9d586b279d93f005fa9693cf99a554918b9701eb3a848db4594793924e0aca",
+"id": "pmmp:g3h:1041582",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:08:39+00:00",
+"org": "g3h",
+"page_id": "g3h:1041582",
+"ref_consultation": "1041582",
+"reference": "12/INDH/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "948,54 Ko",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042247&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "072e1c2bb1b8baa3a3a27f7fc11b96907d3e2ed590b743bb2ee07211b498c3aa",
+"id": "pmmp:g3h:1042247",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:08:43+00:00",
+"org": "g3h",
+"page_id": "g3h:1042247",
+"ref_consultation": "1042247",
+"reference": "14/2026/SDR",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,26 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042268&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "374977c66b8a533049d86088ed9e6ffc56cdef8d61356b87aa50118f13809df2",
+"id": "pmmp:g3h:1042268",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:08:47+00:00",
+"org": "g3h",
+"page_id": "g3h:1042268",
+"ref_consultation": "1042268",
+"reference": "10012164",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "10,93 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042739&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "af7fbd04b8f70be9f41a35d7e2960e7ddbd19e45ff926a82f5833a779a121981",
+"id": "pmmp:g3h:1042739",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:08:52+00:00",
+"org": "g3h",
+"page_id": "g3h:1042739",
+"ref_consultation": "1042739",
+"reference": "69/DPJ/2026O/S",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "911,01 Ko",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1042823&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "6b016ce3fad614544f173b281e072f6c5daf4b5837a48867edc288e6d1243e79",
+"id": "pmmp:g3h:1042823",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:08:56+00:00",
+"org": "g3h",
+"page_id": "g3h:1042823",
+"ref_consultation": "1042823",
+"reference": "17/2026/BG",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "11,01 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043000&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "5265a49b4ae19027bd754b88e9f380f6ad4b68957140a94ae9fb2f96c8bf0d55",
+"id": "pmmp:g3h:1043000",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:09:00+00:00",
+"org": "g3h",
+"page_id": "g3h:1043000",
+"ref_consultation": "1043000",
+"reference": "LS532026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "15,87 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043008&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "4c7af47f3da7ffdc82473402a6a0edc7e0dd19c0aae18aa04e510d3a6244b353",
+"id": "pmmp:g3h:1043008",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:09:05+00:00",
+"org": "g3h",
+"page_id": "g3h:1043008",
+"ref_consultation": "1043008",
+"reference": "01/2026/AUBM",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "10,44 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043127&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "27a324aef0eea9eb9caa9e2f5c8d51de4f1c3680466416ff8ed5cac96f8730a4",
+"id": "pmmp:g3h:1043127",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:09:09+00:00",
+"org": "g3h",
+"page_id": "g3h:1043127",
+"ref_consultation": "1043127",
+"reference": "ls562026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "8,83 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043144&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "8d507ab893bab60b7d4017900538d12f9fd181339c81d0e470118c19f828b0ca",
+"id": "pmmp:g3h:1043144",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:09:14+00:00",
+"org": "g3h",
+"page_id": "g3h:1043144",
+"ref_consultation": "1043144",
+"reference": "ls612026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "966,59 Ko",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043192&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "be50147daa8b6254dd45ebbef131f506fef2c7e73117784ed3c00b67e31b4632",
+"id": "pmmp:g3h:1043192",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:09:18+00:00",
+"org": "g3h",
+"page_id": "g3h:1043192",
+"ref_consultation": "1043192",
+"reference": "ls672026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "14,16 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043203&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "5b3b9f1c0bdc74b36a6000f8af7db7c553578ba980c5d4b142000698b2664658",
+"id": "pmmp:g3h:1043203",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:09:22+00:00",
+"org": "g3h",
+"page_id": "g3h:1043203",
+"ref_consultation": "1043203",
+"reference": "ls692026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "11,49 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043214&orgAcronyme=g3h"
+},
+{
+"libelle": "Fichier joint - Avis complémentaire en ligne",
+"taille": null,
+"type": "avis",
+"url": "index.php?page=entreprise.EntrepriseDownloadAvisJAL&refConsultation=1043214&orgAcronyme=g3h&idAvis=537883"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "38ca67ec70d571a086a860a026faaaba928ad573b7d38548e548a2c47ebedc55",
+"id": "pmmp:g3h:1043214",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:09:27+00:00",
+"org": "g3h",
+"page_id": "g3h:1043214",
+"ref_consultation": "1043214",
+"reference": "ls722026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "10,21 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043219&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "68f1436998fa54f5d57433bcd40f5d5a0de165862868305d50506ef83b0a253b",
+"id": "pmmp:g3h:1043219",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:09:31+00:00",
+"org": "g3h",
+"page_id": "g3h:1043219",
+"ref_consultation": "1043219",
+"reference": "LS712026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "12,15 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043224&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "438a983db7c85496aff803c2d930d25b6db865603a325e65a01da5fba62bae2c",
+"id": "pmmp:g3h:1043224",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:09:36+00:00",
+"org": "g3h",
+"page_id": "g3h:1043224",
+"ref_consultation": "1043224",
+"reference": "LS702026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,78 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043299&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "217e3d69b49fcc88132540b67e8e85a44502c8ba86384435688a1d4b3cee2069",
+"id": "pmmp:g3h:1043299",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:09:40+00:00",
+"org": "g3h",
+"page_id": "g3h:1043299",
+"ref_consultation": "1043299",
+"reference": "10012003",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,86 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043418&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "261de5e301b1e58536165aa233de8d6ccacb25f927d2fffa0fb9d830a335818e",
+"id": "pmmp:g3h:1043418",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:09:45+00:00",
+"org": "g3h",
+"page_id": "g3h:1043418",
+"ref_consultation": "1043418",
+"reference": "33/2026/BG",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "26,85 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1044426&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "64da9b1f6cb40ce4fa03e2274ee38f4fe1f7aeccef67c9475be65354aba98d9b",
+"id": "pmmp:g3h:1044426",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:09:50+00:00",
+"org": "g3h",
+"page_id": "g3h:1044426",
+"ref_consultation": "1044426",
+"reference": "15BG2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "285,82 Ko",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1046307&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "f445ec2facec3bc4b0427103b4f7962774db44eff2c419a780dca41c134dfaad",
+"id": "pmmp:g3h:1046307",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:09:54+00:00",
+"org": "g3h",
+"page_id": "g3h:1046307",
+"ref_consultation": "1046307",
+"reference": "43/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,95 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1046316&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "4d4d51bd1bc622ecf9c928cc358477cd6554a31bf8fbf73f028b6469666b4d74",
+"id": "pmmp:g3h:1046316",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:09:58+00:00",
+"org": "g3h",
+"page_id": "g3h:1046316",
+"ref_consultation": "1046316",
+"reference": "32/2026/BG",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "4,68 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1047016&orgAcronyme=g3h"
+},
+{
+"libelle": "Fichier joint - Avis complémentaire en ligne",
+"taille": null,
+"type": "avis",
+"url": "index.php?page=entreprise.EntrepriseDownloadAvisJAL&refConsultation=1047016&orgAcronyme=g3h&idAvis=538009"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "28934cfa56d858686957067f5722feeb5d1f0ade8b06f909e3247a0dfa989383",
+"id": "pmmp:g3h:1047016",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:10:02+00:00",
+"org": "g3h",
+"page_id": "g3h:1047016",
+"ref_consultation": "1047016",
+"reference": "79/2026/SFRA",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,65 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1033564&orgAcronyme=g8e"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "7eb50e1e8ffd46561cf9326dda30c5171f1d22ad1ffcde76fb381d9105346f1e",
+"id": "pmmp:g8e:1033564",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:22:27+00:00",
+"org": "g8e",
+"page_id": "g8e:1033564",
+"ref_consultation": "1033564",
+"reference": "64/2026/TGR",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,38 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1038765&orgAcronyme=g8e"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "9000fd26be75f7afca4e9b31513c913d59236eafa36f535bbc1a8d3c2565ac6e",
+"id": "pmmp:g8e:1038765",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:22:34+00:00",
+"org": "g8e",
+"page_id": "g8e:1038765",
+"ref_consultation": "1038765",
+"reference": "87/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "14,11 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043176&orgAcronyme=g8e"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "5116b9b6836c590f302fa1c6739fb8e8827eb690a2428fbb8dd846e61426f46c",
+"id": "pmmp:g8e:1043176",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:22:41+00:00",
+"org": "g8e",
+"page_id": "g8e:1043176",
+"ref_consultation": "1043176",
+"reference": "A144/RRA/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "5,06 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1047660&orgAcronyme=g3h"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "0dd8376368266ec8a957d260a1ceabab14e04c770507e15fdf6ef7fffcbafecf",
+"id": "pmmp:g3h:1047660",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:22:45+00:00",
+"org": "g3h",
+"page_id": "g3h:1047660",
+"ref_consultation": "1047660",
+"reference": "10012535",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "12,08 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1046177&orgAcronyme=g8e"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "4f168504ec47ed5077077ee0b54ad12e513b53a4d1979189709e920760a989ea",
+"id": "pmmp:g8e:1046177",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:22:49+00:00",
+"org": "g8e",
+"page_id": "g8e:1046177",
+"ref_consultation": "1046177",
+"reference": "08/2026/DRDE/FES",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "5,89 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1047231&orgAcronyme=g8e"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "0f5c03eaa9836fc506cbc0de5026640159eef6074732d860ace36e3c63a962fb",
+"id": "pmmp:g8e:1047231",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:22:53+00:00",
+"org": "g8e",
+"page_id": "g8e:1047231",
+"ref_consultation": "1047231",
+"reference": "09/DRCAS/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "3,55 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1022661&orgAcronyme=j0w"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "f544d2304194a961b104ffed84a5e5d965cc555b6d392e0fb9bed8dbe7412973",
+"id": "pmmp:j0w:1022661",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:22:56+00:00",
+"org": "j0w",
+"page_id": "j0w:1022661",
+"ref_consultation": "1022661",
+"reference": "09/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "744,19 Ko",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1038464&orgAcronyme=j0w"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "60195f31d231acee2f40472d685ccc21fe7a8806c351e504c1ce363c49cd5259",
+"id": "pmmp:j0w:1038464",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:23:01+00:00",
+"org": "j0w",
+"page_id": "j0w:1038464",
+"ref_consultation": "1038464",
+"reference": "24/2026/BP",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "5,26 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1040098&orgAcronyme=j0w"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "8bc0a1db1a274188264a04d0eae454a622409889a19c5b8742ce12840a626a0d",
+"id": "pmmp:j0w:1040098",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:23:03+00:00",
+"org": "j0w",
+"page_id": "j0w:1040098",
+"ref_consultation": "1040098",
+"reference": "36/BP/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "5,75 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1040111&orgAcronyme=j0w"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "029682d3db1574e7ec0d29e1a9ed28bddf1d49e1488e70fad76cbd243d67d6b9",
+"id": "pmmp:j0w:1040111",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:23:08+00:00",
+"org": "j0w",
+"page_id": "j0w:1040111",
+"ref_consultation": "1040111",
+"reference": "37/BP/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "13,44 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1043318&orgAcronyme=j0w"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "6319fc628dce8a0c9f60f3ad8bf25f5d8a4bcaf692f4fcf7041035d9c5abccef",
+"id": "pmmp:j0w:1043318",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:23:11+00:00",
+"org": "j0w",
+"page_id": "j0w:1043318",
+"ref_consultation": "1043318",
+"reference": "69/2026/AREP/MS",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "1,54 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1047165&orgAcronyme=j0w"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "83d400904bdc372f18da0a0c1e62f6b60f12f86664f54a0e504b39c72442c2f8",
+"id": "pmmp:j0w:1047165",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:23:16+00:00",
+"org": "j0w",
+"page_id": "j0w:1047165",
+"ref_consultation": "1047165",
+"reference": "004/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Règlement de consultation",
+"taille": "1022,1 Ko",
+"type": "reglement",
+"url": "index.php?page=entreprise.EntrepriseDownloadReglement&reference=OTk1NDY4&orgAcronyme=j0w"
+},
+{
+"libelle": "Dossier de consultation",
+"taille": "1022,1 Ko",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=995468&orgAcronyme=j0w"
+},
+{
+"libelle": "En savoir plus sur la consultation",
+"taille": "1022,1 Ko",
+"type": "complement",
+"url": "index.php?page=entreprise.EntrepriseDownloadComplement&reference=OTk1NDY4&orgAcronyme=j0w"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "85f49bcb86c9e4869e72bab28b234f259eaa33ba0f923c5c8769bc49e393879b",
+"id": "pmmp:j0w:995468",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:23:19+00:00",
+"org": "j0w",
+"page_id": "j0w:995468",
+"ref_consultation": "995468",
+"reference": "08/2026/CBO",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "2,2 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1040184&orgAcronyme=j8k"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "75bdf0797f1d42d9006f2a07044431689ec249adffd0806365e131467e9da13b",
+"id": "pmmp:j8k:1040184",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:23:24+00:00",
+"org": "j8k",
+"page_id": "j8k:1040184",
+"ref_consultation": "1040184",
+"reference": "54/2026/ALOMRANE_SOUSS_MASSA",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "17,37 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1040978&orgAcronyme=j8k"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "b7168861b9e3128e25ff6f0a451b41dd5b25e99ea739df5c5174969f459ff0ab",
+"id": "pmmp:j8k:1040978",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:23:28+00:00",
+"org": "j8k",
+"page_id": "j8k:1040978",
+"ref_consultation": "1040978",
+"reference": "27/2026/HAO",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "19,75 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1041563&orgAcronyme=j8k"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "e0cdc0823f27a43d041bdbb18b6aac78f64ee8b6a2555bcd760b40a9b266267f",
+"id": "pmmp:j8k:1041563",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:23:33+00:00",
+"org": "j8k",
+"page_id": "j8k:1041563",
+"ref_consultation": "1041563",
+"reference": "149/2026",
+"version_lecture": 3
+},
+{
+"docs": [
+{
+"libelle": "Dossier de consultation",
+"taille": "1,28 Mo",
+"type": "dce",
+"url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1046946&orgAcronyme=j8k"
+}
+],
+"docs_preuve": "liens_visibles",
+"html_sha256": "ae54e39c119d28574952bc7a550cb807491bd30e594a880127671be6ef79fde0",
+"id": "pmmp:j8k:1046946",
+"lecteur_sha256": "a0ea1760b1db5ab0408b1e3aa4012ddfbef29242cc74886756861f56528ef340",
+"lu_le": "2026-10-19T21:23:38+00:00",
+"org": "j8k",
+"page_id": "j8k:1046946",
+"ref_consultation": "1046946",
+"reference": "179/2026/SAO",
+"version_lecture": 3
+}
+],
+"version": 1
+}

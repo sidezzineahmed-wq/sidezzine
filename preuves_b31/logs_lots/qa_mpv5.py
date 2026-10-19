@@ -11,7 +11,9 @@ CAT=json.load(open(os.path.join(SRV,"catalogue.json"),encoding="utf-8"));X={f"pm
 CF=json.load(open(os.path.join(SRV,"catalogue_details.json"),encoding="utf-8"))["pmmp_enrichi"]["complements_fiche"]["par_id"]
 K1,K2="pmmp:e5w:1041719","pmmp:g3h:1044229"
 KR=next(k for k in sorted(CF) if CF[k].get("reanalyse_le") and not (X[k]["lots"] or X[k]["allot"]) and k in X)
-KN=next(k for k in sorted(X) if k not in CF and X[k]["det"] and not (X[k]["lots"] or X[k]["allot"]))
+KN=next((k for k in sorted(X) if k not in CF and X[k]["det"] and not (X[k]["lots"] or X[k]["allot"])),None)
+SIMN=KN is None  # couverture complète : « sans compléments » simulé en mémoire (retrait temporaire, restauré)
+if SIMN:KN=next(k for k in sorted(X) if X[k]["det"] and not (X[k]["lots"] or X[k]["allot"]) and k not in (K1,K2))
 PAN="()=>{const p=document.querySelector('[data-mpv-panel]');const q=s=>p.querySelector(s);return{t:p.innerText,html:p.innerHTML,"\
     "sum:p.querySelector('.mpv-kv').innerText,docs:[...p.querySelectorAll('[data-mpv-doc] a')].map(a=>[a.href,a.target,a.innerText]),"\
     "dst:(q('[data-mpv-docs]')||{dataset:{}}).dataset.mpvDocs,cst:(q('[data-mpv-contact]')||{dataset:{}}).dataset.mpvContact,"\
@@ -32,6 +34,8 @@ with sync_playwright() as p:
         "prospectus : date 19/10/2026 10:00 et texte publié, distincts de la remise des plis 20/10 09:00")
     chk(P["ret"]=="lu" and "Avenue Abi Imran Fassi ain kadous" in t and "0,00 DH (publié sur PMMP)" in t,"retrait Avenue Abi Imran Fassi ; prix des plans 0 publié (vrai zéro)")
     chk(all(d in t for d in X[K1]["dom"]) and len(X[K1]["dom"])==3 and re.search(r"Variante\s*\n?\s*Non",t) and re.search(r"Réunion\s*\n?\s*Non indiqué",t),"3 domaines, variante Non, réunion non indiquée (« - »)")
+    chk("20/10/2026 · 09:00" in t and "09:00 à 09:00" not in t and "Distinct de la date limite de remise des plis (20/10/2026 · 09:00)." in t,
+        "date limite de remise des plis affichée une seule fois avec son heure (ligne et distinction prospectus)")
     chk("bureau de Monsieur le Président" in t and "marchespublics.gov.ma" in t,"dépôt sur le portail, ouverture au bureau du Président")
     U="https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1041719&orgAcronyme=e5w"
     chk(P["dst"]=="lu" and P["docs"]==[[U,"_blank","Ouvrir sur PMMP (nouvel onglet)"]] or (P["docs"] and P["docs"][0][0]==U and P["docs"][0][1]=="_blank"),f"DCE 648 Ko : lien public PMMP du même ID, nouvel onglet ({P['docs']})")
@@ -50,7 +54,9 @@ with sync_playwright() as p:
     chk(P["cst"]=="non_lu" and P["dst"]=="non_lu" and "Non publié" not in t and t.count("Pas encore lu (relecture de la fiche")>=2,f"{KR} ré-analysé : contact et pièces « pas encore lus », jamais « non publiés »")
     chk("ré-analysée hors ligne le" in t and ev("()=>document.querySelector('[data-mpv-cflu]').dataset.mpvCflu")==CF[KR]["lu_le"],"source : date réelle de lecture gardée, ré-analyse datée à part")
     # ===== D. fiche sans compléments =====
+    if SIMN:ev("k=>{window.__kn=S.enr.complements_fiche.par_id[k];delete S.enr.complements_fiche.par_id[k];}",KN)
     P=sel(KN);t=P["t"]
+    if SIMN:ev("k=>{S.enr.complements_fiche.par_id[k]=window.__kn;render();}",KN)
     chk(P["ret"]=="non_lu" and P["cst"]=="non_lu" and "Non publié" not in t,f"{KN} sans compléments : retrait / contact « pas encore lus »")
     # ===== E. contact non publié (simulé en mémoire) =====
     ev("k=>{const r=S.enr.complements_fiche.par_id[k];window.__c=JSON.stringify(r);r.statuts.contact='non_publie';delete r.contact;}",K1);P=sel(K1)

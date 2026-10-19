@@ -34,7 +34,7 @@ function mpvFiche5(x,D){const r=mpvCf(x),al=mpvAlloti(x),pl=mpvParLot(x);
   const tp=!x.det?mpvNL("Fiche pas encore lue"):x.tp===true?"Oui":x.tp===false?`Non <small class="mpv-mut">champ officiel PMMP (l'objet est affiché tel que publié)</small>`:mpvNL(pl||"Non indiqué sur PMMP");
   const dom=x.det?((x.dom||[]).length?`<ul class="mpv-l5">${x.dom.map(d=>`<li>${esc(d)}</li>`).join("")}</ul>`:mpvNL("Non indiqué sur PMMP")):mpvNL("Fiche pas encore lue");
   const ech=(()=>{const st=mpvCfSt(x,"echantillons");
-    if(st==="lu"&&(r.ech_date||r.ech_txt))return`${r.ech_date?`<b data-mpv-echd="${esc(r.ech_date)}">Date limite des prospectus / échantillons : ${esc(fmtIso(r.ech_date.slice(0,10)))} à ${esc(r.ech_date.slice(11,16))}</b>`:""}${r.ech_txt?`<span class="mpv-src5" data-mpv-echt="1">Texte publié : « ${esc(r.ech_txt)} »</span>`:""}<small class="mpv-mut">Distinct de la date limite de remise des plis (${esc(D.d)}${x.h?" à "+esc(x.h):""}).</small>`;
+    if(st==="lu"&&(r.ech_date||r.ech_txt))return`${r.ech_date?`<b data-mpv-echd="${esc(r.ech_date)}">Date limite des prospectus / échantillons : ${esc(fmtIso(r.ech_date.slice(0,10)))} à ${esc(r.ech_date.slice(11,16))}</b>`:""}${r.ech_txt?`<span class="mpv-src5" data-mpv-echt="1">Texte publié : « ${esc(r.ech_txt)} »</span>`:""}<small class="mpv-mut">Distinct de la date limite de remise des plis (${esc(D.d)}).</small>`;
     if(st==="lu")return mpvNL(pl||"Non indiqué sur PMMP (« - »)");
     if(x.det&&x.proto)return`${esc(x.proto)} <small class="mpv-mut">texte publié (lecture précédente du collecteur)</small>`;
     return mpvBloc(x,"echantillons",null).h;})();
@@ -43,7 +43,7 @@ function mpvFiche5(x,D){const r=mpvCf(x),al=mpvAlloti(x),pl=mpvParLot(x);
     ["Agréments",mpvFc(x,x.ag?esc(x.ag):null,pl||undefined)],["Réunion",mpvFc(x,x.reu?esc(x.reu):null,pl||undefined)],
     ["Prospectus, notices, échantillons",ech,` data-mpv-ech="${mpvCfSt(x,"echantillons")}"`],["Variante",!x.det?mpvNL("Fiche pas encore lue"):x.var===true?"Oui":x.var===false?"Non":mpvNL(pl||"Non indiqué sur PMMP")],["Prix d'acquisition des plans",pp]]);
   /* Dépôt et ouverture */
-  const dep=mpvKv([["Date limite de remise des plis",`${esc(D.d)}${x.h?" à "+esc(x.h):""}`],["Retrait du dossier",mpvBloc(x,"retrait",r&&r.ret?esc(r.ret):null).h,` data-mpv-ret="${mpvCfSt(x,"retrait")}"`],
+  const dep=mpvKv([["Date limite de remise des plis",`${esc(D.d)}`],["Retrait du dossier",mpvBloc(x,"retrait",r&&r.ret?esc(r.ret):null).h,` data-mpv-ret="${mpvCfSt(x,"retrait")}"`],
     ["Dépôt des offres",mpvFc(x,x.dep?esc(x.dep):null)],["Ouverture des plis",mpvFc(x,x.ouv?esc(x.ouv):null)]]);
   /* Documents publiés */
   const dst=mpvCfSt(x,"docs"),docs=dst==="lu"?((r.docs||[]).length?`<ul class="mpv-l5 mpv-docs">${r.docs.map(d=>`<li data-mpv-doc="${esc(d.type)}"><span>${esc(MPV5_DOC[d.type]||d.libelle||"Document")}${d.taille?` <small class="mpv-mut">${esc(d.taille)}</small>`:""}</span><a class="mpv-lk" href="${esc(mpvDocUrl(x,d.url))}" target="_blank" rel="noopener">Ouvrir sur PMMP${mpvI("ext","mpv-ie")}<span class="mpv-sr"> (nouvel onglet)</span></a></li>`).join("")}</ul><p class="mpv-mut">Liens vers le portail PMMP pour cette consultation : le document n'est pas joint dans EAIOS ; le téléchargement se fait sur PMMP.</p>`:mpvNL("Aucune pièce publiée sur la fiche PMMP"))

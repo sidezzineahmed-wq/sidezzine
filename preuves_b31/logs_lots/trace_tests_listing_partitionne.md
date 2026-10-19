@@ -73,3 +73,17 @@ Kit : 65/65.
   remplaçait la province par « Tout le Maroc » → libellé « Tout le Maroc · <provinces> » (part_mpv.js, JS d8827446c319).
   QA mpv4 24/24, mpv3 31/31, mpv2 66/66, mpv 50/50 (contrôle du bandeau rendu dépendant des données : le dernier essai
   17:14 a un listing réussi ET une erreur de fiches enregistrée).
+
+## Famine des fiches nouvelles et vrai passage 19/10 18:13 (kit coffre 1883)
+- Constat réel : 14:19 file_nouvelles 30 → 1 lue ; 17:14 file_nouvelles 124 → 1 choisie (10 places, changées d'abord).
+- Correctif (actif par défaut, commande exacte de la tâche : --fiches 10) : nouvelles sans fiche d'abord (plafond 150),
+  puis 10 relectures (changées puis anciennes) ; reliquat mesuré (budget / plafond), reprise en tête de file au passage
+  suivant. Tests : saturation du budget (8 nouvelles + 12 changées, arrêt après 5 lectures) et main() avec la commande
+  exacte de la tâche (règle, ordre, reliquat). Kit 68/68. Coffre a0b9 (code) puis 1883 (test) publiés à 18:02/18:05.
+- Passage 2026-10-19T181353Z (tâche horaire, coffre 1883) : LISTING_COMPLET 4682, 56 requêtes listing, 109 Mo, 565 s ;
+  14/16 partitions confirmées par la lecture précédente, 2 relues ; contrôle 1 : 4682 = 4682 = 4682, aucun écart.
+  Fiches : règle « nouvelles (max 150) > changees > anciennes (n=10) », file avant 8 nouvelles / 4 changées / 1781
+  anciennes, 18 lues dans l'ordre 8 n → 4 c → 6 a (18:23:29–18:25:53), 0 échec, reliquat 0.
+  Coffre 525a, EAIOS 6cf5 publiés par la tâche elle-même : 4728 (4682 + 46), 4728 avec fiche, 8 nouveaux IDs, 0 disparu.
+  Les 8 nouveaux : fiche v2 lue par ce passage, mode lu (« Sur offre de prix »), classification de l'entité (relevé
+  officiel 17/10) ; aucun alloti parmi eux (popup non exercé sur un nouvel ID ce passage).

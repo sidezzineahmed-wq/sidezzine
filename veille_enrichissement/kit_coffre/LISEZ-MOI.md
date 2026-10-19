@@ -24,7 +24,7 @@ python maj_quotidienne.py --etat donnees --fiches 50
 python construire_catalogue.py --etat donnees --sortie sortie\catalogue.json
 ```
 
-- `maj_quotidienne.py` lit le listing des consultations en cours (500 lignes par page, toutes les pages par défaut). `--max-pages N` limite le nombre de pages. Il lit ensuite au plus N fiches, par priorité stricte : (1) les fiches dont le listing a changé (date/heure limite, objet, référence…) après leur dernière lecture ; (2) les nouvelles, jamais lues (jamais tentées d'abord, puis les plus récemment apparues) ; (3) les lectures les plus anciennes (au moins 24 h, `--age-min-relecture-h`). Le journal `selection.json` garde la date du dernier choix et les échecs de chaque fiche entre les passages : une fiche en échec est mise en pause (6 h, doublée à chaque échec, max 48 h) et une fiche choisie récemment ne revient pas avant 24 h. `--sans-relecture` désactive la relecture des anciennes. Le nombre de pages vient du portail ; si le total ou le nombre de pages change pendant le parcours, le passage est PARTIEL.
+- `maj_quotidienne.py` lit le listing des consultations en cours PAR PARTITIONS OFFICIELLES (voir « Listing partitionné » ; `--listing-pagine` ou `--max-pages N` : ancien parcours page par page, sensible à la pagination instable). Il lit ensuite au plus N fiches, par priorité stricte : (1) les fiches dont le listing a changé (date/heure limite, objet, référence…) après leur dernière lecture ; (2) les nouvelles, jamais lues (jamais tentées d'abord, puis les plus récemment apparues) ; (3) les lectures les plus anciennes (au moins 24 h, `--age-min-relecture-h`). Le journal `selection.json` garde la date du dernier choix et les échecs de chaque fiche entre les passages : une fiche en échec est mise en pause (6 h, doublée à chaque échec, max 48 h) et une fiche choisie récemment ne revient pas avant 24 h. `--sans-relecture` désactive la relecture des anciennes. `--budget-s` (défaut 1200 s ; 1380 conseillé sous `timeout 1500`) borne la durée totale : au-delà, aucune requête n'est envoyée et le passage se termine PARTIEL en écrivant sa couverture. Débit : ≥ 4 s entre requêtes, une connexion.
 - Le débit est d'au moins 3 s par requête, plus une gigue. Une valeur sous 2 s est refusée. La collecte s'arrête net sur un 401/403 ou une page inattendue : rien n'est contourné.
 - `construire_catalogue.py` travaille hors ligne. Il valide le schéma et les identifiants, puis écrit `catalogue.json` et `catalogue_rapport.json`. Si la validation échoue, il n'écrit rien (code de sortie 2).
 
@@ -118,3 +118,26 @@ l'historique de couverture. Un listing complet de ces pages ne signifie pas la c
 - **Libellé seul** : « Date et heure : » sans date ni lieu (réunion, échantillons des consultations alloties) vaut « rien de publié » ; `construire_catalogue.py` neutralise aussi les anciennes lectures.
 - **Complément borné** (lecture publique, 2 connexions au plus, départs espacés d'au moins 4 s, pause aux minutes 10-22) : les fiches lues sont fusionnées dans `stock/etat/fiches.json` (la lecture la plus récente gagne) ; les lectures impossibles après essais sont listées dans `referentiel/fiches_complement.json` (`fiches_inaccessibles`, `lots_inaccessibles`), lues par l'ingestion (`--complement-fiches`, défaut du kit).
 - **Tests** : `tests/test_kit.py` (popup officiel, identité, lots partiels, passage horaire, coffre) et `ingestion/test_enrichi_pmmp.py` (section `lots`).
+
+## Listing partitionné vérifiable (depuis le 19/10/2026)
+
+Constat réel : la pagination du portail est instable (tri sans clé unique : catégorie, publication, référence, objet,
+organisme, date limite) et le portail publie toute la journée (19/10 après-midi : une annonce toutes les 3 à 6 min).
+Une page de 500 lignes pèse ~8,8 Mo (~17,7 Ko par ligne), la page de 10 lignes ~0,36 Mo.
+
+Protocole (`passe_partitionnee`) :
+1. fenêtre « date limite entre / et » et « mise en ligne » lues UNE fois à l'ouverture, envoyées à chaque requête ;
+2. partitions disjointes : intervalles de dates limites (≤ ~400 résultats prévus, d'après l'état ou les bornes du
+   passage précédent), puis catégorie, puis type de procédure pour un jour > 500 ; chaque partition est lue en UNE
+   réponse ≤ 500 lignes, bornes vérifiées ligne à ligne ; jamais de pagination ; indivisible > 500 = PARTIEL ;
+3. confirmation par partition : deux lectures consécutives aux identifiants et total identiques (la première peut être
+   celle du passage partitionné précédent, < 3 h, reconstruite exactement depuis l'état) ; seules les partitions qui
+   changent sont relues ;
+4. contrôle final : recomptage de chaque partition (compte = total confirmé) entre deux totaux globaux ; complet si
+   somme = identifiants distincts = total global du début OU de la fin du contrôle (instant de référence enregistré),
+   aucun identifiant dans deux partitions, sous-partitions = total du jour ; sinon nouvelle itération (bornée) puis PARTIEL.
+Limite assumée : un ajout ET une suppression dans une même partition après son dernier recomptage ne sont vus qu'au
+passage suivant. Suivi : `progression_listing.json` (écriture atomique à chaque partition). Couverture : partitions,
+lectures, confirmations, contrôles, totaux globaux horodatés, octets et durée.
+Statut : `dernier_succes` = dernier listing COMPLET (jamais un PARTIEL) ; quand le passage est PARTIEL, le catalogue
+valide gardé reprend les fiches lues depuis (mêmes identifiants, aucun ajout).

@@ -37,8 +37,8 @@ def main(argv=None):
     ap.add_argument("--sortie", required=True)
     ap.add_argument("--aujourdhui")
     ap.add_argument("--garder-catalogue-valide", action="store_true",
-                    help="dernier passage non complet : catalogue_valide.json du coffre relu gardé tel quel (le passage horaire "
-                         "suivant au listing complet le reconstruit avec les fiches fusionnées) ; seul fiches.json change")
+                    help="dernier passage non complet : catalogue_valide.json du coffre relu gardé (même listing, mêmes "
+                         "identifiants) ; ses champs de fiche suivent les fiches fusionnées (rafraichir_fiches du kit)")
     a = ap.parse_args(argv)
     IN, OUT = os.path.abspath(a.coffre_in), os.path.abspath(a.sortie)
     v = json.loads(run(os.path.join(IN, "stock", "kit", "coffre.py"), "verifier", "--source", IN))
@@ -72,7 +72,17 @@ def main(argv=None):
         if f.startswith("_comp_"):
             os.remove(os.path.join(OUT, f))
     if a.garder_catalogue_valide:
-        rapport["catalogue_valide"] = "gardé tel quel (dernier passage non complet)"
+        # même listing de référence, mêmes identifiants : seuls les champs de fiche suivent les lectures fusionnées
+        sys.path.insert(0, K)
+        from construire_catalogue import rafraichir_fiches  # noqa: E402
+        pcv = os.path.join(OUT, "stock", "catalogue_valide.json")
+        cv = json.load(open(pcv, encoding="utf-8"))
+        cv2, n = rafraichir_fiches(cv, json.load(open(os.path.join(OUT, "stock", "etat", "fiches.json"), encoding="utf-8")), a.aujourdhui)
+        assert {(x["o"], x["r"]) for x in cv2["items"]} <= {(x["o"], x["r"]) for x in cv["items"]}  # aucun identifiant ajouté
+        if cv2 != cv:
+            json.dump(cv2, open(pcv, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        rapport["catalogue_valide"] = {"garde": "dernier passage non complet : même listing, mêmes identifiants", "maj": cv2["maj"],
+                                       "n": cv2["n"], "n_details_avant": cv["n_details"], "n_details": cv2["n_details"], **n}
     else:
         # 3. catalogue valide reconstruit (même listing, fiches fusionnées)
         E = os.path.join(OUT, "_etat")

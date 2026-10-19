@@ -246,6 +246,20 @@ class ComplementsFicheV3(unittest.TestCase):
         self.assertEqual(e4["complements_fiche"]["couverture"]["reference_discordante"], ["pmmp:o1:1"])
         self.assertEqual(e4["complements_fiche"]["couverture"]["retrait"]["non_lu"], 1)
 
+    def test_aucune_piece_exige_l_identite_de_la_page(self):
+        items = self._items("A", "B", "C")
+        base = dict(self.V3, docs=[], docs_preuve="liens_officiels_tous_masques")
+        fiches = {"pmmp:o1:1": {"lu_le": "2026-10-19T18:00:00+00:00", "champs": dict(base, ref="A", page_id="o1:1")},
+                  "pmmp:o1:2": {"lu_le": "2026-10-19T18:00:00+00:00", "champs": dict(base, ref="B", page_id="o9:2")},
+                  "pmmp:o1:3": {"lu_le": "2026-10-19T18:00:00+00:00", "champs": dict(base, ref="C")}}
+        c = enrichir(items, fiches, None, None, None)["complements_fiche"]
+        P = c["par_id"]
+        self.assertEqual((P["pmmp:o1:1"]["statuts"]["docs"], P["pmmp:o1:1"]["docs"]), ("lu", []))
+        self.assertEqual(P["pmmp:o1:2"]["statuts"]["docs"], "non_lu", "autre consultation : jamais « aucune pièce »")
+        self.assertNotIn("docs", P["pmmp:o1:2"])
+        self.assertEqual(P["pmmp:o1:3"]["statuts"]["docs"], "non_lu", "vide sans contexte de page prouvé")
+        self.assertEqual(c["couverture"]["docs_detail"]["aucune_piece_confirmee"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -100,6 +100,14 @@ with sync_playwright() as p:
     P=sel(K1)
     chk(P["docs"] and P["docs"][0][0]=="https://www.marchespublics.gov.ma/index.php?page=entreprise.ExtraitPV&refConsultation=1041719&orgAcronyme=e5w","extrait de PV publié : lien officiel du même ID conservé")
     ev("k=>{S.enr.complements_fiche.par_id[k]=JSON.parse(window.__i);render();}",K1)
+    # ===== J. « Source et couverture » : couverture réelle des pièces, jamais 100 % avant la fin =====
+    CV=json.load(open(os.path.join(SRV,"catalogue_details.json"),encoding="utf-8"))["pmmp_enrichi"]["complements_fiche"]["couverture"]["docs"]
+    ev("()=>{MPV.bandOpen=true;render();}");pg.wait_for_timeout(200)
+    B_=ev("()=>{const e=document.querySelector('[data-mpv-couvdocs]');return e?{d:e.dataset.mpvCouvdocs,t:e.innerText}:null}")
+    n_=CV["lu"]+CV["non_publie"]+CV["non_lu"]
+    chk(B_ and B_["d"]==f"{CV['lu']}/{n_}" and f"pas encore lues : {CV['non_lu']}" in B_["t"] and ("100 %" not in B_["t"] or CV["non_lu"]==0),
+        f"Source et couverture : pièces relevées {CV['lu']} / {n_}, pas encore lues {CV['non_lu']} (aucun 100 % prématuré)")
+    ev("()=>{MPV.bandOpen=false;render();}")
     chk(len(W()[w0:])==0,"aucune écriture");chk(not errs,f"aucune erreur JavaScript {errs[:2]}")
     ctx.close()
     for w,sch in ((390,"light"),(1440,"dark")):

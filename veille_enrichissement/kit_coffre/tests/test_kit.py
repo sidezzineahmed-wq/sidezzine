@@ -134,8 +134,14 @@ class TestFiche(unittest.TestCase):
         masque = re.sub(r'<li\s+style="display:\s*block"', '<li style="display:none"', h)
         self.assertNotEqual(masque, h)
         f = lire_fiche(masque)
-        self.assertEqual((f["docs"], f["docs_preuve"]), ([], "liens_officiels_tous_masques"))
+        self.assertEqual((f["docs"], f["docs_preuve"]), (None, "gabarit_masque_non_vide"), "lien rempli mais masqué : ambigu, non lu")
+        vide = re.sub(r'<a id="ctl0_CONTENU_PAGE_linkDownloadDce"[^>]*>.*?</a>', '<a id="ctl0_CONTENU_PAGE_linkDownloadDce"></a>', masque, flags=re.S)
+        f = lire_fiche(vide)
+        self.assertEqual((f["docs"], f["docs_preuve"], f["page_id"]), ([], "liens_officiels_tous_masques", "e5w:1041719"))
         self.assertIn("docs", f["blocs_lus"])
+        panneau_masque = vide.replace('<div id="ctl0_CONTENU_PAGE_panelPieces">', '<div id="ctl0_CONTENU_PAGE_panelPieces" style="display:none">')
+        self.assertNotEqual(panneau_masque, vide)
+        self.assertIsNone(lire_fiche(panneau_masque)["docs"], "panneau des pièces masqué : non lu")
         # bloc officiel « aucune pièce » visible, sans bloc des liens
         seul = re.sub(r'<div id="ctl0_CONTENU_PAGE_divPiecesConsultation".*?<!--Fin Bloc Pieces Consultation-->',
                       '<div id="ctl0_CONTENU_PAGE_divNoPiecesConsultation">Aucune pièce</div>', h, flags=re.S)

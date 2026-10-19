@@ -63,6 +63,15 @@ function mpvFiche5(x,D){const r=mpvCf(x),al=mpvAlloti(x),pl=mpvParLot(x);
     mpvSec("docs","Documents publiés sur PMMP",dst==="lu"?((r.docs||[]).length+" pièce"+((r.docs||[]).length>1?"s":"")):n("",dst),`<div data-mpv-docs="${dst}">${docs}</div>`)+
     mpvSec("contact","Contact administratif",n("",cst),`<div data-mpv-contact="${cst}">${ct}</div>`)+mpvSec("src","Source de la fiche","",src)+`</div>`;}
 document.getElementById("view").addEventListener("toggle",e=>{const t=e.target;if(t&&t.dataset&&t.dataset.mpvFs){MPV.fsOpen=MPV.fsOpen||{};MPV.fsOpen[t.dataset.mpvFs]=t.open;}},true);
+/* « Source et couverture » : couverture RÉELLE des compléments de fiche (pièces surtout), jamais arrondie à 100 % */
+function mpvCouvCf(){const C=S.enr&&S.enr.complements_fiche;if(!C||!C.couverture)return"";const c=C.couverture,d=c.docs||{},D=c.docs_detail||{},n=(d.lu||0)+(d.non_publie||0)+(d.non_lu||0);
+  if(!n)return"";const pct=v=>{const p=100*v/n;return(v<n&&p>99.9?"99,9":p.toFixed(1).replace(".",","));};
+  const L=Object.values(C.par_id||{}).map(r=>r.lu_le).filter(Boolean).sort(),der=L.length?L[L.length-1]:null;
+  return`<h3>Fiches PMMP : compléments</h3><ul data-mpv-couvcf="1"><li data-mpv-couvdocs="${d.lu||0}/${n}"><b>Pièces publiées</b> : relevées pour <b>${d.lu||0}</b> consultations sur ${n} (${pct(d.lu||0)} %)${D.avec_pieces!=null?` : ${D.avec_pieces} avec au moins une pièce, ${D.aucune_piece_confirmee||0} sans pièce (confirmé par la page officielle)`:""} · <b>pas encore lues : ${d.non_lu||0}</b>${d.non_lu?" (relecture bornée en cours, au rythme du portail)":""}.</li>
+   <li><b>Contact administratif</b> : ${(c.contact||{}).lu||0} / ${n} · <b>retrait, plans, prospectus</b> : ${(c.retrait||{}).lu||0} / ${n}.</li>
+   <li class="mpv-mut">Dernière lecture de fiche : ${esc(mpvDt(der))}. Une pièce n'est jamais déduite : « pas encore lue » n'est pas « aucune pièce ».</li></ul>`;}
+const _mpvSource5=mpvSource;
+mpvSource=function(){const h=_mpvSource5(),x=mpvCouvCf();return x&&/<\/div>\s*$/.test(h)?h.replace(/<\/div>\s*$/,x+"</div>"):h;};
 const _mpvPanel5=mpvPanel;
 mpvPanel=function(B,dm,inList){let h=_mpvPanel5(B,dm,inList);const e=MPV.sel&&B&&B.by.get(MPV.sel);if(!e)return h;const x=e.x;
   h=h.replace(/<dt>Code procédure PMMP<\/dt><dd data-mpv-pcode="[^"]*">[\s\S]*?<\/dd>/,"");  /* code interne : dans « Source de la fiche » */

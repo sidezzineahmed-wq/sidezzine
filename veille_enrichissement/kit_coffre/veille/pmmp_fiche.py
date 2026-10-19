@@ -185,7 +185,7 @@ def lire_fiche(h_tronque, masquer=True):
         # v3 : blocs publiés jusque-là non extraits (absent de la page lue = None, « - » publié = None aussi mais bloc lu)
         "ret": _txt(h, "adresseRetraitDossiers"), "prix_plans": prix_plans,
         "ech_date": ech_date, "ech_txt": ech_txt,
-        "contact": _lire_contact(h), "docs": docs, "docs_preuve": docs_preuve,
+        "contact": _lire_contact(h), "docs": docs, "docs_preuve": docs_preuve, "page_id": page_id(h),
         "blocs_lus": sorted(k for k, ok in (("contact", 'id="' + PFX + 'contactAdministratif"' in h),
                                              ("docs", docs is not None),
                                              ("retrait", 'id="' + PFX + 'adresseRetraitDossiers"' in h),
@@ -204,6 +204,15 @@ def _lire_contact(h):
 
 
 DOC_TYPES = (("linkDownloadReglement", "reglement"), ("linkDownloadDce", "dce"), ("linkDownloadComplement", "complement"))
+
+
+_FORM_ID = re.compile(r'<form[^>]*\saction="[^"]*?refConsultation=([^"&]+)&amp;orgAcronyme=([^"&]+)"')
+
+
+def page_id(h):
+    """« org:ref » désigné par le formulaire de la page lue (contexte), None si absent ou multiple."""
+    L = set(_FORM_ID.findall(h or ""))
+    return f"{next(iter(L))[1]}:{next(iter(L))[0]}" if len(L) == 1 else None
 
 
 _NO_PIECES = re.compile(r'<div id="ctl0_CONTENU_PAGE_divNoPiecesConsultation"([^>]*)>')
@@ -254,6 +263,16 @@ def _lire_documents(h):
         return docs, "liens_visibles"
     if vide_officiel:
         return [], "bloc_aucune_piece"
+    # zéro pièce par la structure : bloc et panneau non masqués, les 3 liens officiels présents, masqués ET vides
+    # (ni libellé ni lien : un gabarit rempli mais masqué est ambigu), aucun avis visible
+    conteneurs = [re.search(r'<div id="ctl0_CONTENU_PAGE_(?:panelPieces|divPiecesConsultation)"([^>]*)>', h)]
+    conteneurs.append(re.search(r'<div id="ctl0_CONTENU_PAGE_panelPieces"([^>]*)>', h))
+    if any(c is None or not _visible_attrs(c.group(1)) for c in conteneurs):
+        return None, "structure_inattendue"
+    for ident, _t in DOC_TYPES:
+        m = re.search(r'<li\s+style="display:\s*(\w+)[^"]*"[^>]*>(?:(?!</li>).)*?<a id="ctl0_CONTENU_PAGE_' + ident + r'"([^>]*)>(.*?)</a>', h, re.S)
+        if not m or m.group(1).lower() != "none" or nettoyer(m.group(3)) or re.search(r'href="[^"]+"', m.group(2)):
+            return None, "gabarit_masque_non_vide"
     if not visibles:
         return [], "liens_officiels_tous_masques"
     return None, "structure_inattendue"

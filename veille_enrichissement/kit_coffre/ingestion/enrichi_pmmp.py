@@ -110,6 +110,13 @@ def _complements(items, fiches, precedent):
             if f.get(c) is not None:
                 rec[c] = f[c]
         rec["statuts"] = statuts_blocs(ch)
+        org_ref = k.split(":", 1)[1]
+        if rec["statuts"]["docs"] == "lu" and (ch.get("page_id") != org_ref if ch.get("docs") == [] or ch.get("page_id") else False):
+            # pièces (et surtout « aucune pièce ») d'une page dont le formulaire désigne une autre consultation, ou vide
+            # sans contexte de page prouvé : non lues
+            rec["statuts"]["docs"] = "non_lu"
+            rec["identite_pieces"] = "non_prouvee"
+            ch = {c: v for c, v in ch.items() if c not in ("docs", "docs_preuve")}
         if ch.get("sources_blocs"):
             rec["sources_blocs"] = ch["sources_blocs"]  # ex. contact relu dans l'état de la page déjà reçue
         for c in CHAMPS_V3 + ("docs_preuve", "docs_lu_le"):

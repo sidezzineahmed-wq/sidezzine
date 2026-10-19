@@ -1,0 +1,51 @@
+OK titre, sous-titre, fil Marchés publics / S1 / B1.1 ; aucun contenu de maquette
+OK onglets Consultations / Mes consultations suivies / DCE à récupérer
+OK bandeau : vraie dernière mise à jour en heure du Maroc (Actualisé le 19/10 à 21:31 (heure du Maroc)), fraîcheur calculée (vieux), « Ouvrir la dernière version » réelle ; détail replié
+OK source et couverture : erreurs anciennes ≠ échec du dernier essai ; couverture 100 % limitée aux pages de listing ; absentes = statut inconnu ; détails anciens à date inconnue signalés seulement s'il en reste (0) ; aucune erreur JSON brute
+OK 4 indicateurs = recalcul indépendant (clé PMMP, Casablanca) {'ouv': '4558', 'pour': '1324', 'sept': '1246', 'dce': '17'} ; clôturées 187 exclues
+OK liste « Toutes les consultations » = consultations ouvertes (4558) ; 10 lignes au plus dans le DOM
+OK clic indicateur → liste exactement égale (1324, 1246, 4558) ; filtre « Clôture sous 7 jours » visible
+OK clic « DCE à récupérer » → onglet DCE, même nombre
+OK DCE : ouvertes listées (17) ; échues ou clôturées séparées hors compteur (74), rien supprimé
+OK doublon exact (même organisme:numéro) compté une fois ; même référence + acheteur mais numéros différents comptés séparément ; heure du jour passée (1 min) = clôturée ; date du jour sans heure = ouverte (4561)
+OK recherche par référence ; dates : heure non précisée, date inconnue explicite {'qa:QA2': "19/10/2026 · heure non précisée | Aujourd'hui", 'qb:QA4': '01/01/2099 · 10:00 | Dans 26372 jours', 'qa:QA3': 'Date limite inconnue | À vérifier sur PMMP'}
+OK filtre « Clôturées » : la consultation dont l'heure est passée y est, seulement là
+OK fiche : estimation / caution / qualification inconnues ≠ 0 ; date inconnue ; pertinence ≠ éligibilité ; composition du DCE à vérifier (aucun inventaire supposé)
+OK caution 0 sur PMMP : gardée avec mention « à vérifier dans le DCE »
+OK recherche par référence : annonce trouvée, focus conservé
+OK filtre Région « Béni Mellal-Khénifra » : 395 annonces (dont 71 multi-régions comptées dans chaque région concernée)
+OK tri : échéance la plus proche (croissante) puis pertinence (décroissante), sélectionnable au clavier
+OK pagination : page 2 = résultats 11 à 20, focus sur le titre de la liste
+OK sélection : bonne annonce dans la fiche, ligne marquée, focus conservé sur la ligne (bureau)
+OK « Voir sur PMMP » : URL réelle de cette consultation (numéro + organisme)
+OK sélection hors des résultats filtrés : conservée et signalée ; liste vide expliquée
+OK retour sans recherche : sélection conservée
+OK « 75/CL/2026 » : 1 résultat(s), seulement des références contenant exactement 75/CL/2026 ['75/CL/2026'] (l'ancienne recherche approchée en donnait 17)
+OK « 175/CL/2026 » : segments exacts (75/CL/2026 n'y correspond pas)
+OK « travaux laayoune » : tous les termes (ET) dans référence / objet / acheteur / lieux affichés, accents ignorés : 35 résultat(s)
+OK « fourniture bureau » : tous les termes (ET) dans référence / objet / acheteur / lieux affichés, accents ignorés : 43 résultat(s)
+OK « Laâyoune » : tous les termes (ET) dans référence / objet / acheteur / lieux affichés, accents ignorés : 141 résultat(s)
+OK numéro PMMP interne non affiché (1039382) : pas de correspondance cachée
+OK tiroir, Catégorie principale : compteur « Travaux » = résultats de la même recherche en catégorie Travaux (26 = 26)
+OK sélection, filtres, recherche, tri, pages, onglets : aucune écriture, aucun dossier créé
+OK « Suivre » : confirmation explicite (suivre ≠ participer) ; Annuler n'écrit rien
+OK suivi confirmé : un seul dossier créé (ao/pmmp-1039382, base simulée), étoile « suivie », DCE « À récupérer » (pas reçu)
+OK « Demander le DCE » : confirmation explicite, rien d'écrit avant
+OK demande confirmée par la base : « Demande enregistrée », jamais « DCE reçu » ; plus de bouton (pas de doublon) ['encours', 'ok', 1, False]
+OK seconde demande : refusée par le gestionnaire existant (idempotence), aucune nouvelle écriture
+OK « DCE reçu » seulement quand un fichier est joint au dossier ; inventaire = fichiers réels
+OK échec d'écriture : « non confirmée », état relu de la base (À récupérer), « Réessayer » ['err', 'afaire', False]
+OK réessai : demande confirmée par la base
+OK ouvrir le DCE du dossier (B1.1, étape DCE) puis retour : page, sélection et onglet conservés
+OK Mes consultations suivies : 119 consultations (ID officiel, dossiers regroupés = 119), dont 99 hors catalogue conservées
+OK clavier : flèches entre les onglets (ordre Consultations, Mes consultations suivies, DCE)
+OK lecture seule : ni « Suivre » ni « Demander le DCE » (étoiles inactives)
+OK chargement : « — » et « Chargement du catalogue… » ; catalogue absent : indisponible explicite ; dossiers en erreur : « — » (jamais 0 inventé)
+OK aucune erreur JavaScript []
+OK 390 : aucun débordement, lisible, liste → fiche (focus titre) → « Retour à la liste » (focus ligne) {'ov': 0, 'out': 0, 'ink': 'rgb(22, 23, 26)', 'bg': 'rgb(255, 255, 255)', 'pan': 'none'}
+OK 390_sombre : aucun débordement, lisible, liste → fiche (focus titre) → « Retour à la liste » (focus ligne) {'ov': 0, 'out': 0, 'ink': 'rgb(237, 234, 228)', 'bg': 'rgb(27, 29, 33)', 'pan': 'none'}
+OK 615 : aucun débordement, lisible, liste → fiche (focus titre) → « Retour à la liste » (focus ligne) {'ov': 0, 'out': 0, 'ink': 'rgb(22, 23, 26)', 'bg': 'rgb(255, 255, 255)', 'pan': 'none'}
+OK 768_sombre : aucun débordement, lisible, liste → fiche (focus titre) → « Retour à la liste » (focus ligne) {'ov': 0, 'out': 0, 'ink': 'rgb(237, 234, 228)', 'bg': 'rgb(27, 29, 33)', 'pan': 'none'}
+OK 1440 : aucun débordement, lisible, liste et fiche côte à côte {'ov': 0, 'out': 0, 'ink': 'rgb(22, 23, 26)', 'bg': 'rgb(255, 255, 255)', 'pan': 'flex'}
+OK 1440_sombre : aucun débordement, lisible, liste et fiche côte à côte {'ov': 0, 'out': 0, 'ink': 'rgb(237, 234, 228)', 'bg': 'rgb(27, 29, 33)', 'pan': 'flex'}
+50 / 50

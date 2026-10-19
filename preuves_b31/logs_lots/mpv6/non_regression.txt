@@ -1,0 +1,10 @@
+qa_mpv2 66 / 66
+qa_mpv3 31 / 31
+qa_mpv4 24 / 24
+qa_mpv5 30 / 30
+qa_mph 37 / 39
+qa_b21dec 87 / 87
+qa_b31 64 / 64
+qa_b31_v6e 14 / 14
+qa_pdf 9 / 9
+qa_mph (version finale) 38 / 39 ; même résultat sur la version publiée précédente : 38 / 39 (contrôle d'ordre dépendant de l'heure, dossier fictif à +30 min après minuit au Maroc)

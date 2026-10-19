@@ -1,0 +1,43 @@
+OK ordre des onglets [['cons', 'Consultations (4558)'], ['suiv', 'Mes consultations suivies (121)'], ['dce', 'DCE à récupérer (20)']]
+OK compteur « Mes consultations suivies » = groupes par ID officiel calculés (121 = 121, 126 dossiers)
+OK onglet Consultations : indicateurs globaux affichés
+OK onglet Suivies : pas de bloc d'indicateurs globaux répété
+OK résumé suivies 121|25|96
+OK aucun nom/champ de société dans la vue Suivies (trouvés : [])
+OK pagination par 10
+OK même numéro, deux organismes = deux consultations distinctes ['p:fxa:990005', 'p:fxb:990005']
+OK filtre État = Clôturées (10 lignes affichées)
+OK statut DCE « Reçu » : fichiers DCE joints (fx 990003) ; une demande + caution (990006) n'est pas reçu
+OK panneau : Consultation ouverte, Remise des plis, DCE « encours », note Choix des sociétés
+OK panneau sans société (ancien ALWAAD d'office masqué) ; Ouvrir le dossier, Accéder à la récupération du DCE, lien PMMP
+OK « Accéder à la récupération du DCE » → onglet DCE, même consultation sélectionnée {'tab': 'dce', 'sel': 'p:fxa:990002', 'foc': 'mpv6-dph'}
+OK onglet DCE : pas de bloc d'indicateurs globaux répété
+OK compteur DCE dérivé : en-tête 20 = onglet 20 = file 20
+OK file : ouvertes non reçues ; reçue exclue ; échue dans l'accordéon hors compteur
+OK compteurs réels de la file {'tout': 20, 'sans': 16, 'dem': 4, 'sept': 10}
+OK accordéon échues : 74 (hors compteur)
+OK aucun nom/champ de société dans la vue DCE (trouvés : [])
+OK panneau DCE : inventaire inconnu explicite, statut À récupérer, aucun fichier joint inconnu/afaire
+OK actions : Ouvrir les documents sur PMMP (même ID/org, nouvel onglet), Joindre le DCE, demande interne distincte ; aucun formulaire [['https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseDetailsConsultation&refConsultation=990001&orgAcronyme=fxa', '_blank']]
+OK demande interne : confirmation explicite « n'est pas un DCE reçu »
+OK demande enregistrée sur fx-g1 seulement ([['set', 'ao/fx-g1']]) ; statut « encours », pas reçu
+OK inventaire PMMP réellement lu (p:s5z:1035450) : liens officiels même ID/org 1
+OK « Joindre le DCE au dossier » : dépôt du ZIP existant sur le dossier de la consultation {'id': 'fx-g1', 't': "Joindre le DCE au dossier\n\nDéposer le ZIP téléchargé sur PMMP\nGlissez le fichier ici ou touchez pour le choisir. EAIOS vérifie l'archive, range les PDF (Aperçu, Télécharger) et conserve à l'identique les fichiers Word/Excel et le ZIP d'origine. Rien n'est remplacé.", 'inp': True}
+OK ZIP joint : statut « reçu » (fichiers réellement joints), écritures sur fx-g1 seulement [['set', 'dcef/fx-g1'], ['update', 'ao/fx-g1']] {'st': 'pret', 'j': '1'}
+OK après dépôt : la consultation sort de la file DCE à récupérer
+OK « Ouvrir le dossier » ouvre le dossier existant de la consultation ({'id': 'fx-g1', 'vue': 'bur', 'err': 0}), rien d'écrit
+OK Décision (suivi groupe) : 9 sociétés listées, aucune présélectionnée, « Choisissez une société » {'ns': True, 'sel': None, 'n': 9, 'panel': False}
+OK Décision (ancien ALWAAD d'office) : 9 sociétés listées, aucune présélectionnée, « Choisissez une société » {'ns': True, 'sel': None, 'n': 9, 'panel': False}
+OK dossier séparé SAKDAT (décision existante) : société conservée
+OK confirmation Suivre sans société : « Suivre ajoute cette consultation aux consultations suivies du groupe et crée son dossier « À examiner ». Aucune société … »
+OK Suivre : un seul dossier créé pmmp-1039382, sans société, suivi.niveau=groupe, ID officiel a1t:1039382
+OK compteur suivies +1 après Suivre (122)
+OK Suivre une consultation déjà suivie : aucune écriture
+OK aucune écriture sur les dossiers réels copiés ([])
+OK aucune erreur JavaScript []
+OK mobile light suiv : empilé liste → panneau (focus mpv6-ph) → retour, sans débordement (0px)
+OK mobile light dce : empilé liste → panneau (focus mpv6-dph) → retour, sans débordement (0px)
+OK mobile light : aucune erreur JavaScript []
+OK mobile dark suiv : empilé liste → panneau (focus mpv6-ph) → retour, sans débordement (0px)
+OK mobile dark dce : empilé liste → panneau (focus mpv6-dph) → retour, sans débordement (0px)
+OK mobile dark : aucune erreur JavaScript []

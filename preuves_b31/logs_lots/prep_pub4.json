@@ -1,0 +1,78 @@
+{
+ "coffre_relu": {
+  "manifest_cree_le": "2026-10-19T12:30:25+00:00",
+  "fichiers": 40
+ },
+ "referentiels_relus_gardes": [
+  "fiches_complement.json"
+ ],
+ "integration": [
+  {
+   "dossier": "compl_fiches",
+   "fiches_coffre": 5041,
+   "fiche_ajoutee": 0,
+   "fiche_remplacee_plus_recente": 0,
+   "fiche_coffre_plus_recente_gardee": 52,
+   "lots_rattaches": 0,
+   "lots_sans_fiche_coffre": 0,
+   "ref_differente_du_catalogue": 0,
+   "reparse_fiches": 1873,
+   "reparse_lots": 374,
+   "reparse_sha_ko": 0,
+   "reparse_change": 1873,
+   "meme_lecture_reanalysee": 1821,
+   "fiches_sortie": 5041,
+   "fiches_inaccessibles": 0,
+   "lots_inaccessibles": 0,
+   "fiches_avec_lots": 374
+  },
+  {
+   "dossier": "compl_vis",
+   "fiches_coffre": 5041,
+   "fiche_ajoutee": 0,
+   "fiche_remplacee_plus_recente": 1093,
+   "fiche_coffre_plus_recente_gardee": 22,
+   "lots_rattaches": 106,
+   "lots_sans_fiche_coffre": 0,
+   "ref_differente_du_catalogue": 0,
+   "reparse_fiches": 2645,
+   "reparse_lots": 228,
+   "reparse_sha_ko": 0,
+   "reparse_change": 1551,
+   "meme_lecture_reanalysee": 1530,
+   "relecture_q_differente": [
+    "pmmp:f9f:1047437",
+    "pmmp:p8x:1049530",
+    "pmmp:z9k:1049472",
+    "pmmp:z9k:1050163"
+   ],
+   "fiches_sortie": 5041,
+   "fiches_inaccessibles": 0,
+   "lots_inaccessibles": 0,
+   "fiches_avec_lots": 374
+  },
+  {
+   "dossier": "compl_delta",
+   "fiches_coffre": 5041,
+   "fiche_ajoutee": 102,
+   "fiche_remplacee_plus_recente": 0,
+   "fiche_coffre_plus_recente_gardee": 0,
+   "lots_rattaches": 3,
+   "lots_sans_fiche_coffre": 0,
+   "ref_differente_du_catalogue": 0,
+   "reparse_fiches": 102,
+   "reparse_lots": 3,
+   "reparse_sha_ko": 0,
+   "reparse_change": 0,
+   "fiches_sortie": 5143,
+   "fiches_inaccessibles": 0,
+   "lots_inaccessibles": 0,
+   "fiches_avec_lots": 377
+  }
+ ],
+ "catalogue_valide": "gardé tel quel (dernier passage non complet)",
+ "changes": [
+  "stock/etat/fiches.json"
+ ],
+ "retires": []
+}

@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 import tempfile
+import re
 import unittest
 
 ICI = os.path.dirname(os.path.abspath(__file__))
@@ -126,6 +127,24 @@ class TestFiche(unittest.TestCase):
                                       "url": "index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=1041719&orgAcronyme=e5w"}])
         self.assertEqual(f["blocs_lus"], ["contact", "docs", "echantillons", "prix_plans", "retrait"])
         self.assertEqual(f["version_lecture"], 3)
+
+    def test_pieces_vide_seulement_si_bloc_officiel_visible(self):
+        # jamais « aucun document » sur une section illisible : [] seulement avec le bloc officiel « aucune pièce » visible
+        h = fx("fiche_1041719_e5w_v3_contact_fictif.html")
+        cache = re.sub(r'<li\s+style="display:\s*block"', '<li style="display:none"', h)
+        self.assertNotEqual(cache, h)
+        self.assertIsNone(lire_fiche(cache)["docs"], "bloc présent, aucun lien visible, pas de bloc « aucune pièce » : non lu")
+        self.assertNotIn("docs", lire_fiche(cache)["blocs_lus"])
+        vide = cache.replace('<div id="ctl0_CONTENU_PAGE_divPiecesConsultation"',
+                             '<div id="ctl0_CONTENU_PAGE_divNoPiecesConsultation">Aucune pièce</div><div id="ctl0_CONTENU_PAGE_divPiecesConsultation"')
+        self.assertEqual(lire_fiche(vide)["docs"], [])
+        cache_vide = vide.replace('divNoPiecesConsultation">', 'divNoPiecesConsultation" style="display:none">')
+        self.assertIsNone(lire_fiche(cache_vide)["docs"], "bloc « aucune pièce » masqué : non prouvé")
+        casse = h.replace('id="ctl0_CONTENU_PAGE_pictoComplement"', 'id="ctl0_CONTENU_PAGE_pictoAutre"')
+        self.assertIsNone(lire_fiche(casse)["docs"], "structure inattendue : non lu")
+        seul = re.sub(r'<div class="bloc-docs-link bloc-250">.*?<!--Fin Bloc Pieces Consultation-->',
+                      '<div id="ctl0_CONTENU_PAGE_divNoPiecesConsultation">Aucune pièce</div>', h, flags=re.S)
+        self.assertEqual(lire_fiche(seul)["docs"], [], "bloc « aucune pièce » seul visible : vide confirmé")
 
     def test_ancienne_page_tronquee_contact_et_documents_non_lus(self):
         # page coupée avant le contact (lectures v2 en cache) : contact / documents NON LUS (None, absents de blocs_lus)
@@ -880,6 +899,20 @@ class TestRotationFiches(unittest.TestCase):
                                         nouvelles_max=2)
         self.assertEqual(st3["reliquat_nouvelles_plafond"], 1)
         self.assertEqual(set(choix3[:2]) <= nouvelles, True)
+
+    def test_reliquat_pieces_non_lues_parmi_les_relectures_sans_priver_les_nouvelles(self):
+        # 15 anciennes (5 avec pièces lues v3, 10 sans) + 4 nouvelles ; 10 places de relecture
+        etat, ids = self._etat(19)
+        for j, i in enumerate(ids[:15]):
+            ch = {"ref": "R", "obj": "O", "lim": "2026-12-01", "h": "10:00"}
+            if j < 5:
+                ch["blocs_lus"] = ["contact", "docs"]
+            etat.enregistrer_fiche(i, ch, "2026-09-01T08:00:00+00:00" if j < 5 else "2026-09-20T08:00:00+00:00", "r0", "x")
+        choix, st = mq.choisir_fiches(etat, set(ids), 10, aujourd_hui="2026-10-02", maintenant_iso="2026-10-02T10:00:00+00:00",
+                                      nouvelles_max=150)
+        self.assertEqual(set(choix[:4]), set(ids[15:]))  # nouvelles d'abord
+        self.assertEqual(set(choix[4:]), set(ids[5:15]))  # puis les 10 sans pièces lues, malgré une lecture plus récente
+        self.assertEqual(st["reliquat_pieces_non_lues_eligibles"], 10)
 
     def test_commande_exacte_de_la_routine_nouvelles_d_abord_et_reliquat(self):
         # main() avec la commande EXACTE de la tâche horaire : --etat W --fiches 10 --sans-snapshots --delai 3

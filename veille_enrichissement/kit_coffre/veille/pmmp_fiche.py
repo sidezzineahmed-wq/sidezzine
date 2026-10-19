@@ -172,6 +172,7 @@ def lire_fiche(h_tronque, masquer=True):
     pp = _txt(h, "prixAcquisitionPlan")
     if pp is not None:
         prix_plans = montant(pp)
+    docs = _lire_documents(h)
     if masquer:
         vis, reu, proto = masquer_coordonnees(vis), masquer_coordonnees(reu), masquer_coordonnees(proto)
         ech_txt = masquer_coordonnees(ech_txt)
@@ -184,9 +185,9 @@ def lire_fiche(h_tronque, masquer=True):
         # v3 : blocs publiés jusque-là non extraits (absent de la page lue = None, « - » publié = None aussi mais bloc lu)
         "ret": _txt(h, "adresseRetraitDossiers"), "prix_plans": prix_plans,
         "ech_date": ech_date, "ech_txt": ech_txt,
-        "contact": _lire_contact(h), "docs": _lire_documents(h),
+        "contact": _lire_contact(h), "docs": docs,
         "blocs_lus": sorted(k for k, ok in (("contact", 'id="' + PFX + 'contactAdministratif"' in h),
-                                             ("docs", 'id="ctl0_CONTENU_PAGE_divPiecesConsultation"' in h),
+                                             ("docs", docs is not None),
                                              ("retrait", 'id="' + PFX + 'adresseRetraitDossiers"' in h),
                                              ("prix_plans", 'id="' + PFX + 'prixAcquisitionPlan"' in h),
                                              ("echantillons", 'id="' + PFX + 'dateEchantillons"' in h)) if ok),
@@ -205,11 +206,26 @@ def _lire_contact(h):
 DOC_TYPES = (("linkDownloadReglement", "reglement"), ("linkDownloadDce", "dce"), ("linkDownloadComplement", "complement"))
 
 
+_NO_PIECES = re.compile(r'<div id="ctl0_CONTENU_PAGE_divNoPiecesConsultation"([^>]*)>')
+_LI_PIECE = re.compile(r'<li\s+style="display:\s*(\w+)[^"]*"[^>]*>\s*<img[^>]*id="ctl0_CONTENU_PAGE_picto(Reglement|Dce|Complement)"')
+
+
+def _visible_attrs(attrs):
+    m = re.search(r'style="([^"]*)"', attrs or "")
+    return not (m and "none" in m.group(1).replace(" ", "").lower())
+
+
 def _lire_documents(h):
-    """Pièces publiées (liens visibles du bloc « Pièces de la consultation ») et documents d'avis ; None si le bloc n'est
-    pas dans la page lue. Aucun téléchargement : libellé, taille et lien public seulement."""
+    """Pièces publiées (liens VISIBLES du bloc « Pièces de la consultation ») et documents d'avis. Aucun téléchargement :
+    type, libellé, taille et lien public seulement. None = non lu : bloc absent de la page lue, structure inattendue ou
+    aucun lien visible sans le bloc officiel « aucune pièce » visible ; [] seulement si ce bloc officiel est visible."""
+    nopc = _NO_PIECES.search(h)
+    vide_officiel = bool(nopc and _visible_attrs(nopc.group(1)))
     if 'id="ctl0_CONTENU_PAGE_divPiecesConsultation"' not in h:
-        return None
+        return [] if vide_officiel else None
+    lis = _LI_PIECE.findall(h)
+    if sorted(t for _, t in lis) != ["Complement", "Dce", "Reglement"]:
+        return None  # structure du bloc inattendue : jamais « aucun document »
     docs = []
     for ident, typ in DOC_TYPES:
         m = re.search(r'<li\s+style="display:\s*(\w+)[^"]*"[^>]*>(?:(?!</li>).)*?id="ctl0_CONTENU_PAGE_' + ident + r'"([^>]*)>(.*?)</a>', h, re.S)
@@ -228,6 +244,8 @@ def _lire_documents(h):
             lib = nettoyer(lib)
             if lib and not vide_portail(lib):
                 docs.append({"type": "avis", "libelle": lib, "taille": None, "url": nettoyer(href)})
+    if not docs:
+        return [] if vide_officiel else None  # bloc présent sans lien visible : non prouvé vide
     return docs
 
 

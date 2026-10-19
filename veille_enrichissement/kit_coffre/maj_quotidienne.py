@@ -466,7 +466,8 @@ def choisir_fiches(etat, ids_run, n, relire_anciennes=True, aujourd_hui=None, ag
       1. changees : fiches dont le listing a changé (date/heure limite, objet, référence…) APRÈS leur dernière lecture,
          la lecture la plus ancienne d'abord ;
       2. nouvelles : jamais lues ; d'abord jamais tentées, puis les plus récemment apparues, puis la date limite la plus proche ;
-      3. anciennes : lues (ou tentées) il y a au moins age_min_h heures, la plus ancienne activité d'abord.
+      3. anciennes : lues (ou tentées) il y a au moins age_min_h heures ; d'abord celles dont les pièces publiées ne sont
+         pas encore lues (reliquat des lectures antérieures au lecteur v3), puis la plus ancienne activité d'abord.
     Le journal etat.selection (persisté dans selection.json) garde pour chaque id la date du dernier choix et les
     échecs : une fiche en échec est mise en pause (6 h, doublée à chaque échec, max 48 h) et ne bloque pas la tête de
     file ; une fiche choisie récemment ne revient pas avant age_min_h. Les consultations à date limite passée sont ignorées.
@@ -506,11 +507,12 @@ def choisir_fiches(etat, ids_run, n, relire_anciennes=True, aujourd_hui=None, ag
         if _change_apres_lecture(e, F, f["lu_le"]):
             changees.append((f["lu_le"], i))
         elif relire_anciennes and activite <= seuil:
-            anciennes.append((activite, i))
+            # reliquat borné : parmi les relectures, d'abord les fiches dont les pièces publiées ne sont pas encore lues
+            anciennes.append((0 if "docs" not in (F.get("blocs_lus") or []) else 1, activite, i))
     changees.sort()
     nouvelles.sort()
     anciennes.sort()
-    files = {"changees": [i for _, i in changees], "nouvelles": [t[-1] for t in nouvelles], "anciennes": [i for _, i in anciennes]}
+    files = {"changees": [i for _, i in changees], "nouvelles": [t[-1] for t in nouvelles], "anciennes": [t[-1] for t in anciennes]}
     choix, reste = {}, n
     for k in ("changees", "nouvelles", "anciennes"):
         choix[k] = files[k][:max(reste, 0)]
@@ -529,6 +531,7 @@ def choisir_fiches(etat, ids_run, n, relire_anciennes=True, aujourd_hui=None, ag
              "file_changees": len(files["changees"]),
              "file_nouvelles": len(files["nouvelles"]), "file_anciennes_eligibles": len(files["anciennes"]),
              "en_pause_apres_echec": en_pause_n,
+             "reliquat_pieces_non_lues_eligibles": sum(1 for t in anciennes if t[0] == 0),
              "choisies": {k: len(v) for k, v in choix.items()}, "categorie": {i: k for k, v in choix.items() for i in v}}
     return ordre, stats
 

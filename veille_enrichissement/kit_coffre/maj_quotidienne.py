@@ -18,7 +18,7 @@ import traceback
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from veille.client import ArretCollecte, ClientPMMP, texte  # noqa: E402
-from veille.etat import Etat, aujourd_hui_maroc, maintenant  # noqa: E402
+from veille.etat import Etat, _ecrire_json, aujourd_hui_maroc, maintenant  # noqa: E402
 from veille.pmmp_fiche import PARAMS, fiche_valide, lire_fiche, tronquer_contact  # noqa: E402
 from veille.pmmp_lots import PARAMS_LOTS, lire_popup  # noqa: E402
 from veille.pmmp_listing import (CATEGORIES, TAILLE_PAGE, CollecteListing, date_portail, lignes, lire_ligne,  # noqa: E402
@@ -166,30 +166,87 @@ def _cle(du, au, cat=None, proc=None):
     return f"{du.isoformat()}..{au.isoformat()}" + (f"#{CATEGORIES[cat]}" if cat else "") + (f"#proc{proc}" if proc else "")
 
 
-def passe_partitionnee(cl, etat, run_id, provinces, alias, couv_passe, snapshots=False, cible=400, max_rondes=3):
-    """Listing COMPLET vérifiable malgré la pagination instable du portail.
-
-    Fenêtre FIXÉE une fois pour tout le passage : les bornes « date limite entre / et » lues sur le formulaire officiel à
-    l'ouverture (cl.fenetre) sont envoyées explicitement à CHAQUE requête, y compris le total global (un passage qui
-    franchit minuit garde la même fenêtre).
-    Partitions officielles disjointes : date limite par intervalle de jours (bornes inclusives, vérifiées ligne à ligne),
-    puis, pour un jour à plus de 500 résultats, catégorie (Travaux / Fournitures / Services), puis type de procédure. Une
-    partition n'est acceptée que lue en UNE réponse de ≤ 500 lignes : aucune pagination n'est jamais retenue. Une
-    partition indivisible à plus de 500 résultats rend le passage PARTIEL.
-    Couverture des sous-partitions : pour chaque jour (ou jour+catégorie) subdivisé, la somme des sous-partitions doit
-    égaler le total du parent recompté au même tour ; sinon une valeur inconnue / hors liste existe : PARTIEL.
-    Preuve contre les changements à total constant (report de date entre partitions, ajout + suppression) : après la
-    lecture initiale, chaque tour de vérification relit TOUTES les partitions ; le passage n'est complet que si, dans un
-    même tour, chaque partition a exactement les mêmes identifiants qu'à sa lecture précédente, aucun identifiant n'est
-    dans deux partitions, aucune anomalie, et somme des partitions = identifiants distincts = total global mesuré au
-    début ET à la fin du tour. Au plus max_rondes tours ; sinon PARTIEL avec les raisons (aucune absence marquée, dernier
-    catalogue valide conservé). Limite assumée : un changement survenu après la dernière lecture d'une partition est vu au
-    passage suivant (comme pour tout instantané)."""
+def lectures_precedentes(etat, maintenant_iso=None, age_max_h=3.0):
+    """Dernière lecture de chaque partition par le passage partitionné précédent, reconstruite EXACTEMENT depuis l'état :
+    une partition lue à l'instant lu_le par le passage run contient les identifiants dont la dernière observation est
+    (run, lu_le) et dont la date limite (et la catégorie) relèvent de ses bornes. Un identifiant revu ensuite dans une autre partition (date limite modifiée) n'y figure plus : la partition
+    sera alors relue. Plus vieille que age_max_h : ignorée (aucune confirmation sur une lecture ancienne)."""
     import datetime as _dt
+    now = _dt.datetime.fromisoformat(maintenant_iso or maintenant())
+    for nom in reversed(etat.couvertures()):
+        with open(os.path.join(etat.d, "couverture", nom), encoding="utf-8") as fh:
+            c = json.load(fh)
+        L = c.get("listing") or {}
+        if not str(L.get("mode", "")).startswith("partitions"):
+            continue
+        pages = [p for p in L.get("pages_lues") or [] if p.get("lu_le") and p.get("partition")]
+        if not pages:
+            return {}
+        par_instant = {}
+        for i, e in etat.listing["items"].items():
+            if e.get("dernier_run") == c["run_id"]:
+                par_instant.setdefault(e.get("dernier_vu_listing"), []).append((i, e.get("listing") or {}))
+        out = {}
+        for p in pages:
+            morceaux = p["partition"].split("#")
+            if any(m.startswith("proc") for m in morceaux[1:]):
+                continue  # sous-partition par procédure : libellé du listing ≠ code du filtre, relue dans le passage
+            if (now - _dt.datetime.fromisoformat(p["lu_le"])).total_seconds() > age_max_h * 3600:
+                continue
+            a, b = morceaux[0].split("..")
+            cat = morceaux[1] if len(morceaux) > 1 else None
+            # même instant ET bornes de la partition (deux partitions lues dans la même seconde restent distinctes)
+            ids = {i for i, L in par_instant.get(p["lu_le"], []) if L.get("lim") and a <= L["lim"] <= b and (cat is None or L.get("cat") == cat)}
+            out[p["partition"]] = {"ids": ids, "total": p.get("total"), "lu_le": p["lu_le"], "run": c["run_id"]}
+        return out
+    return {}
+
+
+def _plan_depuis_precedent(prec, du, au):
+    """Bornes des partitions précédentes si elles couvrent exactement [du, au] (contiguës, sans trou) ; sinon None."""
+    import datetime as _dt
+    bornes = []
+    for cle in prec:
+        if "#" in cle:
+            return None  # sous-partitions : on redécoupe
+        a, b = cle.split("..")
+        bornes.append((_dt.date.fromisoformat(a), _dt.date.fromisoformat(b)))
+    bornes.sort()
+    if not bornes or bornes[0][0] != du or bornes[-1][1] != au:
+        return None
+    if any(b + _dt.timedelta(days=1) != a for (_, b), (a, _) in zip(bornes, bornes[1:])):
+        return None
+    return bornes
+
+
+def passe_partitionnee(cl, etat, run_id, provinces, alias, couv_passe, snapshots=False, cible=400, max_iterations=8,
+                       precedent=None):
+    """Listing COMPLET vérifiable malgré la pagination instable et un portail qui bouge pendant la lecture.
+
+    Fenêtre FIXÉE une fois pour tout le passage : les bornes « date limite entre / et » du formulaire officiel lu à
+    l'ouverture (cl.fenetre) sont envoyées explicitement à CHAQUE requête, total global compris.
+    Partitions officielles disjointes : date limite par intervalle de jours (bornes inclusives vérifiées ligne à ligne),
+    puis catégorie, puis type de procédure pour un jour trop chargé. Une partition n'est acceptée que lue en UNE réponse
+    de ≤ 500 lignes ; aucune pagination n'est jamais retenue ; une partition indivisible > 500 rend le passage PARTIEL.
+    Preuve d'identité par partition : une partition est CONFIRMÉE quand deux lectures consécutives donnent exactement les
+    mêmes identifiants et le même total (la première peut être la dernière lecture du passage partitionné précédent, de
+    moins de 3 h). Seules les partitions non confirmées sont relues (au plus max_iterations fois).
+    Contrôle final, encadré par deux totaux globaux : chaque partition est RECOMPTÉE (page de 10 lignes) ; une partition
+    dont le compte diffère de son total confirmé perd sa confirmation et est relue. Complet SEULEMENT si toutes les
+    partitions sont confirmées, tous les comptes égalent les totaux confirmés, somme des partitions = identifiants
+    distincts = total global du début OU de la fin du contrôle (instant de référence enregistré ; les annonces publiées
+    pendant le contrôle relèvent du passage suivant), aucun identifiant dans deux partitions,
+    aucune anomalie, et, pour chaque jour subdivisé, somme des sous-partitions = total du jour. Sinon PARTIEL avec les
+    raisons (aucune absence marquée, dernier catalogue valide conservé).
+    Limite assumée : un ajout ET une suppression dans une même partition après sa dernière lecture (compte inchangé)
+    ne sont vus qu'au passage suivant, comme pour tout instantané non atomique."""
+    import datetime as _dt
+    import time as _time
     debut = maintenant()
     du, au = date_portail(cl.fenetre["dateMiseEnLigneStart"]), date_portail(cl.fenetre["dateMiseEnLigneEnd"])
     procedures = list(getattr(cl, "procedures", []) or [])
     totaux = []
+    prec = precedent if precedent is not None else lectures_precedentes(etat)
 
     def total_global(moment):
         _, t = cl.partition(du, au)
@@ -198,18 +255,28 @@ def passe_partitionnee(cl, etat, run_id, provinces, alias, couv_passe, snapshots
         totaux.append({"moment": moment, "quand": maintenant(), "total": t["total"]})
         return t["total"]
 
-    couv_passe.update({"mode": "partitions_date_limite_verifiees", "debut": debut, "classification": None,
+    couv_passe.update({"mode": "partitions_date_limite_confirmees", "debut": debut, "classification": None,
                        "fenetre_date_limite": [du.isoformat(), au.isoformat()],
                        "fenetre_fixee_a_l_ouverture": {k: cl.fenetre.get(k) for k in (
                            "dateMiseEnLigneStart", "dateMiseEnLigneEnd", "dateMiseEnLigneCalculeStart", "dateMiseEnLigneCalculeEnd")}})
-    nreq0 = cl.c.nb_requetes
-    t_initial = total_global("initial")
-    couv_passe["total_annonce"] = t_initial
-    feuilles, parents, subdivisions = {}, {}, []
+    nreq0, oct0, t0 = cl.c.nb_requetes, getattr(cl.c, "octets_recus", 0), _time.monotonic()
+    feuilles, parents, subdivisions, controles, phase = {}, {}, [], [], ["decoupage"]
+    etat_d = getattr(etat, "d", None)
+
+    def progres():
+        """Point de reprise lisible (écriture atomique) : avancement réel du passage en cours, pour le suivi."""
+        if not etat_d:
+            return
+        _ecrire_json(os.path.join(etat_d, "progression_listing.json"), {
+            "run_id": run_id, "phase": phase[0], "maj": maintenant(), "depuis_s": round(_time.monotonic() - t0),
+            "partitions": len(feuilles), "confirmees": sum(1 for f in feuilles.values() if f.get("confirmee")),
+            "lectures": sum(f.get("lectures", 0) for f in feuilles.values()),
+            "requetes": cl.c.nb_requetes - nreq0, "octets_recus": getattr(cl.c, "octets_recus", 0) - oct0,
+            "totaux_globaux": totaux, "controles": [{k: r[k] for k in ("controle", "total_avant", "total_apres", "raisons")} for r in controles]})
 
     def lire(f, h, t):
         if t["total"] > TAILLE_PAGE:
-            f.update({"total": t["total"], "ids_prec": f.get("ids"), "ids": set(),
+            f.update({"total": t["total"], "ids_prec": f.get("ids"), "ids": set(), "confirmee": False,
                       "anomalies": [f"{t['total']} résultats > {TAILLE_PAGE} : partition indivisible, jamais lue par pagination"]})
             return
         rows, total, anom, hl = _lire_partition(cl, h, t, f["du"], f["au"], f["cat"], provinces, alias)
@@ -218,99 +285,149 @@ def passe_partitionnee(cl, etat, run_id, provinces, alias, couv_passe, snapshots
             etat.enregistrer_ligne(x, lu_le, run_id)
         if snapshots and hl:
             etat.snapshot(run_id, "partition_" + f["cle"].replace("#", "_").replace("..", "_"), hl)
-        f.update({"ids_prec": f.get("ids"), "total_prec": f.get("total"), "ids": set(rows), "total": total, "lu_le": lu_le,
-                  "anomalies": anom, "lectures": f.get("lectures", 0) + 1})
+        avant = {"ids": f.get("ids"), "total": f.get("total"), "lu_le": f.get("lu_le")}
+        ids = set(rows)
+        conf = (not anom and avant["ids"] is not None and avant["ids"] == ids and avant["total"] == total == len(ids))
+        f.update({"ids": ids, "total": total, "lu_le": lu_le, "anomalies": anom, "lectures": f.get("lectures", 0) + 1,
+                  "confirmee": conf, "confirmation": {"lectures": [avant["lu_le"], lu_le], "identiques": True} if conf else None})
         if anom:  # trace de toute anomalie, même résolue par une relecture
             f.setdefault("anomalies_vues", []).append({"partition": f["cle"], "lecture": f["lectures"], "anomalies": anom})
+        if avant["ids"] is not None and not conf:
+            f["changements_vus"] = f.get("changements_vus", 0) + 1
+        progres()
 
-    # 1. découpage et lecture initiale
-    file = [(a, b, None, None) for a, b in planifier_partitions(etat, du, au, cible)]
-    while file:
-        a, b, cat, proc = file.pop(0)
-        h, t = cl.partition(a, b, cat, proc)
-        if t["total"] is None:
-            raise ArretCollecte(f"compteur introuvable pour la partition {_cle(a, b, cat, proc)}")
-        sous = None
-        if t["total"] > TAILLE_PAGE:
-            if b > a:
-                m = a + (b - a) // 2
-                file[:0] = [(a, m, cat, proc), (m + _dt.timedelta(days=1), b, cat, proc)]
-                continue
-            if cat is None:
-                sous = [(a, a, c, None) for c in CATEGORIES]
-            elif proc is None and procedures:
-                sous = [(a, a, cat, p) for p in procedures]
-        if sous:
-            cle = _cle(a, b, cat, proc)
-            parents[cle] = {"du": a, "au": b, "cat": cat, "proc": proc, "total": t["total"], "enfants": [_cle(*s) for s in sous]}
-            subdivisions.append({"partition": cle, "total": t["total"], "par": "categorie" if cat is None else "procedure"})
-            file[:0] = sous
-            continue
-        cle = _cle(a, b, cat, proc)
-        feuilles[cle] = {"cle": cle, "du": a, "au": b, "cat": cat, "proc": proc}
-        lire(feuilles[cle], h, t)
-
-    # 2. tours de vérification : relecture intégrale, identifiants identiques exigés
-    rondes = []
-    for ronde in range(1, max_rondes + 1):
-        t_debut = total_global(f"debut_tour_{ronde}")
-        for cle, p in parents.items():
-            _, t = cl.partition(p["du"], p["au"], p["cat"], p["proc"])
-            p["total_tour"] = t["total"]
-        for cle in sorted(feuilles):
-            f = feuilles[cle]
-            h, t = cl.partition(f["du"], f["au"], f["cat"], f["proc"])
+    try:
+        t_initial = total_global("initial")
+        couv_passe["total_annonce"] = t_initial
+        # 1. découpage (bornes du passage précédent si elles couvrent exactement la fenêtre) et première lecture
+        plan = _plan_depuis_precedent(prec, du, au) or planifier_partitions(etat, du, au, cible)
+        file = [(a, b, None, None) for a, b in plan]
+        while file:
+            a, b, cat, proc = file.pop(0)
+            h, t = cl.partition(a, b, cat, proc)
             if t["total"] is None:
-                raise ArretCollecte(f"compteur introuvable pour la partition {cle}")
-            lire(f, h, t)
-        t_fin = total_global(f"fin_tour_{ronde}")
-        occ = {}
-        for cle, f in feuilles.items():
-            for i in f["ids"]:
-                occ.setdefault(i, []).append(cle)
-        doublons = sorted(i for i, c in occ.items() if len(c) > 1)
-        somme = sum(f["total"] or 0 for f in feuilles.values())
-        changees = sorted(cle for cle, f in feuilles.items() if f.get("ids_prec") != f["ids"] or f.get("total_prec") != f["total"])
-        raisons = []
-        if t_fin != t_debut:
-            raisons.append(f"total global modifié pendant le tour : {t_debut} -> {t_fin}")
-        if somme != t_fin:
-            raisons.append(f"somme des partitions {somme} ≠ total global {t_fin}")
-        if len(occ) != somme:
-            raisons.append(f"{len(occ)} identifiants distincts pour {somme} lignes annoncées par les partitions")
-        if doublons:
-            raisons.append(f"{len(doublons)} identifiant(s) dans deux partitions (date limite modifiée pendant la lecture) : "
-                           + ", ".join(doublons[:5]))
-        if changees:
-            raisons.append(f"{len(changees)} partition(s) dont les identifiants ont changé depuis la lecture précédente : "
-                           + ", ".join(changees[:5]))
-        for cle, p in parents.items():
-            s = sum(feuilles[e]["total"] or 0 for e in p["enfants"] if e in feuilles) + sum(
-                parents[e].get("total_tour") or 0 for e in p["enfants"] if e in parents)
-            if s != p["total_tour"]:
-                raisons.append(f"sous-partitions de {cle} : {s} ≠ {p['total_tour']} (valeur de catégorie/procédure inconnue ou hors liste)")
-        for cle, f in sorted(feuilles.items()):
-            if f["anomalies"]:
-                raisons.append(f"partition {cle} : " + " ; ".join(f["anomalies"]))
-        rondes.append({"tour": ronde, "total_debut": t_debut, "total_fin": t_fin, "somme_partitions": somme, "ids_distincts": len(occ),
-                       "partitions_changees": changees, "doublons_inter_partitions": len(doublons), "raisons": raisons})
-        if not raisons:
-            break
-    dernier = rondes[-1]
+                raise ArretCollecte(f"compteur introuvable pour la partition {_cle(a, b, cat, proc)}")
+            sous = None
+            if t["total"] > TAILLE_PAGE:
+                if b > a:
+                    m = a + (b - a) // 2
+                    file[:0] = [(a, m, cat, proc), (m + _dt.timedelta(days=1), b, cat, proc)]
+                    continue
+                if cat is None:
+                    sous = [(a, a, c, None) for c in CATEGORIES]
+                elif proc is None and procedures:
+                    sous = [(a, a, cat, p) for p in procedures]
+            if sous:
+                cle = _cle(a, b, cat, proc)
+                parents[cle] = {"du": a, "au": b, "cat": cat, "proc": proc, "total": t["total"], "enfants": [_cle(*s) for s in sous]}
+                subdivisions.append({"partition": cle, "total": t["total"], "par": "categorie" if cat is None else "procedure"})
+                file[:0] = sous
+                continue
+            cle = _cle(a, b, cat, proc)
+            p0 = prec.get(cle) or {}
+            feuilles[cle] = {"cle": cle, "du": a, "au": b, "cat": cat, "proc": proc, "ids": p0.get("ids"), "total": p0.get("total"),
+                             "lu_le": p0.get("lu_le"), "lecture_precedente": p0.get("run")}
+            lire(feuilles[cle], h, t)
+
+        # 2. relecture des seules partitions non confirmées, puis contrôle final encadré
+        phase[0] = "confirmation"
+        dernier = None
+        for it in range(1, max_iterations + 1):
+            for cle in sorted(c for c, f in feuilles.items() if not f["confirmee"]):
+                f = feuilles[cle]
+                h, t = cl.partition(f["du"], f["au"], f["cat"], f["proc"])
+                if t["total"] is None:
+                    raise ArretCollecte(f"compteur introuvable pour la partition {cle}")
+                lire(f, h, t)
+            if not all(f["confirmee"] for f in feuilles.values()) and it < max_iterations:
+                continue
+            phase[0] = f"controle_{it}"
+            t_avant = total_global(f"avant_controle_{it}")
+            comptes = {}
+            for cle, f in sorted(feuilles.items()):
+                _, t = cl.partition(f["du"], f["au"], f["cat"], f["proc"])
+                comptes[cle] = t["total"]
+                if t["total"] != f["total"]:
+                    f["confirmee"] = False
+            for cle, p in parents.items():
+                _, t = cl.partition(p["du"], p["au"], p["cat"], p["proc"])
+                p["total_controle"] = t["total"]
+            t_apres = total_global(f"apres_controle_{it}")
+            occ = {}
+            for cle, f in feuilles.items():
+                for i in f["ids"]:
+                    occ.setdefault(i, []).append(cle)
+            doublons = sorted(i for i, c in occ.items() if len(c) > 1)
+            somme = sum(f["total"] or 0 for f in feuilles.values())
+            non_conf = sorted(c for c, f in feuilles.items() if not f["confirmee"])
+            raisons = []
+            # instant de référence : chaque partition a été recomptée entre les deux totaux globaux et son compte égale son
+            # total confirmé ; si la somme égale le total global du début (ou de la fin) du contrôle, la réunion est exacte à
+            # cet instant ; les annonces publiées pendant le contrôle (écart avec l'autre total) relèvent du passage suivant
+            reference = "avant_controle" if somme == t_avant else "apres_controle" if somme == t_apres else None
+            if reference is None:
+                raisons.append(f"somme des partitions confirmées {somme} ≠ total global avant ({t_avant}) et après ({t_apres}) le contrôle")
+            if len(occ) != somme:
+                raisons.append(f"{len(occ)} identifiants distincts pour {somme} lignes des partitions")
+            if doublons:
+                raisons.append(f"{len(doublons)} identifiant(s) dans deux partitions (date limite modifiée) : " + ", ".join(doublons[:5]))
+            if non_conf:
+                raisons.append(f"{len(non_conf)} partition(s) non confirmée(s) (deux lectures différentes, ou compte modifié au "
+                               "contrôle) : " + ", ".join(non_conf[:6]))
+            for cle, p in parents.items():
+                s = sum(feuilles[e]["total"] or 0 for e in p["enfants"] if e in feuilles) + sum(
+                    parents[e].get("total_controle") or 0 for e in p["enfants"] if e in parents)
+                if s != p["total_controle"]:
+                    raisons.append(f"sous-partitions de {cle} : {s} ≠ {p['total_controle']} (valeur de catégorie/procédure inconnue ou hors liste)")
+            for cle, f in sorted(feuilles.items()):
+                if f["anomalies"]:
+                    raisons.append(f"partition {cle} : " + " ; ".join(f["anomalies"]))
+            dernier = {"controle": it, "total_avant": t_avant, "total_apres": t_apres, "somme_partitions": somme,
+                       "instant_reference": reference, "total_reference": {"avant_controle": t_avant, "apres_controle": t_apres}.get(reference),
+                       "ids_distincts": len(occ), "comptes_differents": sorted(c for c in comptes if comptes[c] != feuilles[c]["total"]),
+                       "non_confirmees": non_conf, "doublons_inter_partitions": doublons[:20], "raisons": raisons}
+            controles.append(dernier)
+            progres()
+            if not raisons:
+                break
+            # doublon inter-partitions : les partitions concernées sont relues (la date limite a changé entre deux lectures)
+            for i in doublons:
+                for c in occ[i]:
+                    feuilles[c]["confirmee"] = False
+    except ArretCollecte as e:
+        # interruption (réseau, 401/403, budget de temps) : ce qui a été lu est décrit, rien n'est conclu
+        couv_passe.update({"complete": False, "interrompu": str(e)[:300], "fin": maintenant(),
+                           "pages_annoncees": None, "pages_lues": [], "ids_distincts": None, "totaux_globaux": totaux,
+                           "partitions_lues_avant_arret": len(feuilles), "controles": controles,
+                           "requetes_listing": cl.c.nb_requetes - nreq0, "octets_recus": getattr(cl.c, "octets_recus", 0) - oct0,
+                           "raisons_incomplet": [f"passage interrompu : {str(e)[:200]}"]})
+        phase[0] = "interrompu"
+        progres()
+        raise
+    phase[0] = "fini"
+    progres()
+    if dernier is None:
+        dernier = {"total_avant": None, "total_apres": None, "raisons": ["aucun contrôle final (itérations épuisées)"]}
     ids = set().union(*[f["ids"] for f in feuilles.values()]) if feuilles else set()
     ordre = sorted(feuilles.values(), key=lambda f: (f["du"], f["cat"] or "", f["proc"] or ""))
     couv_passe.update({
-        "total_annonce": dernier["total_fin"], "pages_annoncees": len(feuilles), "taille_page": TAILLE_PAGE,
+        "total_annonce": dernier.get("total_reference") or dernier["total_apres"], "pages_annoncees": len(feuilles), "taille_page": TAILLE_PAGE,
+        "instant_reference": dernier.get("instant_reference"), "total_global_apres_controle": dernier["total_apres"],
         "pages_lues": [{"page": k + 1, "partition": f["cle"], "lignes": len(f["ids"]), "total": f["total"], "lu_le": f.get("lu_le"),
-                        "lectures": f.get("lectures", 0)} for k, f in enumerate(ordre)],
+                        "lectures": f.get("lectures", 0), "confirmee": f["confirmee"], "confirmation": f.get("confirmation"),
+                        "lecture_precedente": f.get("lecture_precedente"), "changements_vus": f.get("changements_vus", 0)}
+                       for k, f in enumerate(ordre)],
         "lignes_lues": sum(len(f["ids"]) for f in feuilles.values()), "ids_distincts": len(ids),
-        "subdivisions": subdivisions, "totaux_globaux": totaux, "tours_verification": rondes,
-        "requetes_listing": cl.c.nb_requetes - nreq0, "stable": dernier["total_debut"] == dernier["total_fin"],
+        "subdivisions": subdivisions, "totaux_globaux": totaux, "controles": controles,
+        "requetes_listing": cl.c.nb_requetes - nreq0, "octets_recus": getattr(cl.c, "octets_recus", 0) - oct0,
+        "duree_listing_s": round(_time.monotonic() - t0), "stable": dernier["total_avant"] == dernier["total_apres"],
         "anomalies_vues": [a for f in ordre for a in f.get("anomalies_vues", [])],
         "complete": not dernier["raisons"], "raisons_incomplet": dernier["raisons"], "fin": maintenant(),
-        "preuve": "fenêtre fixée à l'ouverture ; partitions disjointes par date limite (bornes vérifiées ligne à ligne), catégorie, "
-                  "procédure, chacune lue en une réponse ≤ 500 ; tour de vérification : mêmes identifiants qu'à la lecture "
-                  "précédente pour chaque partition, somme = distincts = total global au début et à la fin du tour"})
+        "preuve": "fenêtre fixée à l'ouverture ; partitions disjointes (date limite, catégorie, procédure) lues chacune en une "
+                  "réponse ≤ 500 ; chaque partition confirmée par deux lectures consécutives identiques ; contrôle final : "
+                  "recomptage de chaque partition (compte = total confirmé) entre deux totaux globaux, somme = distincts = total global "
+                  "à l'instant de référence (début ou fin du contrôle). Limite : un "
+                  "ajout+suppression dans une même partition après sa dernière lecture n'est vu qu'au passage suivant"})
     return ids
 
 
@@ -454,6 +571,9 @@ def main():
     ap.add_argument("--sans-relecture", action="store_true", help="ne relit jamais une fiche déjà lue sauf si le listing l'a contredite")
     ap.add_argument("--age-min-relecture-h", type=float, default=24.0)
     ap.add_argument("--delai", type=float, default=4.0, help="secondes entre requêtes ; jamais moins de 4 (rythme convenu)")
+    ap.add_argument("--budget-s", type=float, default=1200.0,
+                    help="durée maximale du passage (listing + fiches) ; au-delà aucune requête n'est envoyée et le passage "
+                         "se termine PARTIEL en écrivant sa couverture (la tâche horaire coupe à 1500 s)")
     ap.add_argument("--listing-pagine", action="store_true",
                     help="ancien parcours page par page (sans partitions) : sensible à la pagination instable du portail")
     ap.add_argument("--sans-snapshots", action="store_true")
@@ -465,6 +585,9 @@ def main():
     run_id = maintenant().replace(":", "").replace("+0000", "Z")
     journal = []
     client = ClientPMMP(delai_min=max(a.delai, 4.0), journal=journal.append)
+    if a.budget_s:
+        import time as _time
+        client.echeance = _time.monotonic() + a.budget_s
     couv = {"run_id": run_id, "debut": maintenant(), "mode": "manuel", "outil": "veille_kit maj_quotidienne",
             "parametres": vars(a), "listing": {}, "fiches": None}
     statut_err = None
@@ -515,6 +638,7 @@ def main():
                     "valeur pour les IDs connus et met null pour les nouveaux"),
         }
         couv["nb_requetes"] = client.nb_requetes
+        couv["octets_recus"] = client.octets_recus
         couv["journal_http"] = journal
         couv["fin"] = maintenant()
         etat.enregistrer_couverture(run_id, couv)

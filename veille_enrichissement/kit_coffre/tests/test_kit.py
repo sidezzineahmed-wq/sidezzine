@@ -458,8 +458,8 @@ class TestPartitions(unittest.TestCase):
         p = FauxPortail(_items([182, 356, 250, 0, 90, 410, 30] + [5] * 170))
         ids, couv, etat = self._passe(p)
         self._ok(p, couv, ids)
-        self.assertEqual(len(couv["tours_verification"]), 1)  # portail immobile : un seul tour suffit
-        self.assertTrue(all(x["lectures"] == 2 for x in couv["pages_lues"]))  # lecture + relecture identique
+        self.assertEqual(len(couv["controles"]), 1)  # portail immobile : un seul contrôle suffit
+        self.assertTrue(all(x["lectures"] == 2 and x["confirmee"] for x in couv["pages_lues"]))  # deux lectures identiques
         self.assertEqual(len(etat.listing["items"]), len(p.items))
 
     def test_fenetre_fixee_envoyee_a_chaque_requete(self):
@@ -525,7 +525,8 @@ class TestPartitions(unittest.TestCase):
         ids, couv, _ = self._passe(p)
         self._ok(p, couv, ids)
         self.assertIn("pmmp:o8p:2000001", ids)
-        self.assertEqual(len(couv["tours_verification"]), 2)
+        p19 = [x for x in couv["pages_lues"] if x["partition"].startswith("2026-10-19")][0]
+        self.assertEqual((p19["changements_vus"], p19["lectures"]), (1, 3))  # changée, relue jusqu'à deux lectures identiques
 
     def test_suppression_apres_lecture_sans_effacer_l_etat(self):
         p = FauxPortail(_items(GROS), apres={"19/10/2026": lambda q: q.items.pop("1000000")})
@@ -538,7 +539,7 @@ class TestPartitions(unittest.TestCase):
         p = FauxPortail(_items(GROS), apres={"19/10/2026": lambda q: q.items.__setitem__("1000000", ("2026-11-30", "1", "1"))})
         ids, couv, _ = self._passe(p)
         self._ok(p, couv, ids)
-        self.assertGreaterEqual(len(couv["tours_verification"]), 2)
+        self.assertTrue(any(x["changements_vus"] for x in couv["pages_lues"]))
 
     def test_echange_a_total_constant_dans_une_meme_partition(self):
         def echange(q):
@@ -549,13 +550,13 @@ class TestPartitions(unittest.TestCase):
         self._ok(p, couv, ids)
         self.assertIn("pmmp:o8p:2000002", ids)
         self.assertNotIn("pmmp:o8p:1000000", ids)
-        self.assertTrue(couv["tours_verification"][0]["partitions_changees"])
+        self.assertTrue([x for x in couv["pages_lues"] if x["partition"].startswith("2026-10-19")][0]["changements_vus"])
 
     def test_echange_a_total_constant_entre_deux_partitions_deja_lues(self):
         # toutes les partitions lues, total global inchangé : seul le tour de relecture peut le voir
         sec = FauxPortail(_items(GROS))
         self._passe(sec)
-        debut_tour = sec.globaux[-2]  # avant-dernier total global = début du (seul) tour de vérification
+        debut_tour = sec.globaux[-2]  # avant-dernier total global = début du contrôle final (portail immobile)
 
         def echange(q):
             q.items.pop("1000000")  # 19/10
@@ -563,10 +564,34 @@ class TestPartitions(unittest.TestCase):
         p = FauxPortail(_items(GROS), evenements={debut_tour: echange})
         ids, couv, _ = self._passe(p)
         self._ok(p, couv, ids)
-        self.assertEqual(couv["tours_verification"][0]["total_debut"], couv["tours_verification"][0]["total_fin"])
-        self.assertEqual(len(couv["tours_verification"][0]["partitions_changees"]), 2)
+        c0 = couv["controles"][0]
+        self.assertEqual(c0["total_avant"], c0["total_apres"])  # total global constant : seul le recomptage le voit
+        self.assertEqual(len(c0["comptes_differents"]), 2)
+        self.assertEqual(len(couv["controles"]), 2)
         self.assertIn("pmmp:o8p:2000003", ids)
         self.assertNotIn("pmmp:o8p:1000000", ids)
+
+    def test_publication_pendant_le_controle_dans_une_partition_deja_recomptee(self):
+        sec = FauxPortail(_items(GROS))
+        self._passe(sec)
+        k = sec.globaux[-2]  # total global avant contrôle ; k+1 = recomptage de la 1re partition (19/10)
+        p = FauxPortail(_items(GROS), evenements={k + 2: lambda q: q.items.__setitem__("2000010", ("2026-10-19", "1", "1"))})
+        ids, couv, _ = self._passe(p)
+        self.assertTrue(couv["complete"], couv["raisons_incomplet"])
+        self.assertEqual(couv["instant_reference"], "avant_controle")
+        self.assertEqual(couv["total_annonce"], len(p.items) - 1)  # instantané exact au début du contrôle
+        self.assertEqual(couv["total_global_apres_controle"], len(p.items))  # l'annonce publiée après : passage suivant
+        self.assertNotIn("pmmp:o8p:2000010", ids)
+
+    def test_publication_pendant_le_controle_dans_une_partition_pas_encore_recomptee(self):
+        sec = FauxPortail(_items(GROS))
+        self._passe(sec)
+        k = sec.globaux[-2]
+        p = FauxPortail(_items(GROS), evenements={k + 1: lambda q: q.items.__setitem__("2000011", ("2027-03-01", "1", "1"))})
+        ids, couv, _ = self._passe(p)
+        self._ok(p, couv, ids)  # compte changé -> partition relue -> nouveau contrôle : l'annonce est incluse
+        self.assertIn("pmmp:o8p:2000011", ids)
+        self.assertEqual(len(couv["controles"]), 2)
 
     def test_doublon_du_portail_trace_puis_relu(self):
         p = FauxPortail(_items(GROS), doublon_partition=("19/10/2026", 1))
@@ -586,7 +611,8 @@ class TestPartitions(unittest.TestCase):
             p.evenements[k] = (lambda k: lambda q: q.items.__setitem__(str(3000000 + k), ("2026-10-20", "1", "1")))(k)
         ids, couv, etat = self._passe(p)
         self.assertFalse(couv["complete"])
-        self.assertEqual(len(couv["tours_verification"]), 3)  # vérification bornée
+        self.assertLessEqual(len(couv["controles"]), 6)  # itérations bornées
+        self.assertLess(couv["requetes_listing"], 400)
         self.assertTrue(couv["raisons_incomplet"])
         self.assertTrue(all(e["absences_listing_complet"] == 0 for e in etat.listing["items"].values()))
 
@@ -611,7 +637,48 @@ class TestPartitions(unittest.TestCase):
                 self.addCleanup(shutil.rmtree, d)
                 with self.assertRaises(client_mod.ArretCollecte):
                     mq.passe_partitionnee(p, Etat(d), "r", PROV, ALIAS, couv)
-                self.assertNotIn("complete", couv)
+                self.assertIs(couv["complete"], False)  # décrit, jamais conclu
+                self.assertIn("interrompu", couv)
+                pr = json.loads(lire(os.path.join(d, "progression_listing.json")))
+                self.assertEqual(pr["phase"], "interrompu")
+
+    def test_budget_de_temps_arret_propre_client_reel(self):
+        import time
+        c = client_mod.ClientPMMP(delai_min=2.0)
+        c.echeance = time.monotonic() + 1  # déjà presque atteint : aucune requête envoyée (le réseau est interdit ici)
+        with self.assertRaises(client_mod.ArretCollecte) as e:
+            c.get({"page": "x"})
+        self.assertIn("budget", str(e.exception))
+        self.assertEqual(c.nb_requetes, 0)
+
+    def test_progression_ecrite_a_chaque_partition(self):
+        p = FauxPortail(_items(GROS))
+        _, couv, etat = self._passe(p)
+        pr = json.loads(lire(os.path.join(etat.d, "progression_listing.json")))
+        self.assertEqual(pr["phase"], "fini")
+        self.assertEqual(pr["partitions"], couv["pages_annoncees"])
+        self.assertEqual(pr["requetes"], couv["requetes_listing"])
+
+    def test_confirmation_par_la_lecture_du_passage_precedent(self):
+        p = FauxPortail(_items(GROS))
+        _, c1, etat = self._passe(p)
+        etat.enregistrer_couverture("r", {"run_id": "r", "listing": c1})  # comme main()
+        p.items["2000009"] = ("2026-10-19", "1", "1")  # une seule partition change entre les deux passages
+        couv = {}
+        ids = mq.passe_partitionnee(p, etat, "r2", PROV, ALIAS, couv)
+        self._ok(p, couv, ids)
+        rel = {x["partition"]: x["lectures"] for x in couv["pages_lues"]}
+        self.assertEqual(rel.pop([k for k in rel if k.startswith("2026-10-19")][0]), 2)  # changée : relue dans le passage
+        self.assertTrue(all(v == 1 for v in rel.values()))  # inchangées : confirmées par la lecture précédente
+        self.assertTrue(all(x["lecture_precedente"] == "r" for x in couv["pages_lues"]))
+        self.assertLess(couv["requetes_listing"], c1["requetes_listing"])
+
+    def test_lecture_precedente_trop_ancienne_ignoree(self):
+        p = FauxPortail(_items(GROS))
+        _, c1, etat = self._passe(p)
+        etat.enregistrer_couverture("r", {"run_id": "r", "listing": c1})  # comme main()
+        self.assertTrue(mq.lectures_precedentes(etat))
+        self.assertEqual(mq.lectures_precedentes(etat, "2099-01-01T00:00:00+00:00"), {})
 
     def test_plan_couvre_exactement_la_fenetre(self):
         import datetime as dt

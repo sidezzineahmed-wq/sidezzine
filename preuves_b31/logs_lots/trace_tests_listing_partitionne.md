@@ -38,3 +38,25 @@ Deuxième version :
    état vide), pas le début du tour → `globaux[-2]`.
 
 Résultat : kit 56/56 (dont 17 TestPartitions et 1 TestStatutEtCatalogueGarde).
+
+## Production 19/10 après-midi (kit v3 publié au coffre a8f6)
+- 14:45–14:59 (passage manuel, kit v3) : LISTING_COMPLET, 16 partitions confirmées, 89 requêtes, 163 Mo, 855 s ;
+  contrôle 5 : total début 4602 = total fin 4602 = somme 4602 = distincts 4602, aucun écart de compte.
+- 15:17 et 16:14 (tâche horaire, kit v3) : PARTIEL, budget 1200 s atteint (120 et 114 requêtes) ; 16:14 relancé sans amorce
+  (le passage interrompu de 15:17 n'avait gardé aucune lecture) → 37 pages de 500 lignes (11,8 s chacune, ~476 Ko/s).
+  Ingestion EAIOS du catalogue complet de 14:59 : refusée à 15:46 par le contrôle d'autorisation de l'environnement,
+  publiée à 16:37 (EAIOS 2bb6 : 4648 consultations, 4596 avec fiche, 52 sans fiche).
+
+## Revue de la règle « ajouts tolérés pendant le contrôle » (retirée avant publication)
+Prédicat écrit : toutes partitions confirmées, somme = total du début, écarts de compte tous > 0, somme des écarts ≤ hausse
+du total global pendant le contrôle → complet au début du contrôle.
+Contre-exemple : x publié dans P AVANT le début (après la lecture de P), y retiré de Q avant le début, z publié dans Q après
+le début : somme = total du début, écart P = +1, écart Q = 0, hausse = 1 → la règle déclarait COMPLET sans x. Une hausse
+globale ne date pas un ajout (le portail ne publie que le jour). Règle retirée, ainsi que la référence « fin du
+contrôle » (une partition déjà recomptée peut changer avant la fin sans que son compte le montre).
+Règle gardée : comptes = totaux confirmés pour TOUTES les partitions (aucun écart) et somme = distincts = total du DÉBUT
+du contrôle ; variation ultérieure du total enregistrée à part (publications_apres_reference). Test
+`test_contre_exemple_hausse_globale_ne_date_pas_un_ajout`. Le passage complet de 14:59 satisfait la règle stricte.
+Autres corrections : lectures d'un passage interrompu gardées comme amorce (jamais comme preuve) ; réserve de budget
+pour les fiches (min(240 s, budget/5)) ; arrêt du listing sur budget = PARTIEL mais fiches lues dans la réserve.
+Kit : 65/65.

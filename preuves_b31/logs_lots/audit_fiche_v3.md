@@ -20,7 +20,36 @@ aucune donnée du compte ou de l'espace soumissionnaire n'est lue ni gardée.
 
 ## Table champ / couverture / source (données publiées le 19/10 au soir)
 
-COUVERTURE_A_COMPLETER
+Base : coffre e227 (tâche de 20:13, listing complet 4 699 + 46 conservées = 4 745 consultations), publiée en coffre 21f0
+puis EAIOS aa2a (19/10, 20:46–20:53 UTC). Couverture des 4 745 consultations du catalogue publié :
+
+| Champ PMMP | Lecteur | Stockage / ingestion | Fiche B1.1 | Couverture | Source |
+|---|---|---|---|---|---|
+| Référence, objet, acheteur, entité | `ref`, `obj`, `mo` / organismes | catalogue (31 champs) | résumé | 4 745 | listing + fiche |
+| Type d'annonce | `type_annonce` | `complements_fiche` | Source | 4 745 | fiche |
+| Procédure / mode / catégorie | `proc`, `mode_passation`, `cat` | catalogue + `mode_passation` | résumé / Conditions | 4 745 | fiche |
+| Allotissement, lots | `allot` + popup | `pmmp_enrichi.lots` | Détail par lot | 389 alloties, 389 lues | popup |
+| Estimation TTC, caution, TPE/PME | `est`, `cau`, `tp` (par lot si alloti) | catalogue / lots | résumé, Conditions | lus (jamais sommés) | fiche / popup |
+| Domaines | `dom` | catalogue | Conditions | lus | fiche |
+| Retrait du dossier | `ret` | `complements_fiche` | Retrait, dépôt et ouverture | 4 745 lus | fiche (4 529 ré-analysées hors ligne, `lu_le` gardé) |
+| Dépôt / ouverture | `dep`, `ouv` | catalogue | Retrait, dépôt et ouverture | lus | fiche |
+| Prix des plans | `prix_plans` | `complements_fiche` | Conditions | 4 745 lus | fiche |
+| Qualification / agréments | `q`, `ag` | catalogue / lots | résumé, Conditions | lus | fiche / popup |
+| Prospectus, échantillons | `ech_date`, `ech_txt` | `complements_fiche` | Conditions (distinct de la remise des plis) | bloc lu 4 745, publié 687 | fiche |
+| Réunion, visites | `reu`, `vis` | catalogue | Conditions / résumé | lus (0 visite non lue) | fiche |
+| Variante | `var` | catalogue | Conditions | lus | fiche |
+| Contact administratif publié | `contact` | `complements_fiche` (`sources_blocs`) | Contact administratif | 4 745 : 216 lecture v3, 4 529 état de page | fiche / état de page de la même lecture |
+| Pièces de la consultation | `docs` | `complements_fiche` | Documents publiés sur PMMP | 216 lues ; 4 529 « pas encore lues » + lien fiche PMMP | fiche v3 seulement |
+| Provenance | `lu_le`, `run`, `reanalyse_le`, `version_parseur` | `complements_fiche` | Source de la fiche | 4 745 | collecteur |
+
+Nombres exacts du résiduel (catalogue valide live, aucune archive hors catalogue) :
+- base 525a (4 728) : 4 647 pages en cache au SHA identique ; contact de l'état de page 4 540 ; résiduel 188
+  (81 sans page conforme, 94 contact non porté par l'état, 12 objet de l'état ≠ page, 1 état de type non pris en charge) ;
+  188 relues v3 (19:58–20:28, 2 connexions, ≥ 4 s, pause 10–22), 0 échec ;
+- base e227 (4 745, après la tâche de 20:13 encore en v2) : résiduel 27 (fiches relues par la tâche sans cache), relues
+  20:37–20:40, 0 échec ; résultat 4 745 / 4 745 champs du résumé v3 et contact, 0 `lu_le` reculé, 0 popup perdu.
+- Pièces : non relues en masse (visibilité des liens absente de l'état) ; complétées au fil des relectures horaires.
+- Texte prospectus e5w/1041719 : la source publiée s'arrête elle-même sur « … 10 HEURES O » (tel quel).
 
 ## Règles appliquées
 

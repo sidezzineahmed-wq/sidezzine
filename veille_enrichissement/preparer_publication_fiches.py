@@ -36,6 +36,9 @@ def main(argv=None):
     ap.add_argument("--kit", required=True)
     ap.add_argument("--sortie", required=True)
     ap.add_argument("--aujourdhui")
+    ap.add_argument("--garder-catalogue-valide", action="store_true",
+                    help="dernier passage non complet : catalogue_valide.json du coffre relu gardé tel quel (le passage horaire "
+                         "suivant au listing complet le reconstruit avec les fiches fusionnées) ; seul fiches.json change")
     a = ap.parse_args(argv)
     IN, OUT = os.path.abspath(a.coffre_in), os.path.abspath(a.sortie)
     v = json.loads(run(os.path.join(IN, "stock", "kit", "coffre.py"), "verifier", "--source", IN))
@@ -68,20 +71,23 @@ def main(argv=None):
     for f in os.listdir(OUT):
         if f.startswith("_comp_"):
             os.remove(os.path.join(OUT, f))
-    # 3. catalogue valide reconstruit (même listing, fiches fusionnées)
-    E = os.path.join(OUT, "_etat")
-    run(os.path.join(K, "coffre.py"), "unpack", "--source", OUT, "--etat", E)
-    cat_p = os.path.join(OUT, "_sortie", "catalogue.json")
-    run(os.path.join(K, "construire_catalogue.py"), "--etat", E, "--sortie", cat_p, *(["--aujourdhui", a.aujourdhui] if a.aujourdhui else []))
-    cat, st = json.load(open(cat_p)), json.load(open(os.path.join(OUT, "stock", "statut.json")))
-    ancien = json.load(open(os.path.join(IN, "stock", "catalogue_valide.json")))
-    assert cat["maj"] == st["dernier_succes"]["fin"] == ancien["maj"], (cat["maj"], st["dernier_succes"]["fin"], ancien["maj"])
-    assert cat["total_portail"] == ancien["total_portail"]
-    shutil.copy(cat_p, os.path.join(OUT, "stock", "catalogue_valide.json"))
-    rapport["catalogue_valide"] = {"maj": cat["maj"], "n": cat["n"], "n_details_avant": ancien["n_details"], "n_details": cat["n_details"],
-                                   "n_avant": ancien["n"]}
-    shutil.rmtree(E)
-    shutil.rmtree(os.path.join(OUT, "_sortie"))
+    if a.garder_catalogue_valide:
+        rapport["catalogue_valide"] = "gardé tel quel (dernier passage non complet)"
+    else:
+        # 3. catalogue valide reconstruit (même listing, fiches fusionnées)
+        E = os.path.join(OUT, "_etat")
+        run(os.path.join(K, "coffre.py"), "unpack", "--source", OUT, "--etat", E)
+        cat_p = os.path.join(OUT, "_sortie", "catalogue.json")
+        run(os.path.join(K, "construire_catalogue.py"), "--etat", E, "--sortie", cat_p, *(["--aujourdhui", a.aujourdhui] if a.aujourdhui else []))
+        cat, st = json.load(open(cat_p)), json.load(open(os.path.join(OUT, "stock", "statut.json")))
+        ancien = json.load(open(os.path.join(IN, "stock", "catalogue_valide.json")))
+        assert cat["maj"] == st["dernier_succes"]["fin"] == ancien["maj"], (cat["maj"], st["dernier_succes"]["fin"], ancien["maj"])
+        assert cat["total_portail"] == ancien["total_portail"]
+        shutil.copy(cat_p, os.path.join(OUT, "stock", "catalogue_valide.json"))
+        rapport["catalogue_valide"] = {"maj": cat["maj"], "n": cat["n"], "n_details_avant": ancien["n_details"], "n_details": cat["n_details"],
+                                       "n_avant": ancien["n"]}
+        shutil.rmtree(E)
+        shutil.rmtree(os.path.join(OUT, "_sortie"))
     # 4. manifeste et contrôle
     sys.path.insert(0, K)
     import coffre  # noqa

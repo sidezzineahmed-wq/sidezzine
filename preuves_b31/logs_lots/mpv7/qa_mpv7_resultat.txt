@@ -1,0 +1,34 @@
+OK filtres Tous / Sans demande / En attente / En cours, compteurs réels {'tout': 23, 'sans': 19, 'attente': 1, 'cours': 3}
+OK états réels : ouverture=en cours ; CG=intervention ; CAPTCHA=intervention ; Drive vérifié=reçu (hors file) ; « prêt » non vérifié ≠ reçu ; demande d'un autre dossier de la consultation = en attente
+OK panneau : deux boutons visibles, un seul lien « Accéder au DCE sur PMMP » (même ID/org), aucun dépôt ZIP ni ajout manuel [['Accéder au DCE sur PMMP\n(nouvel onglet)', 'https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=990201&orgAcronyme=fxq']]
+OK panneau sans société
+OK « Mettre en file » : demande écrite (FIFO), aucun réveil, état « En attente » avec position — file
+OK FIFO : ordre de dépôt respecté ['fx-q9~sakdat', 'fx-q1', 'fx-q2']
+OK déjà en file : « Mettre en file » désactivé, « Récupérer maintenant » propose de passer en tête
+OK « Récupérer maintenant » : passe en tête (['fx-q2', 'fx-q9~sakdat', 'fx-q1']) et réveille la tâche tout de suite [['Claude Code Remote', 'fire_trigger', {'trigger_id': 'trig_FICTIF01', 'text': 'DCE-FILE fx-q2'}]]
+OK position recalculée depuis la base : 1
+OK démarrage demandé ≠ prise en charge : réveil enregistré en base, jamais « Récupération en cours » avant la prise par la tâche
+OK tâche occupée par une autre demande : affiché honnêtement
+OK réveil impossible (connecteur) : demande conservée en file, message honnête « prochain passage horaire »
+OK échec du réveil enregistré en base (visible après rechargement) et bouton « Réessayer le démarrage »
+OK réessai : nouvel appel réel au déclencheur, réveil confirmé
+OK l'ancienne demande (« prêt » non vérifié) est conservée dans l'historique, pas écrasée
+OK dossier non autorisé : confirmation explicite avant toute écriture
+OK autorisation : dossier ajouté à la liste (fusion : actif, tâche, autres dossiers et Drive conservés), puis demande écrite
+OK consultation déjà demandée via le dossier SAKDAT : état « En attente », aucun nouveau dépôt
+OK concurrence : la base est relue avant d'écrire ; une récupération en cours n'est jamais écrasée
+OK enregistrement refusé : rien mis en file, aucun réveil, état de la base affiché
+OK CAPTCHA : « Intervention requise », prise en main proposée, remise en file possible, motif échappé
+OK remise en file : nouvelle demande, l'échec précédent conservé dans l'historique
+OK CG lues : « Intervention requise », texte échappé (aucun script), boutons de file désactivés
+OK acceptation humaine des CG : validation écrite (phrase + empreinte), tâche réveillée
+OK récupération en cours : progression serveur, boutons désactivés
+OK reçu : seulement avec stockage vérifié (fichiers, empreinte, date de vérification)
+OK lecture seule : boutons visibles mais désactivés, motif affiché
+OK lien PMMP : identifiants filtrés, hôte officiel seulement
+OK ancienne « demande interne » sans tâche : affichée « À demander », jamais comme une récupération
+OK Consultations : l'ancienne demande interne est remplacée par « Récupérer le DCE (file DCE) »
+OK … qui ouvre l'onglet DCE sur la même consultation
+OK aucune écriture sur les dossiers réels copiés
+OK aucune erreur JavaScript []
+OK mobile 390 px : sans débordement (0)

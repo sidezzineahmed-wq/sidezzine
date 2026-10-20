@@ -1,0 +1,3 @@
+qa_mpv6c (états de chargement) : 13 / 13
+qa_mpv6 / qa_mpv_m6 / qa_mpv6b : contrôles de l'ancienne vue DCE (demande interne, dépôt ZIP, anciens filtres) remplacés par qa_mpv7 (retraits demandés)
+kit_dce : 89 tests + 28 tests Drive (commit 02e23b7)

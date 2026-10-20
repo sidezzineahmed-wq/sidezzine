@@ -69,6 +69,16 @@ with sync_playwright() as p:
         f"panneau : deux boutons visibles, un seul lien « Accéder au DCE sur PMMP » (même ID/org), aucun dépôt ZIP ni ajout manuel {pm}")
     chk("société" not in P["t"].lower().replace("jamais au nom d'une société","").replace("aucune société",""),"panneau sans société")
     laychk(ev(LAY),"bureau 1280 px");pg.screenshot(path=os.path.join(OUT,"cartes_bureau.png"))
+    # ===== stockage privé à rétablir (dce/config.sante, constat réel) =====
+    ev("()=>{window.__DB.dce.config.sante={stockage:{etat:'a_retablir',constate_le:'2026-10-20T12:58:00Z',motif:'renouvellement de la connexion Google Drive refusé (HTTP 400) au diagnostic de la tâche DCE <b>x</b>'}};}");ev(LIVE)
+    P=sel("p:fxq:990201");w0,m0=len(W()),len(MC())
+    sx=ev("()=>({b:!!document.querySelector('[data-mpv7-sante=a_retablir]'),t:(document.querySelector('[data-mpv7-sante]')||{innerText:''}).innerText,tab:!!document.querySelector('[data-mpv7-sante-tab]'),wq:!!document.querySelector('[data-mpv7-attente-stock]'),wn:!!document.querySelector('[data-mpv7-now-suspendu]'),h:(document.querySelector('[data-mpv7-sante]')||{innerHTML:''}).innerHTML})")
+    chk(sx["b"] and "Connexion au stockage privé à rétablir" in sx["t"] and "20/10" in sx["t"] and sx["tab"] and sx["wq"] and sx["wn"] and P["file"] and not P["now"] and "<b>x</b>" not in sx["h"] and "Récupération en cours" not in P["t"] and "Reçu" not in P["t"].replace("Reçu uniquement",""),
+        "stockage bloqué : bandeau « Connexion au stockage privé à rétablir » (date, motif échappé), « Récupérer maintenant » suspendu avec raison, « Mettre en file » possible avec avertissement d'attente, aucun faux statut")
+    ev("()=>{mpv7Lancer(mpvDceGroupes(Date.now()).O.find(g=>g.id==='fx-q1'),true);mpv7Relancer({id:'fx-q1'});}");pg.wait_for_timeout(500)
+    chk(len(W())==w0 and len(MC())==m0,"stockage bloqué : aucun réveil ni écriture par « Récupérer maintenant » / « Réessayer le démarrage », même appelés directement")
+    ev("()=>{delete window.__DB.dce.config.sante;}");ev(LIVE);P=sel("p:fxq:990201")
+    chk(P["now"] and not ev("()=>!!document.querySelector('[data-mpv7-sante]')"),"connexion rétablie (champ retiré) : « Récupérer maintenant » de nouveau disponible")
     # ===== Mettre en file : FIFO à deux demandes, puis Récupérer maintenant =====
     w0,m0=len(W()),len(MC());pg.click('[data-mpv7-file="fx-q1"]');pg.wait_for_timeout(700);ev(LIVE)
     d1=ev("()=>window.__DB.dce_demande['fx-q1']");P=sel("p:fxq:990201")

@@ -3,6 +3,9 @@ OK états réels : ouverture=en cours ; CG=intervention ; CAPTCHA=intervention ;
 OK panneau : deux boutons visibles, un seul lien « Accéder au DCE sur PMMP » (même ID/org), aucun dépôt ZIP ni ajout manuel [['Accéder au DCE sur PMMP\n(nouvel onglet)', 'https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=990201&orgAcronyme=fxq']]
 OK panneau sans société
 OK bureau 1280 px : section « Demander le DCE », 2 cartes empilées pleine largeur, textes validés, bouton bronze, helper concis, aucun détail technique {'stack': True, 'full': True, 'bfull': True, 'bg': 'rgb(176, 122, 42)', 'pw': 316, 'sw': 316, 'cw': [316, 316], 'helper': 'Reçu uniquement après vérification et sauvegarde des fichiers.\nLa validation des conditions peut nécessiter votre intervention.'}
+OK stockage bloqué : bandeau « Connexion au stockage privé à rétablir » (date, motif échappé), « Récupérer maintenant » suspendu avec raison, « Mettre en file » possible avec avertissement d'attente, aucun faux statut
+OK stockage bloqué : aucun réveil ni écriture par « Récupérer maintenant » / « Réessayer le démarrage », même appelés directement
+OK connexion rétablie (champ retiré) : « Récupérer maintenant » de nouveau disponible
 OK « Mettre en file » : demande écrite (FIFO), aucun réveil, état « En attente » avec position — file
 OK FIFO : ordre de dépôt respecté ['fx-q9~sakdat', 'fx-q1', 'fx-q2']
 OK déjà en file : « Mettre en file » désactivé, « Récupérer maintenant » propose de passer en tête

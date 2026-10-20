@@ -15,6 +15,8 @@ R=[
  ('if(!u.sel)u.sel=a.soc;if(!u.mob)u.mob="list";return u;}','if(!u.sel)u.sel=mpv6SocDossier(a);if(!u.mob)u.mob="list";return u;}'),
  ('const E=ids.map(sid=>b21dEval(id,a,sid,X.find(x=>x.sid===sid)||null));if(!E.some(e=>e.sid===u.sel))u.sel=(E[0]||{}).sid;',
   'const E=ids.map(sid=>b21dEval(id,a,sid,X.find(x=>x.sid===sid)||null));if(u.sel&&!E.some(e=>e.sid===u.sel))u.sel=null;'),
+ # dossier suivi au niveau du groupe (aucune société choisie) : affichage explicite, jamais un emplacement vide ; aucune donnée écrite
+ ('const socCourt=sid=>(SOCBY[sid]||{}).court||sid||"";','const socCourt=sid=>sid?(SOCBY[sid]||{}).court||sid:"société non choisie";'),
  # onglets B1.1 au clavier : même ordre que l'affichage (Consultations, Mes consultations suivies, DCE à récupérer)
  ('const T=["cons","dce","suiv"],i=T.indexOf(t.dataset.mpvTab)','const T=["cons","suiv","dce"],i=T.indexOf(t.dataset.mpvTab)'),
  ('const sel=E.find(e=>e.sid===u.sel);h+=sel?b21dPanel(id,a,sel):`<section class="b21d-p"><p class="b21d-src">Aucune société.</p></section>`;',

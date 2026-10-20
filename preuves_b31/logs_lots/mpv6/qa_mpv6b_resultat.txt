@@ -1,0 +1,23 @@
+OK nouveau dossier groupe créé par « Suivre » : aucun champ société (soc/mode/mem absents)
+OK panneau DCE du nouveau dossier : À récupérer, dépôt sur pmmp-1048054, aucun « undefined »/« null », aucune société []
+OK échec d'envoi : aucune écriture dossier/registre, statut reste « À récupérer » {'mem': 'afaire', 'db': [], 'dcef': False, 'rec': None, 'pan': 'afaire'} []
+OK réussite : écritures sur ao/pmmp-1048054 et dcef/pmmp-1048054 seulement, aucun chemin « undefined » [['set', 'dcef/pmmp-1048054'], ['update', 'ao/pmmp-1048054']]
+OK fichiers DCE réellement persistés (avec identifiant d'asset), sans attribution à une société ; clés ['dce', 'dcezip_1']
+OK statut « DCE reçu » après fichiers joints ; journal sans « undefined » ['Consultation suivie (groupe) depuis la veille : 177/2026/ADHA (AGENCE DE DEVELOPPEMENT DU HAUT ATLAS)', "177/2026/ADHA : DCE déposé (1 PDF, 0 original(aux), ZIP d'origine conservé)"]
+OK après rechargement : reçu relu de la base (fichiers persistés), sortie de la file DCE
+OK demande seule : « Demande enregistrée », jamais reçu
+OK marqueurs sans fichier (dceRecupereLe, dceImport, dceRecup terminé) : pas reçu
+OK pièces non DCE (caution, références) : pas reçu
+OK entrée DCE sans fichier persisté (pas d'identifiant d'asset) : pas reçu
+OK DCE d'une autre consultation (même numéro, autre organisme) : ne rend pas reçue celle-ci
+OK inventaire PMMP lu avec un DCE publié : statut décidé par les seuls fichiers joints {'k': 'p:f4g:1042960', 'dce': 'encours', 'f': 0}
+OK Ouvrir le dossier : dossier pmmp-1048054 ouvert, aucun « undefined », rien d'écrit (sociétés citées : [('ALWAAD', "et acheteur dans l'historique collecté |  | 08 | Recommandation par société | ALWAAD ATAIB | STRUCTURE-CHANTIE"), ('ALWAAD', '-CHANTIER | RIYADA-BUILD | SIGNALSUD SAHARA | SIDITRAV | SAHARA IAAMAR | SAKDAT | ALWAAD ATAIB | 0 obstacle(s) con'), ('SAKDAT', 'R | BUILD-CHANTIER | RIYADA-BUILD | SIGNALSUD SAHARA | SIDITRAV | SAHARA IAAMAR | SAKDAT | ALWAAD ATAIB | 0 obstacle'), ('SIDITRAV', 'TURE-CHANTIER | UP-MODULOR | BUILD-CHANTIER | RIYADA-BUILD | SIGNALSUD SAHARA | SIDITRAV | SAHARA IAAMAR | SAKDAT | ')])
+OK 10 étapes du dossier groupe parcourues : aucun « undefined »/« NaN »/emplacement société vide, rien d'écrit []
+OK Décision : 9 sociétés proposées, aucune sélectionnée ni imposée, rien d'écrit {'ns': True, 'cur': 0, 'pan': False, 'n': 9, 'und': False}
+OK choisir une société (clic) : panneau de cette société seulement, toujours rien d'écrit
+OK décision confirmée : dossier séparé pmmp-1048054~sakdat créé pour SAKDAT seulement à ce moment ; dossier groupe sans société ni décision [['set', 'ao/pmmp-1048054~sakdat'], ['set', 'ao/pmmp-1048054~sakdat']]
+OK le dossier séparé reprend le DCE reçu du dossier groupe (règle existante creerSib), sans autre pièce
+OK lecture seule : ni dépôt, ni demande, ni décision possibles {'j': False, 'd': False, 't': True} {'p': False}
+OK 118 dossiers réels copiés (sociétés, décisions, decisionHist, pièces cachetées/signées) strictement inchangés
+OK aucune erreur JavaScript []
+OK mobile 390 px : Décision ouvre la liste des sociétés, aucune imposée, sans débordement {'mob': 'list', 'cur': 0, 'ov': 0}

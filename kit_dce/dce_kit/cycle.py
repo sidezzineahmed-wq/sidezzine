@@ -64,10 +64,18 @@ def planifier(demandes, dossiers_autorises, run, maintenant=None, max_actions=1)
     par passage ; les écritures prennent le bail AVANT toute navigation (lot épinglé : si un autre passage l'a pris, il échoue)."""
     maintenant = maintenant or datetime.datetime.now(datetime.timezone.utc)
     actions, ecritures, ignorees = [], [], []
-    for did, d in sorted(demandes.items(), key=lambda x: x[1].get("demande_le") or ""):
+    # même consultation (identifiant officiel organisme + numéro) déjà en cours ou retenue : jamais deux traitements parallèles
+    actives = {(str(d.get("org")), str(d.get("ref"))): did for did, d in demandes.items()
+               if d.get("etat") in ("ouverture", "telechargement", "attente_validation_CG", "cg_validees")}
+    # ordre : demandes « immédiates » d'abord (bouton Récupérer maintenant), puis FIFO strict par date de demande
+    for did, d in sorted(demandes.items(), key=lambda x: (0 if x[1].get("immediat") else 1, x[1].get("demande_le") or "", x[0])):
         ver, etat = _version(d), d.get("etat")
         if d.get("ao_id") != did or did not in dossiers_autorises:
             ignorees.append({"id": did, "motif": "dossier non autorisé pour la tâche (essai : dossiers de test uniquement)"})
+            continue
+        cle = (str(d.get("org")), str(d.get("ref")))
+        if etat == "demandee" and actives.get(cle, did) != did:
+            ignorees.append({"id": did, "motif": f"même consultation déjà traitée par la demande {actives[cle]} : aucun doublon"})
             continue
         bail = d.get("tache") or {}
         if bail.get("jusqu") and (_t(bail["jusqu"]) or maintenant) > maintenant:
@@ -97,6 +105,7 @@ def planifier(demandes, dossiers_autorises, run, maintenant=None, max_actions=1)
                 ecritures.append(_ecr("update", "dce_demande", did, {"etat": "attente_validation_CG", "maj": _iso(maintenant),
                                   "validation": None, "erreur": {"code": "validation", "motif": motif, "le": _iso(maintenant)}}, ver))
                 continue
+        actives.setdefault(cle, did)
         suivant = "ouverture" if etat == "demandee" else "telechargement"
         bail = {"run": run, "jusqu": _iso(maintenant + datetime.timedelta(minutes=BAIL_MIN))}
         ecritures.append(_ecr("update", "dce_demande", did, {"etat": suivant, "tache": bail, "maj": _iso(maintenant)}, ver))

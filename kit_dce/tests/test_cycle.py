@@ -167,6 +167,49 @@ class TestCycle(unittest.TestCase):
         self.assertEqual([a["id"] for a in p["actions"]], ["fx-test"])
         self.assertIn("reel-1", [i["id"] for i in p["ignorees"]])
 
+    def _dem(self, did, ref, org, le, **k):
+        self.db.lot([{"op": "set", "collection": "dce_demande", "doc_id": did, "data": {
+            "ao_id": did, "ref": ref, "org": org, "etat": "demandee", "demande_par": "testeur", "demande_le": le, **k}}])
+
+    def test_fifo_deux_demandes_ordre_de_depot(self):
+        self._dem("fx-b", "R-B", "o", "2026-01-01T00:00:05Z")
+        self._dem("fx-a", "R-A", "o", "2026-01-01T00:00:01Z")
+        aut = {"fx-a", "fx-b"}
+        p1 = cycle.planifier(self.db.collection("dce_demande"), aut, "r1")
+        self.assertEqual([a["id"] for a in p1["actions"]], ["fx-a"])          # la plus ancienne d'abord
+        self.db.lot(p1["ecritures"])
+        p2 = cycle.planifier(self.db.collection("dce_demande"), aut, "r2")
+        self.assertEqual([a["id"] for a in p2["actions"]], ["fx-b"])          # puis la suivante, sans date à choisir
+        p3 = cycle.planifier(self.db.collection("dce_demande"), aut, "r3", max_actions=2)
+        self.assertEqual(len(p3["actions"]), 1)
+
+    def test_immediat_passe_en_tete(self):
+        self._dem("fx-a", "R-A", "o", "2026-01-01T00:00:01Z")
+        self._dem("fx-c", "R-C", "o", "2026-01-01T00:00:09Z", immediat=True)
+        p = cycle.planifier(self.db.collection("dce_demande"), {"fx-a", "fx-c"}, "r1")
+        self.assertEqual([a["id"] for a in p["actions"]], ["fx-c"])
+        self.db.lot(p["ecritures"])
+        self.assertEqual(self.db.lire("dce_demande", "fx-c")["tache"]["run"], "r1")
+
+    def test_meme_consultation_deux_dossiers_un_seul_traitement(self):
+        self._dem("fx-g", "R-SAME", "org1", "2026-01-01T00:00:01Z")
+        self._dem("fx-g~soc", "R-SAME", "org1", "2026-01-01T00:00:02Z")
+        self._dem("fx-autre-org", "R-SAME", "org2", "2026-01-01T00:00:03Z")
+        aut = {"fx-g", "fx-g~soc", "fx-autre-org"}
+        p = cycle.planifier(self.db.collection("dce_demande"), aut, "r1", max_actions=3)
+        self.assertEqual([a["id"] for a in p["actions"]], ["fx-g", "fx-autre-org"])   # même numéro, autre organisme : autre consultation
+        self.assertIn("fx-g~soc", [i["id"] for i in p["ignorees"]])
+        self.db.lot(p["ecritures"])
+        p2 = cycle.planifier(self.db.collection("dce_demande"), aut, "r2", max_actions=3)
+        self.assertNotIn("fx-g~soc", [a["id"] for a in p2["actions"]])          # tant que fx-g est en cours
+
+    def test_echec_non_repris_automatiquement(self):
+        self._dem("fx-e", "R-E", "o", "2026-01-01T00:00:01Z")
+        d = self.db.lire("dce_demande", "fx-e")
+        self.db.lot([{"op": "update", "collection": "dce_demande", "doc_id": "fx-e", "if_version": d["__version"], "data": {"etat": "echec"}}])
+        p = cycle.planifier(self.db.collection("dce_demande"), {"fx-e"}, "r1")
+        self.assertEqual(p["actions"], [])
+
     def test_deux_passages_concurrents_un_seul_gagne(self):
         file = self.db.collection("dce_demande")
         p1, p2 = cycle.planifier(file, {"fx-test"}, "rA"), cycle.planifier(file, {"fx-test"}, "rB")

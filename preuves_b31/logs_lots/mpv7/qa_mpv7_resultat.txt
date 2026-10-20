@@ -2,6 +2,7 @@ OK filtres Tous / Sans demande / En attente / En cours, compteurs réels {'tout'
 OK états réels : ouverture=en cours ; CG=intervention ; CAPTCHA=intervention ; Drive vérifié=reçu (hors file) ; « prêt » non vérifié ≠ reçu ; demande d'un autre dossier de la consultation = en attente
 OK panneau : deux boutons visibles, un seul lien « Accéder au DCE sur PMMP » (même ID/org), aucun dépôt ZIP ni ajout manuel [['Accéder au DCE sur PMMP\n(nouvel onglet)', 'https://www.marchespublics.gov.ma/index.php?page=entreprise.EntrepriseDemandeTelechargementDce&refConsultation=990201&orgAcronyme=fxq']]
 OK panneau sans société
+OK bureau 1280 px : section « Demander le DCE », 2 cartes empilées pleine largeur, textes validés, bouton bronze, helper concis, aucun détail technique {'stack': True, 'full': True, 'bfull': True, 'bg': 'rgb(176, 122, 42)', 'pw': 316, 'sw': 316, 'cw': [316, 316], 'helper': 'Reçu uniquement après vérification et sauvegarde des fichiers.\nLa validation des conditions peut nécessiter votre intervention.'}
 OK « Mettre en file » : demande écrite (FIFO), aucun réveil, état « En attente » avec position — file
 OK FIFO : ordre de dépôt respecté ['fx-q9~sakdat', 'fx-q1', 'fx-q2']
 OK déjà en file : « Mettre en file » désactivé, « Récupérer maintenant » propose de passer en tête
@@ -31,4 +32,5 @@ OK Consultations : l'ancienne demande interne est remplacée par « Récupérer 
 OK … qui ouvre l'onglet DCE sur la même consultation
 OK aucune écriture sur les dossiers réels copiés
 OK aucune erreur JavaScript []
+OK mobile 390 px : section « Demander le DCE », 2 cartes empilées pleine largeur, textes validés, bouton bronze, helper concis, aucun détail technique {'stack': True, 'full': True, 'bfull': True, 'bg': 'rgb(176, 122, 42)', 'pw': 324, 'sw': 324, 'cw': [324, 324], 'helper': 'Reçu uniquement après vérification et sauvegarde des fichiers.\nLa validation des conditions peut nécessiter votre intervention.'}
 OK mobile 390 px : sans débordement (0)

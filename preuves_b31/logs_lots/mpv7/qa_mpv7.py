@@ -11,6 +11,19 @@ for i,r in enumerate(range(990201,990210)):
     M["ao"][f"fx-q{i+1}"]=fx(str(r),"fxq",J(8+i),suivi={"niveau":"groupe"})
 M["ao"]["fx-q9~sakdat"]=fx("990209","fxq",J(16),soc="sakdat",base="fx-q9",statut="En préparation",decision={"verdict":"Go","le":J(-1),"qui":"autre"})
 CG={"texte":"Conditions <script>window.__xss=1</script> d'utilisation","lien":"https://www.marchespublics.gov.ma/cg.pdf","empreinte":"ab"*32,"portee":"section","algo":"cg-v3","canonique":"> CG\nligne","lue_le":N(-5)}
+LAY="""()=>{const pan=document.querySelector('[data-mpv6-dpanel]'),sec=pan&&pan.querySelector('[data-mpv7-dem]');if(!sec)return null;const C=[...sec.querySelectorAll('[data-mpv7-card]')],r=e=>e.getBoundingClientRect();
+ const ps=getComputedStyle(pan),pw=r(pan).width-parseFloat(ps.paddingLeft)-parseFloat(ps.paddingRight)-parseFloat(ps.borderLeftWidth)-parseFloat(ps.borderRightWidth);
+ return {h:(sec.querySelector('h3')||{}).innerText,n:C.length,k:C.map(c=>c.dataset.mpv7Card),t:C.map(c=>c.querySelector('.mpv7-ct').innerText),d:C.map(c=>c.querySelector('.mpv-mut').innerText),
+  b:C.map(c=>[c.querySelector('button').innerText.trim(),c.querySelector('button').className]),stack:C.length==2&&r(C[1]).top>=r(C[0]).bottom-0.5&&Math.abs(r(C[0]).left-r(C[1]).left)<1,
+  full:C.every(c=>Math.abs(r(c).width-r(sec).width)<1)&&Math.abs(r(sec).width-pw)<2,bfull:C.every(c=>{const b=c.querySelector('button'),cs=getComputedStyle(c);return Math.abs(r(b).width-(r(c).width-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-parseFloat(cs.borderLeftWidth)-parseFloat(cs.borderRightWidth)))<1.5}),
+  bg:getComputedStyle(C[1].querySelector('button')).backgroundColor,bg1:getComputedStyle(C[0].querySelector('button')).backgroundColor,
+  helper:(pan.querySelector('[data-mpv7-helper]')||{innerText:''}).innerText.trim(),sw:Math.round(r(sec).width),cw:C.map(c=>Math.round(r(c).width)),tech:/exploitant|nom, prénom|e-mail/i.test(pan.innerText),pw:Math.round(pw)}}"""
+def laychk(L,lbl):
+    chk(L and L["h"]=="Demander le DCE" and L["n"]==2 and L["k"]==["file","now"] and L["t"]==["Mettre en file d'attente","Récupérer maintenant"]
+        and L["d"]==["Le collaborateur le récupère à son tour.","Le collaborateur commence la récupération immédiatement."]
+        and L["b"][0][0]=="Mettre en file" and L["b"][1][0]=="Récupérer maintenant" and "mpv-bp" in L["b"][1][1] and L["stack"] and L["full"] and L["bfull"] and L["bg"]!=L["bg1"]
+        and L["helper"].startswith("Reçu uniquement après vérification et sauvegarde des fichiers.") and not L["tech"],
+        f"{lbl} : section « Demander le DCE », 2 cartes empilées pleine largeur, textes validés, bouton bronze, helper concis, aucun détail technique {L and {k:L[k] for k in ('stack','full','bfull','bg','pw','sw','cw','helper')}}")
 def dem(did,etat,**k):
     p=M["ao"][did]["portail"];d={"ao_id":did,"ref":p["ref"],"org":p["org"],"reference_attendue":M["ao"][did]["ref"],"etat":etat,"demande_par":"u_autre","demande_le":N(-30),"maj":N(-10),
        "cg":None,"validation":None,"tache":None,"erreur":None,"resultat":None};d.update(k);return d
@@ -55,6 +68,7 @@ with sync_playwright() as p:
         and "EntrepriseDemandeTelechargementDce" in pm[0][1] and "refConsultation=990201" in pm[0][1] and "orgAcronyme=fxq" in pm[0][1] and "Ajouter" not in P["t"],
         f"panneau : deux boutons visibles, un seul lien « Accéder au DCE sur PMMP » (même ID/org), aucun dépôt ZIP ni ajout manuel {pm}")
     chk("société" not in P["t"].lower().replace("jamais au nom d'une société","").replace("aucune société",""),"panneau sans société")
+    laychk(ev(LAY),"bureau 1280 px");pg.screenshot(path=os.path.join(OUT,"cartes_bureau.png"))
     # ===== Mettre en file : FIFO à deux demandes, puis Récupérer maintenant =====
     w0,m0=len(W()),len(MC());pg.click('[data-mpv7-file="fx-q1"]');pg.wait_for_timeout(700);ev(LIVE)
     d1=ev("()=>window.__DB.dce_demande['fx-q1']");P=sel("p:fxq:990201")
@@ -129,7 +143,7 @@ with sync_playwright() as p:
     reel=[w for w in W() if w[1].startswith("ao/") and w[1][3:] in REEL];chk(not reel,"aucune écriture sur les dossiers réels copiés")
     chk(not errs,f"aucune erreur JavaScript {errs[:3]}");ctx.close()
     ctx,pg,errs=demarrer(b,390,844);ev=lambda js,*a:pg.evaluate(js,*a);ev(B11);P=sel("p:fxq:990201")
-    pg.click('[data-mpv6-row] button');pg.wait_for_timeout(300);ov=ev("()=>document.documentElement.scrollWidth-document.documentElement.clientWidth")
+    pg.click('[data-mpv6-row] button');pg.wait_for_timeout(300);laychk(ev(LAY),"mobile 390 px");pg.screenshot(path=os.path.join(OUT,"cartes_mobile.png"),full_page=True);ov=ev("()=>document.documentElement.scrollWidth-document.documentElement.clientWidth")
     chk(ov<=0 and not errs,f"mobile 390 px : sans débordement ({ov})");ctx.close();b.close()
 open(os.path.join(OUT,"resultat.txt"),"w",encoding="utf-8").write("\n".join(R))
 print(sum(r.startswith("OK") for r in R),"/",len(R))

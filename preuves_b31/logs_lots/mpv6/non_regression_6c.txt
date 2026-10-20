@@ -1,0 +1,4 @@
+qa_mpv6 43 / 43
+qa_mpv6b 23 / 23
+qa_mpv_m6 50 / 50
+qa_mpv5 30 / 30

@@ -1,0 +1,7 @@
+ECHEC catalogue en chargement : panneau DCE « Chargement de l'inventaire », jamais « absente » ni « pas encore relevée » (p:s5z:1035450, inv=inconnu)
+OK bandeau et file : chargement annoncé (dates des dossiers en attendant)
+ECHEC panneau Suivies pendant le chargement : « Chargement du catalogue », jamais « absente »
+ECHEC pendant le chargement : compteur DCE 14 = recalcul sur les dates des dossiers (14), annoncé provisoire
+ECHEC focus dans la recherche pendant l'arrivée du catalogue : chargement terminé, jamais bloqué {'cat': 'loading', 'att': True, 'q': 'ds', 'v': 'zzqa', 'c': 4, 'st': 'zzqa'}
+OK saisie intacte : focus, texte et curseur conservés {'cat': 'loading', 'att': True, 'q': 'ds', 'v': 'zzqa', 'c': 4, 'st': 'zzqa'}
+playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 60000ms exceeded.

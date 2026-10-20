@@ -1,0 +1,13 @@
+OK catalogue en chargement : panneau DCE « Chargement de l'inventaire », jamais « absente » ni « pas encore relevée » (p:s5z:1035450, inv=chargement)
+OK bandeau et file : chargement annoncé (dates des dossiers en attendant)
+OK panneau Suivies pendant le chargement : « Chargement du catalogue », jamais « absente »
+OK pendant le chargement : compteur DCE 14 = recalcul sur les dates des dossiers (14), annoncé provisoire
+OK focus dans la recherche pendant l'arrivée du catalogue : chargement terminé, jamais bloqué {'cat': 'ok', 'att': False, 'q': 'ds', 'v': 'zzqa', 'c': 4, 'st': 'zzqa'}
+OK saisie intacte : focus, texte et curseur conservés {'cat': 'ok', 'att': False, 'q': 'ds', 'v': 'zzqa', 'c': 4, 'st': 'zzqa'}
+OK catalogue arrivé : compteur recalculé 14 → 15 (= recalcul sur les dates PMMP 15, en-tête 15), mention provisoire retirée
+OK après chargement : état réel de l'inventaire (lu)
+OK aucune erreur JavaScript []
+OK catalogue en erreur : inventaire « indisponible » explicite, jamais « absente » (erreur)
+OK aucune erreur JavaScript []
+OK catalogue chargé : une consultation vraiment absente reste « inconnu (absente du catalogue) »
+OK aucune erreur JavaScript []

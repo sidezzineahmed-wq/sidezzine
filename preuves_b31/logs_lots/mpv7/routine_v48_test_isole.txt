@@ -1,0 +1,17 @@
+Routine DCE v4.8 : préparation à interpréteur unique (venv sous $W), test isolé du 2026-10-20 12:57 UTC, commit 02e23b7
+
+== Reproduction (interpréteur sans playwright) ==
+Ran 89 tests in 17.663s
+FAILED (failures=4, errors=23)
+ModuleNotFoundError playwright : 7
+
+== Correctif (venv neuf, "$PY" -m pip) ==
+/usr/local/bin/python3
+/usr/bin/python3.11
+Python 3.11.15
+pip 24.0 from $W/venv/lib/python3.11/site-packages/pip (python 3.11)
+$W/venv/bin/python 1.56.0
+{"etat": "ok", "python": "3.11.15", "playwright": "1.56.0", "chromium": "141.0.7390.37"}
+
+tests kit : Ran 89 tests in 42.608s / OK
+tests Drive : Ran 28 tests in 16.267s / OK
